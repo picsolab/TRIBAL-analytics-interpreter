@@ -10,17 +10,18 @@ import DirectionsIcon from '@material-ui/icons/Directions';
 
 const useStyles = makeStyles({
   root: {
-    padding: '2px 4px',
     display: 'flex',
     alignItems: 'center',
-    width: '100%'
+    width: '100%',
+    marginTop: 10
   },
   input: {
     marginLeft: 8,
-    flex: 1
+    flex: 1,
+    fontSize: '0.9rem'
   },
   iconButton: {
-    padding: 10
+    padding: 2
   },
   divider: {
     width: 1,

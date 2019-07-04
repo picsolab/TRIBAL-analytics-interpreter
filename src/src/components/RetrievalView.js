@@ -8,10 +8,14 @@ import index from '../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import { SubTitle } from '../GlobalStyles';
 
+import FeatureView from './FeatureView';
+import ListView from './ListView';
+
 const RetrievalViewWrapper = styled.div.attrs({
-  className: 'RetrievalView' // something here
+  className: 'RetrievalView'
 })`
   grid-area: rt;
+  border-bottom: 1px solid darkgray;
 `;
 
 const LocalButton = styled(Button)`
@@ -19,7 +23,7 @@ const LocalButton = styled(Button)`
 `;
 
 const SearchBarWrapper = styled.div.attrs({
-  className: 'search_bar' // something here
+  className: 'search_bar_wrapper'
 })`
   width: 100%;
   height: 100px;
@@ -27,6 +31,7 @@ const SearchBarWrapper = styled.div.attrs({
   background-color: whitesmoke;
   margin: 5px;
   padding: 5px;
+  border: 0.5px solid #e6e6e6;
 `;
 
 const ComponentSubTitle = styled(SubTitle)`
@@ -34,23 +39,24 @@ const ComponentSubTitle = styled(SubTitle)`
 `;
 
 const SearchComponentWrapper = styled.div.attrs({
-  className: 'search_component_wrapper' // something here
+  className: 'search_component_wrapper'
 })`
   width: 20%;
+  margin-left: 15px;
 `;
 
-const FeatureView = () => {
-  const renderThings = () => {
-    return <div>renderInside</div>;
-  };
+// const FeatureView = () => {
+//   const renderThings = () => {
+//     return <div>renderInside</div>;
+//   };
 
-  return (
-    <div>
-      {renderThings()}
-      <g />
-    </div>
-  );
-};
+//   return (
+//     <div>
+//       {renderThings()}
+//       <g />
+//     </div>
+//   );
+// };
 
 const RetrievalView = ({ onIncrease, onDecrease, number }) => {
   return (
@@ -62,16 +68,19 @@ const RetrievalView = ({ onIncrease, onDecrease, number }) => {
           <CustomizedInputBase />
         </SearchComponentWrapper>
         <SearchComponentWrapper>
-          <div>Document</div>
+          <ComponentSubTitle>Document</ComponentSubTitle>
+          <CustomizedInputBase />
         </SearchComponentWrapper>
         <SearchComponentWrapper>
-          <div>User</div>
+          <ComponentSubTitle>User</ComponentSubTitle>
+          <CustomizedInputBase />
         </SearchComponentWrapper>
         <SearchComponentWrapper>
-          <div>Group</div>
+          <ComponentSubTitle>Word</ComponentSubTitle>
+          <CustomizedInputBase />
         </SearchComponentWrapper>
       </SearchBarWrapper>
-      <h1>{number}</h1>
+      {/* <h1>{number}</h1>
       <div>
         <LocalButton
           // className={styles.searchButton}
@@ -82,8 +91,8 @@ const RetrievalView = ({ onIncrease, onDecrease, number }) => {
           label="Search"
         />
         <button onClick={onDecrease}>-1</button>
-      </div>
-      <FeatureView />
+      </div> */}
+      <ListView />
     </RetrievalViewWrapper>
   );
 };

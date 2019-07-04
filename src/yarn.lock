@@ -3493,6 +3493,13 @@ d3@^5.9.7:
     d3-voronoi "1"
     d3-zoom "1"
 
+d3blackbox@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/d3blackbox/-/d3blackbox-1.2.0.tgz#bd6251feb5714cb201b88a2971ba91e633961b87"
+  integrity sha512-N7DECkAVSv51HXDz7hIWj0x9uJYMkVeGm0ItxE+633WQ0xh4bzrTv36q5/EC0bdJ+M3jPLkShfDMJWhORzPoFg==
+  dependencies:
+    prop-types "^15.7.2"
+
 damerau-levenshtein@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/damerau-levenshtein/-/damerau-levenshtein-1.0.4.tgz#03191c432cb6eea168bb77f3a55ffdccb8978514"
