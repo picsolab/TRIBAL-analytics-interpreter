@@ -12,6 +12,7 @@ export const loadData = (callback = _.noop) => {
     })
   ]).then(([tweets]) => {
     console.log('inside');
+    console.log(tweets);
     callback({
       tweets: tweets
     });

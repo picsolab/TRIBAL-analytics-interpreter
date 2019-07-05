@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import styled from 'styled-components';
 import CounterContainer from './containers/CounterContainer';
-import RetrievalViewContainer from './containers/RetrievalViewContainer';
+import BrowserContainer from './containers/BrowserContainer';
 import './data/tweet_guncontrol.csv';
 
 const Container = styled.div`
@@ -13,7 +13,7 @@ const Container = styled.div`
   grid-template-columns: 50% 50%;
   grid-template-areas:
     'h h'
-    'rt m'
+    'b m'
     'm2 m';
 
   font-size: 0.9rem;
@@ -48,7 +48,7 @@ function App() {
       <Header className={Header}>
         <Title class=".App-link">TRIBAL</Title>
       </Header>
-      <RetrievalViewContainer />
+      <BrowserContainer />
       <CounterContainer />
       <Mockup />
       <Mockup2 />

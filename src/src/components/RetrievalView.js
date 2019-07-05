@@ -13,10 +13,7 @@ import ListView from './ListView';
 
 const RetrievalViewWrapper = styled.div.attrs({
   className: 'RetrievalView'
-})`
-  grid-area: rt;
-  border-bottom: 1px solid darkgray;
-`;
+})``;
 
 const LocalButton = styled(Button)`
   background-color: black;
@@ -28,10 +25,9 @@ const SearchBarWrapper = styled.div.attrs({
   width: 100%;
   height: 100px;
   display: flex;
-  background-color: whitesmoke;
   margin: 5px;
   padding: 5px;
-  border: 0.5px solid #e6e6e6;
+  border-bottom: 0.5px solid #e6e6e6;
 `;
 
 const ComponentSubTitle = styled(SubTitle)`
@@ -92,7 +88,6 @@ const RetrievalView = ({ onIncrease, onDecrease, number }) => {
         />
         <button onClick={onDecrease}>-1</button>
       </div> */}
-      <ListView />
     </RetrievalViewWrapper>
   );
 };

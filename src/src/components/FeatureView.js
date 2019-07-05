@@ -17,11 +17,8 @@ const ComponentSubTitle = styled(SubTitle2)`
   color: white;
 `;
 
-// const data1 = loadData();
-// console.log(data1);
-
-const data2 = require('../data/tweet_guncontrol.json');
-console.log(data2);
+// const data2 = require('../data/tweet_guncontrol.json');
+// console.log(data2);
 
 const FeatureView = props => {
   const ref = useRef(null);
@@ -38,19 +35,17 @@ const FeatureView = props => {
   useEffect(() => {
     const { data } = props;
 
-    loadData(data11 => console.log(data11));
+    // Promise.all([
+    //   d3.json('data/tweet_guncontrol.json', d => {
+    //     console.log(d);
+    //     return d;
+    //   })
+    // ]).then(([tweets]) => {
+    //   console.log('inside');
+    //   console.log(tweets);
 
-    Promise.all([
-      d3.json('data/tweet_guncontrol.json', d => {
-        console.log(d);
-        return d;
-      })
-    ]).then(([tweets]) => {
-      console.log('inside');
-      console.log(tweets);
-
-      return tweets;
-    });
+    //   return tweets;
+    // });
 
     const featureRecData = d3
       .select(ref.current)

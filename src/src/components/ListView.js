@@ -46,14 +46,42 @@ const ComponentSubTitle = styled(SubTitle)`
   color: white;
 `;
 
-const ListView = ({ onIncrease, onDecrease, number }) => {
-  const data = [0.7, 0.5, 0.3, 0.4];
+const DocumentView = ({ tweet }) => {
+  console.log(tweet);
+  return (
+    <div>
+      <div style={{ display: 'flex' }}>
+        <div>{tweet.group}</div>
+        <div>{tweet.content}</div>
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div>{'V: ' + Math.round(tweet.valence * 100) / 100}</div>
+        <div>{'A: ' + Math.round(tweet.arousal * 100) / 100}</div>
+        <div>{'D: ' + Math.round(tweet.dominance * 100) / 100}</div>
+      </div>
+    </div>
+  );
+};
+
+const DocumentListView = ({ data }) => {
+  const tweets = data;
+  const top10Tweets = data.slice(0, 3);
+
+  return top10Tweets.map(tweet => {
+    return <DocumentView tweet={tweet} />;
+  });
+};
+
+const ListView = ({ data }) => {
+  const mockup = [0.7, 0.5, 0.3, 0.4];
+  console.log('data in ListView: ', data);
 
   return (
     <ListViewWrapper>
-      <FeatureView data={data} />
+      <FeatureView data={mockup} />
       <DocumentListWrapper>
         <ComponentSubTitle>Document</ComponentSubTitle>
+        <DocumentListView data={data} />
       </DocumentListWrapper>
       <UserListWrapper>
         <ComponentSubTitle>User</ComponentSubTitle>
