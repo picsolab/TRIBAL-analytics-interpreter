@@ -6,7 +6,15 @@ import { Button } from 'grommet';
 import CustomizedInputBase from './SearchBar';
 import index from '../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SubTitle, SubTitle2 } from '../GlobalStyles';
+import {
+  ComponentSubTitle,
+  SubTitle,
+  SubTitle2,
+  DocumentWrapper,
+  GroupDiv,
+  ContentDiv,
+  ScoreDiv
+} from '../GlobalStyles';
 
 import FeatureView from './FeatureView';
 
@@ -19,7 +27,8 @@ const ListViewWrapper = styled.div.attrs({
   grid-template-areas:
     'f dc u'
     'f dc w';
-  height: 75%;
+  height: 67.5%;
+  border-bottom: 1px solid lightgray;
 `;
 
 const DocumentListWrapper = styled(SubTitle2).attrs({
@@ -41,35 +50,60 @@ const WordListWrapper = styled(SubTitle2).attrs({
   grid-area: w;
 `;
 
-const ComponentSubTitle = styled(SubTitle)`
-  background-color: darkgray;
-  color: white;
-`;
-
 const DocumentView = ({ tweet }) => {
   console.log(tweet);
   return (
+    <DocumentWrapper>
+      <GroupDiv>{tweet.grp}</GroupDiv>
+      <div>
+        <ContentDiv>{tweet.content}</ContentDiv>
+        <div style={{ display: 'flex' }}>
+          <ScoreDiv>{'V: ' + Math.round(tweet.valence * 100) / 100}</ScoreDiv>
+          <ScoreDiv>{'A: ' + Math.round(tweet.arousal * 100) / 100}</ScoreDiv>
+          <ScoreDiv>{'D: ' + Math.round(tweet.dominance * 100) / 100}</ScoreDiv>
+        </div>
+      </div>
+    </DocumentWrapper>
+  );
+};
+
+const DocumentListView = ({ tweets }) => {
+  const top10Tweets = tweets.slice(0, 3);
+
+  return top10Tweets.map(tweet => {
+    return <DocumentView tweet={tweet} />;
+  });
+};
+
+const UserView = ({ user }) => {
+  return (
     <div>
       <div style={{ display: 'flex' }}>
-        <div>{tweet.group}</div>
-        <div>{tweet.content}</div>
+        <div>{user.screenName}</div>
+        <div>{user.content}</div>
       </div>
       <div style={{ display: 'flex' }}>
-        <div>{'V: ' + Math.round(tweet.valence * 100) / 100}</div>
-        <div>{'A: ' + Math.round(tweet.arousal * 100) / 100}</div>
-        <div>{'D: ' + Math.round(tweet.dominance * 100) / 100}</div>
+        <div>{'V: ' + Math.round(0.24 * 100) / 100}</div>
+        <div>{'A: ' + Math.round(0.38 * 100) / 100}</div>
+        <div>{'D: ' + Math.round(0.23 * 100) / 100}</div>
       </div>
     </div>
   );
 };
 
-const DocumentListView = ({ data }) => {
-  const tweets = data;
-  const top10Tweets = data.slice(0, 3);
-
-  return top10Tweets.map(tweet => {
-    return <DocumentView tweet={tweet} />;
+const UserListView = ({ tweets }) => {
+  const top10Tweets = tweets.slice(0, 3);
+  const userData = top10Tweets.map(tweet => {
+    return {
+      userId: tweet.user_id,
+      screenName: tweet.screen_name,
+      numFollower: tweet.num_followers,
+      numFriends: tweet.num_friends,
+      numRetweeted: tweet.num_retweeted
+    };
   });
+
+  return userData.map(user => <UserView user={user} />);
 };
 
 const ListView = ({ data }) => {
@@ -81,10 +115,11 @@ const ListView = ({ data }) => {
       <FeatureView data={mockup} />
       <DocumentListWrapper>
         <ComponentSubTitle>Document</ComponentSubTitle>
-        <DocumentListView data={data} />
+        <DocumentListView tweets={data} />
       </DocumentListWrapper>
       <UserListWrapper>
         <ComponentSubTitle>User</ComponentSubTitle>
+        <UserListView tweets={data} />
       </UserListWrapper>
       <WordListWrapper>
         <ComponentSubTitle>Word</ComponentSubTitle>

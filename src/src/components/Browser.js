@@ -6,7 +6,7 @@ import { Button } from 'grommet';
 import CustomizedInputBase from './SearchBar';
 import index from '../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SubTitle } from '../GlobalStyles';
+import { SectionTitle, SubTitle } from '../GlobalStyles';
 
 import RetrievalView from './RetrievalView';
 import ListView from './ListView';

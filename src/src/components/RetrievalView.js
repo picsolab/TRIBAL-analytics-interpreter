@@ -6,7 +6,7 @@ import { Button } from 'grommet';
 import CustomizedInputBase from './SearchBar';
 import index from '../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SubTitle } from '../GlobalStyles';
+import { SectionTitle, SubTitle } from '../GlobalStyles';
 
 import FeatureView from './FeatureView';
 import ListView from './ListView';
@@ -57,6 +57,9 @@ const SearchComponentWrapper = styled.div.attrs({
 const RetrievalView = ({ onIncrease, onDecrease, number }) => {
   return (
     <RetrievalViewWrapper>
+      <div style={{ display: 'flex' }}>
+        <SectionTitle>Retrieval</SectionTitle>
+      </div>
       <SearchBarWrapper>
         <div className={index.subTitle}>Filter</div>
         <SearchComponentWrapper>

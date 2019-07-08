@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import CounterContainer from './containers/CounterContainer';
 import BrowserContainer from './containers/BrowserContainer';
 import './data/tweet_guncontrol.csv';
+import InstanceViewerContainer from './containers/InstanceViewerContainer';
 
 const Container = styled.div`
   width: 70%;
@@ -14,7 +15,7 @@ const Container = styled.div`
   grid-template-areas:
     'h h'
     'b m'
-    'm2 m';
+    'i m';
 
   font-size: 0.9rem;
   color: #404040;
@@ -49,9 +50,8 @@ function App() {
         <Title class=".App-link">TRIBAL</Title>
       </Header>
       <BrowserContainer />
-      <CounterContainer />
+      <InstanceViewerContainer />
       <Mockup />
-      <Mockup2 />
     </Container>
   );
 }

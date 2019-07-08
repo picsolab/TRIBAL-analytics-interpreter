@@ -15,7 +15,7 @@ const initialState = {
 };
 
 // Reducers
-const browser = (state = initialState, action) => {
+const instanceViewer = (state = initialState, action) => {
   switch (action.type) {
     case INCREMENT:
       return state.data;
@@ -26,4 +26,4 @@ const browser = (state = initialState, action) => {
   }
 };
 
-export default browser;
+export default instanceViewer;
