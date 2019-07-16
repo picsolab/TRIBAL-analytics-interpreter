@@ -5,20 +5,9 @@ import styled, { css } from 'styled-components';
 import { Grommet, Button, Tabs, Tab, Box } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { deepMerge } from 'grommet/utils';
-import CustomizedInputBase from './SearchBar';
-import index from '../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import {
-  SectionTitle,
-  SubTitle,
-  DocumentWrapper,
-  GroupDiv,
-  ContentDiv,
-  ScoreDiv
-} from '../GlobalStyles';
-
-import RetrievalView from './RetrievalView';
-import ListView from './ListView';
+import index from '../../index.css';
+import Document from '../subcomponents/Document';
+import { SectionTitle, SubTitle } from '../../GlobalStyles';
 
 const InstanceViewerWrapper = styled.div.attrs({
   className: 'instance_viewer'
@@ -85,52 +74,31 @@ const tabCustomTheme = deepMerge(grommet, {
   }
 });
 
-const DocumentView = ({ tweet }) => {
-  return (
-    <DocumentWrapper>
-      <GroupDiv>con</GroupDiv>
-      <div>
-        <ContentDiv>
-          {
-            "A singer killed at a meet &amp; greet, and then 50 people are murdered at a nightclub and yet some people still think we don't need gun control"
-          }
-        </ContentDiv>
-        <div style={{ display: 'flex' }}>
-          <ScoreDiv>{'V: ' + Math.round(0.42 * 100) / 100}</ScoreDiv>
-          <ScoreDiv>{'A: ' + Math.round(0.87 * 100) / 100}</ScoreDiv>
-          <ScoreDiv>{'D: ' + Math.round(0.56 * 100) / 100}</ScoreDiv>
-        </div>
-      </div>
-    </DocumentWrapper>
-  );
-};
-
 const DocumentListView = ({ tweets }) => {
   const top10Tweets = tweets.slice(0, 3);
 
   return top10Tweets.map(tweet => {
-    return <DocumentView tweet={tweet} />;
+    return <Document tweet={tweet} />;
   });
 };
 
 const InstanceViewer = ({ data }) => {
+  console.log('data in instanceviewer: ', data);
   return (
     <Grommet theme={tabCustomTheme} style={{ fontSize: '0.9rem' }}>
       <InstanceViewerWrapper>
         <Header>
-          <SectionTitle>Explore</SectionTitle>
+          <SectionTitle>Instance</SectionTitle>
         </Header>
-        <div style={{ display: 'flex' }}>
-          <div style={{ width: '45%' }}>
+        <div>
+          <div>
             <InstanceId>tweet 176</InstanceId>
             <div
               style={{
-                height: '400px',
-                borderRight: '1px solid gray',
                 padding: '5px'
               }}
             >
-              <DocumentView />
+              <Document tweet={data} />
             </div>
           </div>
           <div style={{ fontSize: '10px' }}>

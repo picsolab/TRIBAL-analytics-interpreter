@@ -1,13 +1,13 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { increment, decrement } from '../modules/counter';
-import Browser from '../components/Browser';
+import Explorer from '../components/Explorer/Explorer';
 
-const BrowserContainer = () => {
+const ExplorerContainer = () => {
   const data = useSelector(state => state.browser, []);
   const dispatch = useDispatch();
 
-  return <Browser data={data} />;
+  return <Explorer data={data} />;
 };
 
-export default BrowserContainer;
+export default ExplorerContainer;

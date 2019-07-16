@@ -1,23 +1,24 @@
 import React from 'react';
 import './App.css';
 import styled from 'styled-components';
-import CounterContainer from './containers/CounterContainer';
-import BrowserContainer from './containers/BrowserContainer';
+import ExplorerContainer from './containers/ExplorerContainer';
 import './data/tweet_guncontrol.csv';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
+import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
 
 const Container = styled.div`
-  width: 70%;
+  width: 80%;
   margin: 10px auto;
   display: grid;
   grid-template-rows: 50px 500px 500px;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: 42.5% 15% 42.5%;
   grid-template-areas:
-    'h h'
-    'b m'
-    'i m';
+    'h h h'
+    'e m2 g'
+    'e m3 m';
 
   font-size: 0.9rem;
+  font-family: sans-serif;
   color: #404040;
 `;
 
@@ -43,14 +44,20 @@ const Mockup2 = styled.div`
   grid-area: m2;
 `;
 
+const Mockup3 = styled.div`
+  grid-area: m3;
+`;
+
 function App() {
   return (
     <Container className={Container}>
       <Header className={Header}>
         <Title class=".App-link">TRIBAL</Title>
       </Header>
-      <BrowserContainer />
-      <InstanceViewerContainer />
+      <ExplorerContainer />
+      <Mockup2 />
+      <GlobalInterpreterContainer />
+      <Mockup3 />
       <Mockup />
     </Container>
   );

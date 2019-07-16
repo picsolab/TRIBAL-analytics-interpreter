@@ -3,17 +3,19 @@ import * as d3 from 'd3';
 
 import styled from 'styled-components';
 import { Button } from 'grommet';
-import CustomizedInputBase from './SearchBar';
-import index from '../index.css';
+import CustomizedInputBase from '../subcomponents/SearchBar';
+import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionTitle, SubTitle } from '../GlobalStyles';
+import { SectionTitle, SubTitle } from '../../GlobalStyles';
 
 import FeatureView from './FeatureView';
 import ListView from './ListView';
 
 const RetrievalViewWrapper = styled.div.attrs({
   className: 'RetrievalView'
-})``;
+})`
+  grid-area: rt;
+`;
 
 const LocalButton = styled(Button)`
   background-color: black;
@@ -23,15 +25,16 @@ const SearchBarWrapper = styled.div.attrs({
   className: 'search_bar_wrapper'
 })`
   width: 100%;
-  height: 100px;
+  height: 80px;
   display: flex;
   margin: 5px;
   padding: 5px;
   border-bottom: 0.5px solid #e6e6e6;
+  background-color: whitesmoke;
 `;
 
 const ComponentSubTitle = styled(SubTitle)`
-  color: blue;
+  color: black;
 `;
 
 const SearchComponentWrapper = styled.div.attrs({

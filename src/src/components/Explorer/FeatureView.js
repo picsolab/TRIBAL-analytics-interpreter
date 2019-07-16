@@ -3,8 +3,8 @@ import * as d3 from 'd3';
 import { useD3 } from 'd3blackbox';
 import styled from 'styled-components';
 
-import { loadData } from '../dataHandling';
-import { ComponentSubTitle, SubTitle, SubTitle2 } from '../GlobalStyles';
+import { loadData } from '../../dataHandling';
+import { ComponentSubTitle, SubTitle, SubTitle2 } from '../../GlobalStyles';
 
 const FeatureViewWrapper = styled.div.attrs({
   className: 'feature_view' // something here
