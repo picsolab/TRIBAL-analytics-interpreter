@@ -11,10 +11,9 @@ import data from '../../data/planets.json';
 import { renderQueue } from '../../lib/renderQueue';
 
 const FeaturePlotViewWrapper = styled(SectionWrapper).attrs({
-  className: 'FeaturePlotView'
+  className: 'feature_plot_view_wrapper'
 })`
   height: 300px;
-  border-left: 1px solid darkgray;
 `;
 
 function d3_functor(v) {
@@ -25,10 +24,12 @@ function d3_functor(v) {
       };
 }
 
-const margin = { top: 66, right: 110, bottom: 20, left: 188 },
-  width = 600,
-  height = 340,
-  innerHeight = height - 2;
+const layout = {
+  margin: { top: 20, right: 110, bottom: 20, left: 30 },
+  width: 400,
+  height: 200,
+  innerHeight: 340 - 2
+};
 
 const types = {
   Number: {
@@ -40,7 +41,7 @@ const types = {
     within: function(d, extent, dim) {
       return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
     },
-    defaultScale: d3.scaleLinear().range([innerHeight, 0])
+    defaultScale: d3.scaleLinear().range([layout.innerHeight, 0])
   },
   String: {
     key: 'String',
@@ -51,7 +52,7 @@ const types = {
     within: function(d, extent, dim) {
       return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
     },
-    defaultScale: d3.scalePoint().range([0, innerHeight])
+    defaultScale: d3.scalePoint().range([0, layout.innerHeight])
   },
   Date: {
     key: 'Date',
@@ -62,7 +63,7 @@ const types = {
     within: function(d, extent, dim) {
       return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
     },
-    defaultScale: d3.scaleTime().range([innerHeight, 0])
+    defaultScale: d3.scaleTime().range([layout.innerHeight, 0])
   }
 };
 
@@ -71,14 +72,14 @@ const color = d3
   .domain([
     'Radial Velocity',
     'Imaging',
-    'Eclipse Timing Variations',
+    'Eclipse Timing constiations',
     'Astrometry',
     'Microlensing',
     'Orbital Brightness Modulation',
     'Pulsar Timing',
-    'Pulsation Timing Variations',
+    'Pulsation Timing constiations',
     'Transit',
-    'Transit Timing Variations'
+    'Transit Timing constiations'
   ])
   .range([
     '#DB7F85',
@@ -108,6 +109,11 @@ const color = d3
     '#944F7E'
   ]);
 
+const groupColorScale = d3
+  .scaleOrdinal()
+  .domain(['con', 'lib'])
+  .range(['pink', 'skyblue']);
+
 const dimensions = [
   {
     key: 'pl_discmethod',
@@ -131,13 +137,13 @@ const dimensions = [
     key: 'pl_orbper',
     type: types['Number'],
     description: 'Planet Orbital Period',
-    scale: d3.scaleLog().range([innerHeight, 0])
+    scale: d3.scaleLog().range([layout.innerHeight, 0])
   },
   {
     key: 'pl_orbsmax',
     type: types['Number'],
     description: 'Planet Semi-Major Axis',
-    scale: d3.scaleLog().range([innerHeight, 0])
+    scale: d3.scaleLog().range([layout.innerHeight, 0])
   },
   {
     key: 'pl_orbeccen',
@@ -296,94 +302,90 @@ const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
 
+  const { tweets } = props,
+    scoreFeatures = [
+      { key: 'valence', abbr: 'V' },
+      { key: 'arousal', abbr: 'A' },
+      { key: 'dominance', abbr: 'D' },
+      { key: 'moral1', abbr: 'M1' },
+      { key: 'moral2', abbr: 'M2' },
+      { key: 'moral3', abbr: 'M3' }
+    ];
+
   useEffect(() => {
-    var xFeatureScale = d3
+    const xFeatureScale = d3
       .scalePoint()
-      .domain(d3.range(dimensions.length))
-      .range([0, width]);
+      .domain(d3.range(scoreFeatures.length))
+      .range([layout.margin.left, layout.width]);
 
-    var yAxis = d3.axisLeft();
+    const yScoreScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([layout.height, layout.margin.top]);
 
-    var container = d3.select(ref.current);
-    var svg = d3.select(ref2.current);
+    const yAxis = d3.axisLeft();
 
-    var canvas = container
+    const container = d3.select(ref.current);
+    const svg = d3.select(ref2.current);
+
+    const canvas = container
       .append('canvas')
-      .attr('width', width)
-      .attr('height', height)
-      .style('width', width + 'px')
-      .style('height', height + 'px')
-      .style('margin-top', margin.top + 'px')
-      .style('margin-left', margin.left + 'px');
+      .attr('width', layout.width)
+      .attr('height', layout.height)
+      .style('width', layout.width + 'px')
+      .style('height', layout.height + 'px');
 
-    var ctx = canvas.node().getContext('2d');
+    const ctx = canvas.node().getContext('2d');
     ctx.globalCompositeOperation = 'darken';
     ctx.globalAlpha = 0.15;
     ctx.lineWidth = 1.5;
-    // ctx.scale(devicePixelRatio, devicePixelRatio);
 
-    var axes = svg
+    const axes = svg
       .selectAll('.axis')
-      .data(dimensions)
+      .data(scoreFeatures)
       .enter()
       .append('g')
       .attr('class', function(d) {
-        return 'axis ' + d.key.replace(/ /g, '_');
+        return 'axis ';
       })
       .attr('transform', function(d, i) {
         return 'translate(' + xFeatureScale(i) + ')';
       });
 
-    console.log('planet data: ', data);
-    data.forEach(function(d) {
-      dimensions.forEach(function(p) {
-        d[p.key] = !d[p.key] ? null : p.type.coerce(d[p.key]);
-      });
+    const featureTitle = svg
+      .selectAll('text')
+      .data(scoreFeatures.map(d => d.abbr))
+      .enter()
+      .append('text')
+      .text(d => d)
+      .attr('x', (d, i) => xFeatureScale(i) - 10)
+      .attr('y', (d, i) => layout.margin.top - 10)
+      .style('font-size', '0.8rem');
 
-      // truncate long text strings to fit in data table
-      for (var key in d) {
-        if (d[key] && d[key].length > 35) d[key] = d[key].slice(0, 36);
-      }
-    });
+    const render = renderQueue(draw).rate(30);
 
-    // type/dimension default setting happens here
-    dimensions.forEach(function(dim) {
-      if (!('domain' in dim)) {
-        // detect domain using dimension type's extent function
-        dim.domain = d3_functor(dim.type.extent)(
-          data.map(function(d) {
-            return d[dim.key];
-          })
-        );
-      }
-      if (!('scale' in dim)) {
-        // use type's default scale for dimension
-        dim.scale = dim.type.defaultScale.copy();
-      }
-      dim.scale.domain(dim.domain);
-    });
-
-    var render = renderQueue(draw).rate(30);
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.globalAlpha = d3.min([1.15 / Math.pow(data.length, 0.3), 1]);
-    render(data);
+    ctx.clearRect(0, 0, layout.width, layout.height);
+    ctx.globalAlpha = d3.min([1.15 / Math.pow(tweets.length, 0.3), 1]);
+    render(tweets);
 
     axes
       .append('g')
       .each(function(d) {
-        var renderAxis =
-          'axis' in d
-            ? d.axis.scale(d.scale) // custom axis
-            : yAxis.scale(d.scale); // default axis
-        d3.select(this).call(renderAxis);
+        // const renderAxis =
+        //   'axis' in d
+        //     ? d.axis.scale(d.scale) // custom axis
+        //     : yAxis.scale(d.scale); // default axis
+        const yAxisSetting = d3
+          .axisLeft(yScoreScale)
+          .tickValues(d3.range(0, 1.1, 0.2));
+        d3.select(this).call(yAxisSetting);
       })
       .append('text')
       .attr('class', 'title')
-      .attr('text-anchor', 'start')
-      .text(function(d) {
-        return 'description' in d ? d.description : d.key;
-      });
+      .attr('text-anchor', 'start');
+    // .text(function(d) {
+    //   return 'description' in d ? d.description : d.key;
+    // });
 
     // Add and store a brush for each axis.
     axes
@@ -393,7 +395,7 @@ const FeaturePlotView = props => {
         d3.select(this).call(
           (d.brush = d3
             .brushY()
-            .extent([[-10, 0], [10, height]])
+            .extent([[-10, 0], [10, layout.height]])
             .on('start', brushstart)
             .on('brush', brush)
             .on('end', brush))
@@ -406,32 +408,32 @@ const FeaturePlotView = props => {
     d3.selectAll('.axis.pl_discmethod .tick text').style('fill', color);
 
     function project(d) {
-      return dimensions.map(function(p, i) {
+      return scoreFeatures.map(function(p, i) {
         // check if data element has property and contains a value
         if (!(p.key in d) || d[p.key] === null) return null;
 
-        return [xFeatureScale(i), p.scale(d[p.key])];
+        return [xFeatureScale(i), yScoreScale(d[p.key])];
       });
     }
 
     function draw(d) {
-      ctx.strokeStyle = color(d.pl_discmethod);
+      ctx.strokeStyle = groupColorScale(d.grp);
       ctx.beginPath();
-      var coords = project(d);
+      const coords = project(d);
       coords.forEach(function(p, i) {
         // this tricky bit avoids rendering null values as 0
         if (p === null) {
           // this bit renders horizontal lines on the previous/next
           // dimensions, so that sandwiched null values are visible
           if (i > 0) {
-            var prev = coords[i - 1];
+            const prev = coords[i - 1];
             if (prev !== null) {
               ctx.moveTo(prev[0], prev[1]);
               ctx.lineTo(prev[0] + 6, prev[1]);
             }
           }
           if (i < coords.length - 1) {
-            var next = coords[i + 1];
+            const next = coords[i + 1];
             if (next !== null) {
               ctx.moveTo(next[0] - 6, next[1]);
             }
@@ -457,7 +459,7 @@ const FeaturePlotView = props => {
     function brush() {
       render.invalidate();
 
-      var actives = [];
+      const actives = [];
       svg
         .selectAll('.axis .brush')
         .filter(function(d) {
@@ -470,10 +472,10 @@ const FeaturePlotView = props => {
           });
         });
 
-      var selected = data.filter(function(d) {
+      const selected = tweets.filter(function(d) {
         if (
           actives.every(function(active) {
-            var dim = active.dimension;
+            const dim = active.dimension;
             // test if point is within extents for each active brush
             return dim.type.within(d[dim.key], active.extent, dim);
           })
@@ -491,11 +493,11 @@ const FeaturePlotView = props => {
           })
           .classed("active", true)
           .each(function(dimension, i) {
-            var extent = extents[i];
+            const extent = extents[i];
             d3.select(this)
               .selectAll(".tick text")
               .style("display", function(d) {
-                var value = dimension.type.coerce(d);
+                const value = dimension.type.coerce(d);
                 return dimension.type.within(value, extent, dimension) ? null : "none";
               });
           });
@@ -510,23 +512,26 @@ const FeaturePlotView = props => {
             .style("display", null);
       */
 
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, layout.width, layout.height);
       ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
       render(selected);
     }
   }, [props, ref.current]);
 
+  console.log('canvas: ', d3.selectAll('canvas'));
+  d3.selectAll('canvas').remove();
+
   return (
     <FeaturePlotViewWrapper
       ref={ref}
-      width={width + margin.left + margin.right}
-      height={height + margin.top + margin.bottom}
+      width={layout.width + layout.margin.left + layout.margin.right}
+      height={layout.height + layout.margin.top + layout.margin.bottom}
     >
-      <div>ddd</div>
       <svg
-        width={width + margin.left + margin.right}
-        height={height + margin.top + margin.bottom}
+        width={layout.width + layout.margin.left + layout.margin.right}
+        height={layout.height + layout.margin.top + layout.margin.bottom}
         ref={ref2}
+        style={{ position: 'absolute' }}
       />
     </FeaturePlotViewWrapper>
   );

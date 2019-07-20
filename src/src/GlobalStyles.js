@@ -9,9 +9,9 @@ export const SectionWrapper = styled.div`
 export const SectionTitle = styled.div`
   padding: 5px;
   margin: 3px;
-  border-bottom: 2px solid gray;
+  border-bottom: 4px solid gray;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
 `;
 
 export const SubTitle = styled.div`

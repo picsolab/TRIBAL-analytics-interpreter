@@ -8,20 +8,19 @@ import { StylesContext } from '@material-ui/styles/StylesProvider';
 import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
 import FeaturePlotView from './FeaturePlotView';
 
-const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
-  className: 'GlobalInterpreter'
+const GlobalInterpreterWrapper = styled.div.attrs({
+  className: 'global_interpreter'
 })`
   grid-area: g;
-  border-left: 1px solid darkgray;
 `;
 
-const GlobalInterpreter = ({ data }) => {
+const GlobalInterpreter = ({ tweets }) => {
   return (
     <GlobalInterpreterWrapper>
       <div style={{ display: 'flex' }}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
-      <FeaturePlotView />
+      <FeaturePlotView tweets={tweets} />
     </GlobalInterpreterWrapper>
   );
 };

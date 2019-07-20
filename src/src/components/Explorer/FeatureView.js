@@ -12,9 +12,6 @@ const FeatureViewWrapper = styled.div.attrs({
   grid-area: f;
 `;
 
-// const data2 = require('../data/tweet_guncontrol.json');
-// console.log(data2);
-
 const FeatureView = props => {
   const ref = useRef(null);
   const layout = {
@@ -29,18 +26,6 @@ const FeatureView = props => {
 
   useEffect(() => {
     const { data } = props;
-
-    // Promise.all([
-    //   d3.json('data/tweet_guncontrol.json', d => {
-    //     console.log(d);
-    //     return d;
-    //   })
-    // ]).then(([tweets]) => {
-    //   console.log('inside');
-    //   console.log(tweets);
-
-    //   return tweets;
-    // });
 
     const featureRecData = d3
       .select(ref.current)

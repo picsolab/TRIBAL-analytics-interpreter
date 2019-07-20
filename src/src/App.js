@@ -2,7 +2,6 @@ import React from 'react';
 import './App.css';
 import styled from 'styled-components';
 import ExplorerContainer from './containers/ExplorerContainer';
-import './data/tweet_guncontrol.csv';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
 

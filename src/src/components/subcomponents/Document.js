@@ -115,8 +115,6 @@ const ScoreView = props => {
 };
 
 const Document = ({ tweet }) => {
-  console.log('tweet in document: ', tweet);
-
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
 
@@ -124,14 +122,10 @@ const Document = ({ tweet }) => {
     <DocumentWrapper>
       <div style={{ display: 'flex', height: 30, alignItems: 'center' }}>
         <GroupDiv group={tweet.group} />
-        <div>{tweet.user_id}</div>
+        <div>{tweet.screenName}</div>
         <ScoreView tweet={tweet} />
       </div>
-      <ContentDiv>
-        {
-          "A singer killed at a meet &amp; greet, and then 50 people are murdered at a nightclub and yet some people still think we don't need gun control"
-        }
-      </ContentDiv>
+      <ContentDiv>{tweet.content}</ContentDiv>
     </DocumentWrapper>
   );
 };

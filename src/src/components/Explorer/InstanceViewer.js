@@ -6,8 +6,10 @@ import { Grommet, Button, Tabs, Tab, Box } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { deepMerge } from 'grommet/utils';
 import index from '../../index.css';
-import Document from '../subcomponents/Document';
 import { SectionTitle, SubTitle } from '../../GlobalStyles';
+
+import Document from '../subcomponents/Document';
+import User from '../subcomponents/User';
 
 const InstanceViewerWrapper = styled.div.attrs({
   className: 'instance_viewer'
@@ -27,9 +29,9 @@ const InstanceId = styled.div.attrs({
 })`
   width: 60px;
   height: 15px;
-  line-height: 1.5;
   margin: 3px;
   padding: 5px;
+  line-height: 1.5;
   border-radius: 5px;
   color: white;
   font-size: 0.7rem;
@@ -40,7 +42,7 @@ const InstanceId = styled.div.attrs({
 
 const tabCustomTheme = deepMerge(grommet, {
   global: {
-    fontSize: '0.8rem',
+    // fontSize: '0.8rem',
     elevation: {
       light: {
         small: '0px 1px 5px rgba(0, 0, 0, 0.50)',
@@ -82,10 +84,12 @@ const DocumentListView = ({ tweets }) => {
   });
 };
 
-const InstanceViewer = ({ data }) => {
-  console.log('data in instanceviewer: ', data);
+const InstanceViewer = ({ tweets, selectedTweet }) => {
   return (
-    <Grommet theme={tabCustomTheme} style={{ fontSize: '0.9rem' }}>
+    <Grommet
+      theme={tabCustomTheme}
+      style={{ fontSize: '0.9rem', lineHeight: 1.5, fontFamily: 'Arial' }}
+    >
       <InstanceViewerWrapper>
         <Header>
           <SectionTitle>Instance</SectionTitle>
@@ -98,24 +102,25 @@ const InstanceViewer = ({ data }) => {
                 padding: '5px'
               }}
             >
-              <Document tweet={data} />
+              {/* <User user={selectedTweet} /> */}
+              <Document tweet={selectedTweet} />
             </div>
           </div>
           <div style={{ fontSize: '10px' }}>
             <Tabs style={{ fontSize: '0.8rem' }}>
               <Tab title="Similar" style={{ fontSize: '0.8rem' }}>
                 <Box pad="medium" style={{ fontSize: '0.8rem' }}>
-                  <DocumentListView tweets={data} />
+                  <DocumentListView tweets={tweets} />
                 </Box>
               </Tab>
               <Tab title="Contrastive">
                 <Box pad="medium">
-                  <DocumentListView tweets={data} />
+                  <DocumentListView tweets={tweets} />
                 </Box>
               </Tab>
               <Tab title="Extreme">
                 <Box pad="medium">
-                  <DocumentListView tweets={data} />
+                  <DocumentListView tweets={tweets} />
                 </Box>
               </Tab>
             </Tabs>

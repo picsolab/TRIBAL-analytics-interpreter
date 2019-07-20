@@ -15,3 +15,7 @@ code {
 .subTitle {
   font-weight: 500;
 }
+
+.MuiPaper-elevation1 {
+  box-shadow: none !important;
+}

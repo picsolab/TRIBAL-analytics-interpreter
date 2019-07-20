@@ -26,14 +26,14 @@ const ExplorerWrapper = styled.div.attrs({
     'd i';
 `;
 
-const Explorer = ({ data }) => {
-  console.log('data in explorer: ', data);
+const Explorer = ({ tweets }) => {
+  const selectedTweet = tweets[0];
   return (
     <ExplorerWrapper>
-      <RetrievalView data={data} />
-      <DocumentView data={data} />
-      <ListView data={data} />
-      <InstanceViewer data={data} />
+      <RetrievalView data={tweets} />
+      <DocumentView data={tweets} />
+      <ListView data={tweets} />
+      <InstanceViewer tweets={tweets} selectedTweet={selectedTweet} />
     </ExplorerWrapper>
   );
 };

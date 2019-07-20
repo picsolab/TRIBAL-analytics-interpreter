@@ -1,23 +1,22 @@
 import { loadData } from '../dataHandling';
 
 // Action type
-const INCREMENT = 'browser/INCREMENT';
-const DECREMENT = 'browser/DECREMENT';
+const FETCH = 'dataLoader/FETCH';
+const DECREMENT = 'counter/DECREMENT';
 
 // Action generation functions
-export const increment = () => ({ type: INCREMENT });
+export const fetch = () => ({ type: FETCH });
 export const decrement = () => ({ type: DECREMENT });
 
 // initial value for state
 const initialState = {
-  data: require('../data/tweet_guncontrol_combined_simple.json'),
-  count: 0
+  data: require('../data/tweet_guncontrol_combined_simple.json')
 };
 
 // Reducers
-const browser = (state = initialState, action) => {
+const dataLoader = (state = initialState, action) => {
   switch (action.type) {
-    case INCREMENT:
+    case FETCH:
       return state.data;
     case DECREMENT:
       return state.data;
@@ -26,4 +25,4 @@ const browser = (state = initialState, action) => {
   }
 };
 
-export default browser;
+export default dataLoader;

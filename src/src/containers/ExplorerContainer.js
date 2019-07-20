@@ -4,10 +4,10 @@ import { increment, decrement } from '../modules/counter';
 import Explorer from '../components/Explorer/Explorer';
 
 const ExplorerContainer = () => {
-  const data = useSelector(state => state.browser, []);
+  const tweets = useSelector(state => state.browser, []);
   const dispatch = useDispatch();
 
-  return <Explorer data={data} />;
+  return <Explorer tweets={tweets} />;
 };
 
 export default ExplorerContainer;

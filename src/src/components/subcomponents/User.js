@@ -26,6 +26,22 @@ const ScoreDiv = styled.div.attrs({
   className: 'score'
 })``;
 
+const DocDiv = styled.div.attrs({
+  className: 'group'
+})`
+  width: 8px;
+  height: 8px;
+  line-height: 5;
+  margin-right: 1px;
+  // border: 1px solid black;
+  color: white;
+  font-weight: 500;
+  text-align: center;
+
+  ${({ group }) =>
+    group === 'lib' ? `background-color: skyblue;` : `background-color: pink`}
+`;
+
 const ContentDiv = styled.div.attrs({
   className: 'content'
 })`
@@ -44,19 +60,39 @@ const UserWrapper = styled.div.attrs({
   background-color: white;
 `;
 
-const ScoreView = props => {
+const UserScoreView = props => {
   const ref = useRef(null);
   const layout = {
-    width: 70,
-    height: 30,
+    width: 50,
+    height: 35,
+    marginBottom: 10,
     svg: {
-      width: 70,
-      height: 25
+      width: 50,
+      height: 35
     }
   };
+
+  const {
+    user,
+    yNumFollowersScale,
+    yNumFreindsScale,
+    yNumRetweetedScale
+  } = props;
+
+  console.log('user: ', user);
+  console.log('yNumFollowersScale: ', yNumFollowersScale);
+
+  const userScores = _.pick(user, [
+    'numFollowers',
+    'numFriends',
+    'numRetweeted'
+  ]);
+  const userScoreValues = Object.values(userScores),
+    numUserScores = userScoreValues.length;
+
   const xFeatureScale = d3
     .scaleBand()
-    .domain(d3.range(6))
+    .domain(d3.range(numUserScores))
     .range([0, layout.svg.width]);
 
   const yScoreScale = d3
@@ -65,56 +101,68 @@ const ScoreView = props => {
     .range([layout.svg.height, 0]);
 
   useEffect(() => {
-    const { tweet } = props;
-    const tweetScores = _.pick(tweet, [
-      'valence',
-      'arousal',
-      'dominance',
-      'moral1',
-      'moral2',
-      'moral3'
-    ]);
-
     const featureRecData = d3
       .select(ref.current)
       .selectAll('.feature_rect')
-      .data(Object.values(tweetScores));
+      .data(userScoreValues);
 
     const featureRec = featureRecData
       .enter()
       .append('rect')
       .attr('class', 'feature_rect')
-      .attr('width', layout.svg.width / 5 - 5)
-      .attr('height', d => yScoreScale(d))
-      .attr('x', (d, i) => {
-        console.log('i: ', i);
-        console.log('x position: ', xFeatureScale(i));
-        return xFeatureScale(i);
+      .attr('width', layout.svg.width / numUserScores - 5)
+      .attr('height', (d, i) => {
+        if (i === 0) return yNumFollowersScale(d);
+        else if (i === 1) return yNumFreindsScale(d);
+        else if (i === 2) return yNumRetweetedScale(d);
       })
-      .attr('y', (d, i) => layout.svg.height - yScoreScale(d))
-      .style('fill', 'mediumpurple');
+      .attr('x', (d, i) => xFeatureScale(i))
+      .attr('y', (d, i) => {
+        if (i === 0)
+          return (
+            layout.svg.height - layout.marginBottom - yNumFollowersScale(d)
+          );
+        else if (i === 1)
+          return layout.svg.height - layout.marginBottom - yNumFreindsScale(d);
+        else if (i === 2)
+          return (
+            layout.svg.height - layout.marginBottom - yNumRetweetedScale(d)
+          );
+      })
+      .style('fill', 'green');
 
-    // const featureTitle = d3
-    //   .select(ref.current)
-    //   .selectAll('text')
-    //   .data(['R', 'A', 'D', 'M'])
-    //   .enter()
-    //   .append('text')
-    //   .text(d => d)
-    //   .attr('x', 10)
-    //   .attr('y', (d, i) => i * 25 + 45);
-  }, [props.tweet, ref.current]);
+    const featureTitle = d3
+      .select(ref.current)
+      .selectAll('text')
+      .data(['F', 'F', 'R'])
+      .enter()
+      .append('text')
+      .text(d => d)
+      .attr('x', (d, i) => xFeatureScale(i))
+      .attr('y', (d, i) => layout.svg.height)
+      .style('font-size', '0.6rem');
+  }, [props, ref.current]);
 
   return (
     <div
-      style={{ width: layout.width, height: layout.height, marginLeft: 'auto' }}
+      style={{
+        width: layout.width,
+        height: layout.height,
+        marginLeft: 'auto',
+        marginTop: '5px'
+      }}
     >
       <svg width="100%" height="100%" ref={ref} />
     </div>
   );
 };
 
-const User = ({ user }) => {
+const User = ({
+  user,
+  yNumFollowersScale,
+  yNumFreindsScale,
+  yNumRetweetedScale
+}) => {
   if (typeof user === 'undefined' || Object.keys(user).length === 0)
     return <div />;
 
@@ -122,14 +170,19 @@ const User = ({ user }) => {
     <UserWrapper>
       <div style={{ display: 'flex', height: 30, alignItems: 'center' }}>
         <GroupDiv group={user.group} />
-        <div>{user.user_id}</div>
-        <ScoreView tweet={user} />
+        <div>{user.screenName}</div>
+        <UserScoreView
+          user={user}
+          yNumFollowersScale={yNumFollowersScale}
+          yNumFreindsScale={yNumFreindsScale}
+          yNumRetweetedScale={yNumRetweetedScale}
+        />
       </div>
-      <ContentDiv>
-        {
-          "A singer killed at a meet &amp; greet, and then 50 people are murdered at a nightclub and yet some people still think we don't need gun control"
-        }
-      </ContentDiv>
+      <div style={{ display: 'flex' }}>
+        {['lib', 'con', 'lib'].map(group => (
+          <DocDiv group={group} />
+        ))}
+      </div>
     </UserWrapper>
   );
 };
