@@ -43,7 +43,14 @@ LOCALE_PATHS = [ROOT_DIR.path("locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    "default": env.db("DATABASE_URL", default="postgres:///tribal")
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tribal',
+        'USER': 'yong8',
+        'PASSWORD': 'mcom7573',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
@@ -77,6 +84,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "app.users.apps.UsersConfig",
     # Your stuff: custom apps go here
+    "app.tweets.apps.TweetsConfig"
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
