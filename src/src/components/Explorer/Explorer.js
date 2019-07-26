@@ -27,6 +27,7 @@ const ExplorerWrapper = styled.div.attrs({
 `;
 
 const Explorer = ({ tweets }) => {
+  console.log('tweets in explorer: ', tweets);
   const selectedTweet = tweets[0];
   return (
     <ExplorerWrapper>

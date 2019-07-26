@@ -36,6 +36,10 @@ Werkzeug = "==0.14.1"
 Sphinx = "==2.1.1"
 django_coverage_plugin = "==1.6.0"
 django-cors-headers = "*"
+pandas = "*"
+numpy = "*"
+sklearn = "*"
+json = "*"
 
 [requires]
 python_version = "3.7"

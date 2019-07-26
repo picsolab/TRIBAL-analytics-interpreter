@@ -15,6 +15,7 @@ urlpatterns = [
     # # User management
     path("users/", include("app.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
+    path("tweets/", include(("app.tweets.urls", "tweets"), namespace="tweets")),
     # Your stuff: custom urls includes go here
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

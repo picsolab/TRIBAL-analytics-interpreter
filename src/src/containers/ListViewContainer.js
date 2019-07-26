@@ -4,13 +4,10 @@ import { increment, decrement } from '../modules/counter';
 import ListView from '../components/ListView';
 
 const ListViewContainer = () => {
-  const data = useSelector(state => {
-    console.log(state);
-    return state.data;
-  }, []);
+  const data = useSelector(state => state.dataLoader, []);
   const dispatch = useDispatch();
 
-  return <ListView data1={data} />;
+  return <ListView tweets={data} />;
 };
 
 export default ListViewContainer;

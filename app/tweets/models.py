@@ -17,7 +17,7 @@ class Tweet(models.Model):
     # First Name and Last Name do not cover name patterns
     # around the globe.
     tweet_id = models.CharField(max_length=100, primary_key=True, default='')
-    group = models.CharField(max_length=100, null=True)
+    grp = models.CharField(max_length=100, null=True)
     content = models.TextField(max_length=200, null=True)
     screen_name = models.CharField(max_length=100, null=True)
     user_id = models.CharField(max_length=100, null=True)

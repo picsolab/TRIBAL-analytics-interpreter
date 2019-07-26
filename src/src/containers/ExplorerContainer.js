@@ -4,8 +4,7 @@ import { increment, decrement } from '../modules/counter';
 import Explorer from '../components/Explorer/Explorer';
 
 const ExplorerContainer = () => {
-  const tweets = useSelector(state => state.browser, []);
-  const dispatch = useDispatch();
+  const tweets = useSelector(reducer => reducer.dataLoader, []);
 
   return <Explorer tweets={tweets} />;
 };

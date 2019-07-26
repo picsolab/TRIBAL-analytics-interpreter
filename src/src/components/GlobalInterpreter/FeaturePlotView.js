@@ -13,6 +13,7 @@ import { renderQueue } from '../../lib/renderQueue';
 const FeaturePlotViewWrapper = styled(SectionWrapper).attrs({
   className: 'feature_plot_view_wrapper'
 })`
+  grid-area: f;
   height: 300px;
 `;
 
@@ -26,10 +27,23 @@ function d3_functor(v) {
 
 const layout = {
   margin: { top: 20, right: 110, bottom: 20, left: 30 },
-  width: 400,
-  height: 200,
-  innerHeight: 340 - 2
+  width: 640,
+  height: 240,
+  innerHeight: 340 - 2,
+  featurePlot: {
+    width: 200
+  },
+  clusterPlot: {
+    height: 200,
+    leftMargin: 20,
+    minRadius: 5,
+    maxRadius: 15
+  },
+  pdp: {}
 };
+
+const wholeWidth = layout.width + layout.margin.left + layout.margin.right,
+  wholeHeight = layout.height + layout.margin.top + layout.margin.bottom;
 
 const types = {
   Number: {
@@ -276,9 +290,9 @@ const dimensions = [
   }
   /*
   {
-    key: "pl_telescope",
-    description: "Telescope",
-    type: types["String"],
+    key: 'pl_telescope',
+    description: 'Telescope',
+    type: types['String'],
     axis: d3.axisRight()
       .tickFormat(function(d,i) {
         return d;
@@ -287,9 +301,9 @@ const dimensions = [
   */
   /*
   {
-    key: "pl_instrument",
-    description: "Instrument",
-    type: types["String"],
+    key: 'pl_instrument',
+    description: 'Instrument',
+    type: types['String'],
     axis: d3.axisRight()
       .tickFormat(function(d,i) {
         return d;
@@ -302,7 +316,7 @@ const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
 
-  const { tweets } = props,
+  const { tweets, clusters } = props,
     scoreFeatures = [
       { key: 'valence', abbr: 'V' },
       { key: 'arousal', abbr: 'A' },
@@ -316,7 +330,7 @@ const FeaturePlotView = props => {
     const xFeatureScale = d3
       .scalePoint()
       .domain(d3.range(scoreFeatures.length))
-      .range([layout.margin.left, layout.width]);
+      .range([layout.margin.left, layout.featurePlot.width]);
 
     const yScoreScale = d3
       .scaleLinear()
@@ -330,17 +344,21 @@ const FeaturePlotView = props => {
 
     const canvas = container
       .append('canvas')
+      .attr('class', 'canvas_tweet_paths')
       .attr('width', layout.width)
       .attr('height', layout.height)
-      .style('width', layout.width + 'px')
-      .style('height', layout.height + 'px');
+      .style('width', wholeWidth - 90 + 'px')
+      .style('height', wholeHeight - 40 + 'px');
 
     const ctx = canvas.node().getContext('2d');
     ctx.globalCompositeOperation = 'darken';
     ctx.globalAlpha = 0.15;
     ctx.lineWidth = 1.5;
 
-    const axes = svg
+    //* Render the feature plot
+    const gFeaturePlot = svg.append('g').attr('class', 'g_feature_plot');
+
+    const axes = gFeaturePlot
       .selectAll('.axis')
       .data(scoreFeatures)
       .enter()
@@ -371,21 +389,15 @@ const FeaturePlotView = props => {
     axes
       .append('g')
       .each(function(d) {
-        // const renderAxis =
-        //   'axis' in d
-        //     ? d.axis.scale(d.scale) // custom axis
-        //     : yAxis.scale(d.scale); // default axis
         const yAxisSetting = d3
           .axisLeft(yScoreScale)
-          .tickValues(d3.range(0, 1.1, 0.2));
+          .tickValues(d3.range(0, 1.1, 0.2))
+          .tickSize(1);
         d3.select(this).call(yAxisSetting);
       })
       .append('text')
       .attr('class', 'title')
       .attr('text-anchor', 'start');
-    // .text(function(d) {
-    //   return 'description' in d ? d.description : d.key;
-    // });
 
     // Add and store a brush for each axis.
     axes
@@ -407,6 +419,7 @@ const FeaturePlotView = props => {
 
     d3.selectAll('.axis.pl_discmethod .tick text').style('fill', color);
 
+    // For feature plots
     function project(d) {
       return scoreFeatures.map(function(p, i) {
         // check if data element has property and contains a value
@@ -487,51 +500,117 @@ const FeaturePlotView = props => {
       // show ticks for active brush dimensions
       // and filter ticks to only those within brush extents
       /*
-      svg.selectAll(".axis")
+      svg.selectAll('.axis')
           .filter(function(d) {
             return actives.indexOf(d) > -1 ? true : false;
           })
-          .classed("active", true)
+          .classed('active', true)
           .each(function(dimension, i) {
             const extent = extents[i];
             d3.select(this)
-              .selectAll(".tick text")
-              .style("display", function(d) {
+              .selectAll('.tick text')
+              .style('display', function(d) {
                 const value = dimension.type.coerce(d);
-                return dimension.type.within(value, extent, dimension) ? null : "none";
+                return dimension.type.within(value, extent, dimension) ? null : 'none';
               });
           });
 
       // reset dimensions without active brushes
-      svg.selectAll(".axis")
+      svg.selectAll('.axis')
           .filter(function(d) {
             return actives.indexOf(d) > -1 ? false : true;
           })
-          .classed("active", false)
-          .selectAll(".tick text")
-            .style("display", null);
+          .classed('active', false)
+          .selectAll('.tick text')
+            .style('display', null);
       */
 
       ctx.clearRect(0, 0, layout.width, layout.height);
       ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
       render(selected);
-    }
+    } // end of brush()
+
+    //* Render clusters
+    const gClusterPlot = svg
+      .append('g')
+      .attr('class', 'g_cluster_plot')
+      .attr(
+        'transform',
+        'translate(' +
+          (layout.featurePlot.width +
+            layout.clusterPlot.leftMargin +
+            layout.clusterPlot.maxRadius) +
+          ',0)'
+      );
+
+    const yClusterCoordScale = d3
+      .scaleBand()
+      .domain(clusters.map(d => d.id))
+      .range([layout.margin.top, layout.clusterPlot.height]);
+
+    const numTweetClusterScale = d3
+      .scaleLinear()
+      .domain(clusters.map(d => d.numTweets))
+      .range([layout.clusterPlot.minRadius, layout.clusterPlot.maxRadius]);
+
+    const groupRatioScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range(['red', 'blue']);
+
+    const yClusterAxisSetting = d3
+        .axisLeft(yClusterCoordScale)
+        .tickValues([])
+        .tickSize(0),
+      yClusterAxis = gClusterPlot
+        .append('g')
+        .call(yClusterAxisSetting)
+        .attr('class', 'g_cluster_y_axis')
+        .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+
+    const clusterCircles = gClusterPlot
+      .selectAll('.cluster_circle')
+      .data(clusters)
+      .enter()
+      .append('circle')
+      .attr('cx', 0)
+      .attr('cy', d => yClusterCoordScale(d.id))
+      .attr('r', d => numTweetClusterScale(d.numTweets))
+      .style('fill', d => groupRatioScale(d.groupRatio.con))
+      .style('fill-opacity', 0.5);
+
+    //* Render Partial dependent plot (PDP)
+    const gPDP = svg
+      .append('g')
+      .attr('class', 'g_pdp')
+      .attr(
+        'transform',
+        'translate(' +
+          (layout.featurePlot.width +
+            layout.clusterPlot.leftMargin +
+            layout.clusterPlot.maxRadius) +
+          ',0)'
+      );
   }, [props, ref.current]);
 
-  console.log('canvas: ', d3.selectAll('canvas'));
   d3.selectAll('canvas').remove();
 
   return (
     <FeaturePlotViewWrapper
       ref={ref}
-      width={layout.width + layout.margin.left + layout.margin.right}
-      height={layout.height + layout.margin.top + layout.margin.bottom}
+      width={wholeWidth}
+      height={wholeHeight}
+      // style={{ display: 'flex' }}
     >
+      <div>Features</div>
       <svg
-        width={layout.width + layout.margin.left + layout.margin.right}
-        height={layout.height + layout.margin.top + layout.margin.bottom}
+        // width={layout.width + layout.margin.left + layout.margin.right}
+        // height={layout.height + layout.margin.top + layout.margin.bottom}
+        width="100%"
+        height="100%"
+        viewBox={'0 0 ' + wholeWidth + ' ' + wholeHeight}
+        preserveAspectRatio="xMinYMin"
         ref={ref2}
-        style={{ position: 'absolute' }}
       />
     </FeaturePlotViewWrapper>
   );

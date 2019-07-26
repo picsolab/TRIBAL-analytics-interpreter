@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+
 import './App.css';
 import styled from 'styled-components';
+
+import { fetchTweets } from './modules/dataLoader';
 import ExplorerContainer from './containers/ExplorerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
@@ -10,7 +14,7 @@ const Container = styled.div`
   margin: 10px auto;
   display: grid;
   grid-template-rows: 50px 500px 500px;
-  grid-template-columns: 42.5% 15% 42.5%;
+  grid-template-columns: 42.5% 2.5% 55%;
   grid-template-areas:
     'h h h'
     'e m2 g'
@@ -48,6 +52,12 @@ const Mockup3 = styled.div`
 `;
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchTweets());
+  });
+
   return (
     <Container className={Container}>
       <Header className={Header}>

@@ -79,9 +79,6 @@ const UserScoreView = props => {
     yNumRetweetedScale
   } = props;
 
-  console.log('user: ', user);
-  console.log('yNumFollowersScale: ', yNumFollowersScale);
-
   const userScores = _.pick(user, [
     'numFollowers',
     'numFriends',

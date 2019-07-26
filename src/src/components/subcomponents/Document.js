@@ -87,8 +87,6 @@ const ScoreView = props => {
       .attr('width', layout.svg.width / 5 - 5)
       .attr('height', d => yScoreScale(d))
       .attr('x', (d, i) => {
-        console.log('i: ', i);
-        console.log('x position: ', xFeatureScale(i));
         return xFeatureScale(i);
       })
       .attr('y', (d, i) => layout.svg.height - yScoreScale(d))
