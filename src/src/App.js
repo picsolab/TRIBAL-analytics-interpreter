@@ -5,6 +5,7 @@ import './App.css';
 import styled from 'styled-components';
 
 import { fetchTweets } from './modules/dataLoader';
+import { runClustering } from './modules/cluster';
 import ExplorerContainer from './containers/ExplorerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
@@ -56,12 +57,13 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchTweets());
+    dispatch(runClustering());
   });
 
   return (
     <Container className={Container}>
       <Header className={Header}>
-        <Title class=".App-link">TRIBAL</Title>
+        <Title className=".App-link">TRIBAL</Title>
       </Header>
       <ExplorerContainer />
       <Mockup2 />

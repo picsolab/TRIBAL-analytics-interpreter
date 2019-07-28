@@ -5,7 +5,12 @@ import styled from 'styled-components';
 import { Button } from 'grommet';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+import {
+  globalColors,
+  SectionWrapper,
+  SectionTitle,
+  SubTitle
+} from '../../GlobalStyles';
 
 import data from '../../data/planets.json';
 import { renderQueue } from '../../lib/renderQueue';
@@ -29,17 +34,23 @@ const layout = {
   margin: { top: 20, right: 110, bottom: 20, left: 30 },
   width: 640,
   height: 240,
+  leftMargin: 50,
   innerHeight: 340 - 2,
   featurePlot: {
-    width: 200
+    width: 350
   },
   clusterPlot: {
-    height: 200,
-    leftMargin: 20,
-    minRadius: 5,
-    maxRadius: 15
+    width: 70,
+    height: 240,
+    leftMargin: 80,
+    minRadius: 4,
+    maxRadius: 8
   },
-  pdp: {}
+  pdpPlot: {
+    width: 70,
+    height: 240,
+    leftMargin: 80
+  }
 };
 
 const wholeWidth = layout.width + layout.margin.left + layout.margin.right,
@@ -125,8 +136,8 @@ const color = d3
 
 const groupColorScale = d3
   .scaleOrdinal()
-  .domain(['con', 'lib'])
-  .range(['pink', 'skyblue']);
+  .domain(['lib', 'con'])
+  .range([globalColors.group.lib, globalColors.group.con]);
 
 const dimensions = [
   {
@@ -316,7 +327,7 @@ const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
 
-  const { tweets, clusters } = props,
+  const { tweets, clusters, words } = props,
     scoreFeatures = [
       { key: 'valence', abbr: 'V' },
       { key: 'arousal', abbr: 'A' },
@@ -342,18 +353,20 @@ const FeaturePlotView = props => {
     const container = d3.select(ref.current);
     const svg = d3.select(ref2.current);
 
+    const devicePixelRatio = window.devicePixelRatio || 1;
     const canvas = container
       .append('canvas')
       .attr('class', 'canvas_tweet_paths')
-      .attr('width', layout.width)
-      .attr('height', layout.height)
-      .style('width', wholeWidth - 90 + 'px')
-      .style('height', wholeHeight - 40 + 'px');
+      .attr('width', layout.width * devicePixelRatio)
+      .attr('height', layout.height * devicePixelRatio)
+      .style('width', layout.width + 'px')
+      .style('height', layout.height + 'px');
 
     const ctx = canvas.node().getContext('2d');
     ctx.globalCompositeOperation = 'darken';
-    ctx.globalAlpha = 0.15;
-    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 0.7;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
 
     //* Render the feature plot
     const gFeaturePlot = svg.append('g').attr('class', 'g_feature_plot');
@@ -430,7 +443,7 @@ const FeaturePlotView = props => {
     }
 
     function draw(d) {
-      ctx.strokeStyle = groupColorScale(d.grp);
+      ctx.strokeStyle = groupColorScale(d.group);
       ctx.beginPath();
       const coords = project(d);
       coords.forEach(function(p, i) {
@@ -539,13 +552,13 @@ const FeaturePlotView = props => {
         'translate(' +
           (layout.featurePlot.width +
             layout.clusterPlot.leftMargin +
-            layout.clusterPlot.maxRadius) +
+            layout.clusterPlot.maxRadius * 2) +
           ',0)'
       );
 
     const yClusterCoordScale = d3
       .scaleBand()
-      .domain(clusters.map(d => d.id))
+      .domain(clusters.map(d => d.clusterId))
       .range([layout.margin.top, layout.clusterPlot.height]);
 
     const numTweetClusterScale = d3
@@ -555,8 +568,8 @@ const FeaturePlotView = props => {
 
     const groupRatioScale = d3
       .scaleLinear()
-      .domain([0, 1])
-      .range(['red', 'blue']);
+      .domain([0, 0.5, 1])
+      .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
 
     const yClusterAxisSetting = d3
         .axisLeft(yClusterCoordScale)
@@ -574,10 +587,16 @@ const FeaturePlotView = props => {
       .enter()
       .append('circle')
       .attr('cx', 0)
-      .attr('cy', d => yClusterCoordScale(d.id))
+      .attr('cy', d => yClusterCoordScale(d.clusterId))
       .attr('r', d => numTweetClusterScale(d.numTweets))
-      .style('fill', d => groupRatioScale(d.groupRatio.con))
-      .style('fill-opacity', 0.5);
+      .style('fill', d => groupRatioScale(d.groupRatio.lib))
+      .style('fill-opacity', 0.5)
+      .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker());
+
+    const clusterTitle = gClusterPlot
+      .append('text')
+      .text('Cluster')
+      .attr('y', 10);
 
     //* Render Partial dependent plot (PDP)
     const gPDP = svg
@@ -587,10 +606,50 @@ const FeaturePlotView = props => {
         'transform',
         'translate(' +
           (layout.featurePlot.width +
-            layout.clusterPlot.leftMargin +
-            layout.clusterPlot.maxRadius) +
+            layout.clusterPlot.width +
+            layout.clusterPlot.maxRadius * 2 +
+            layout.pdpPlot.leftMargin) +
           ',0)'
       );
+
+    const yClusterCoordPDPScale = d3
+      .scaleBand()
+      .domain(clusters.map(d => d.clusterId))
+      .range([layout.margin.top, layout.pdpPlot.height]);
+
+    const xPDPScale = d3
+      .scaleLinear()
+      .domain(clusters.map(d => d.pdpValue))
+      .range([0, layout.pdpPlot.width]);
+
+    const colorPDPScale = d3
+      .scaleLinear()
+      .domain([0, 0.5, 1]) // 0 (prob of being con) --- >>> --- 1 (prob of being lib)
+      .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
+
+    const yPDPAxisSetting = d3.axisLeft(yClusterCoordPDPScale).tickSize(0),
+      yPDPAxis = gPDP
+        .append('g')
+        .call(yPDPAxisSetting)
+        .attr('class', 'g_pdp_y_axis')
+        .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+
+    const pdpBars = gPDP
+      .selectAll('.cluster_circle')
+      .data(clusters)
+      .enter()
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', d => yClusterCoordPDPScale(d.clusterId))
+      .attr('width', d => xPDPScale(d.pdpValue))
+      .attr('height', yClusterCoordPDPScale.bandwidth() - 3)
+      .style('fill', d => colorPDPScale(d.pdpValue))
+      .style('fill-opacity', 0.5);
+
+    const pdpTitle = gPDP
+      .append('text')
+      .text('PDP')
+      .attr('y', 10);
   }, [props, ref.current]);
 
   d3.selectAll('canvas').remove();
@@ -602,7 +661,6 @@ const FeaturePlotView = props => {
       height={wholeHeight}
       // style={{ display: 'flex' }}
     >
-      <div>Features</div>
       <svg
         // width={layout.width + layout.margin.left + layout.margin.right}
         // height={layout.height + layout.margin.top + layout.margin.bottom}

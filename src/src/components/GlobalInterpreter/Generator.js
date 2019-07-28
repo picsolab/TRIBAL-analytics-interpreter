@@ -5,9 +5,14 @@ import * as d3 from 'd3';
 import styled from 'styled-components';
 import { Button, Form } from 'grommet';
 import index from '../../index.css';
-import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+import {
+  SectionWrapper,
+  SectionTitle,
+  SubTitle,
+  Button1
+} from '../../GlobalStyles';
 
-import { runDT } from '../../modules/globalInterpreter';
+import { runDT } from '../../modules/dataLoader';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
@@ -15,6 +20,16 @@ const GeneratorWrapper = styled(SectionWrapper).attrs({
   grid-area: ge;
   height: 100%;
   border-right: 1px solid lightgray;
+`;
+
+const GeneratorSubTitle = styled.div.attrs({
+  className: 'generator_subtitle'
+})`
+  display: inline-block;
+  font-weight: 550;
+  border-bottom: 2px solid gray;
+  padding-bottom: 2px;
+  margin: 10px 0;
 `;
 
 const layout = {
@@ -28,37 +43,37 @@ const Generator = props => {
   const dispatch = useDispatch();
   const { tweets } = props;
 
-  const tweetsWithSelectedFeatures = tweets.map(d => ({
-    valence: d.valence,
-    arousal: d.arousal,
-    dominance: d.dominance
-  }));
+  // to be a props... updated by the layout below, then update states then come back as props
+  const selectedFeatures = ['valence', 'arousal', 'dominance'];
 
   return (
     <GeneratorWrapper>
-      <div>Aggregate</div>
+      <GeneratorSubTitle>Aggregate</GeneratorSubTitle>
       <div>Emotion</div>
       <div>Moral</div>
-      <div>Select features</div>
+      <GeneratorSubTitle>Select features</GeneratorSubTitle>
       <div>Valence</div>
       <div>Arousal</div>
       <div>Dominance</div>
       <div>Moral1</div>
       <div>Moral2</div>
       <div>Moral3</div>
+      <GeneratorSubTitle>Select a method</GeneratorSubTitle>
+      <div>Decision Tree</div>
       <Form
         onSubmit={({ value }) =>
-          dispatch(runDT({ features: tweetsWithSelectedFeatures }))
+          dispatch(
+            runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
+          )
         }
       >
         {/* </FormField> */}
-        <Button
-          // className={styles.saveButton}
+        <Button1
           style={{ marginTop: '10px' }}
           size="xsmall"
           type="submit"
           primary
-          label="Save"
+          label="Run"
         />
       </Form>
     </GeneratorWrapper>

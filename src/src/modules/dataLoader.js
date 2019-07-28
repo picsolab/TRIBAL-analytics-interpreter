@@ -1,15 +1,15 @@
-import { loadData } from '../dataHandling';
 import axios from 'axios';
 
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
+const RUN_DT = 'RUN_DT';
 
 // Action functions
 export const fetchTweets = () => {
   return async dispatch => {
     await axios.get('/tweets/loadData').then(res => {
       const data = res.data.map(d => ({
-        grp: d.grp,
+        group: d.grp,
         content: d.content,
         valence: d.valence,
         arousal: d.arousal,
@@ -30,9 +30,25 @@ export const fetchTweets = () => {
   };
 };
 
+export const runDT = ({ tweets, selectedFeatures }) => {
+  return async dispatch => {
+    await axios({
+      method: 'post',
+      url: '/tweets/runDecisionTree/',
+      data: JSON.stringify({
+        tweets: tweets,
+        selectedFeatures: selectedFeatures
+      })
+    }).then(res => {
+      console.log('res: ', res);
+      dispatch({ type: 'RUN_DT', payload: JSON.parse(res.data) });
+    });
+  };
+};
+
 // initial value for state
 const initialState = {
-  data: []
+  tweets: []
 };
 
 // Reducers
@@ -42,10 +58,20 @@ const dataLoader = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_TWEETS:
       console.log('in the case of FETCH_TWEETS');
-      return action.payload;
+      return {
+        ...state,
+        tweets: action.payload
+      };
+    case RUN_DT:
+      console.log('in the case of RUN_DT');
+      console.log(action.payload);
+      return {
+        ...state,
+        tweets: action.payload
+      };
     default:
-      console.log('in the case of default: ', state);
-      return state.data;
+      console.log('in the case of default in dataLoader: ', state);
+      return state;
   }
 };
 

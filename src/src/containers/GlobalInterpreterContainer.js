@@ -4,31 +4,39 @@ import { increment, decrement } from '../modules/counter';
 import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter';
 
 const GlobalInterpreterContainer = () => {
-  const data = useSelector(state => state.dataLoader, []);
+  const { tweets } = useSelector(state => state.dataLoader, []),
+    { clusters } = useSelector(state => {
+      console.log('reducers: ', state);
+      return state.cluster;
+    }, []);
   const dispatch = useDispatch();
 
-  const clusters = [
+  console.log('clusters in globalinterpretercontainer: ', clusters);
+
+  const words = [
     {
-      id: 1,
-      numTweets: 40,
-      groupRatio: { con: 0.6, lib: 0.4 },
-      pdpValue: 0.87
+      word: 'hate',
+      fromFeature: 'valence',
+      importance: '0.8',
+      numTweetsGroupRatio: { con: 0.4, lib: 0.6 }
     },
     {
-      id: 2,
-      numTweets: 100,
-      groupRatio: { con: 0.4, lib: 0.6 },
-      pdpValue: 0.6
+      word: 'act',
+      fromFeature: 'arousal',
+      importance: '0.7',
+      numTweetsGroupRatio: { con: 0.7, lib: 0.3 }
     },
     {
-      id: 3,
-      numTweets: 130,
-      groupRatio: { con: 0.8, lib: 0.4 },
-      pdpValue: 0.34
+      word: 'dominant',
+      fromFeature: 'dominance',
+      importance: '0.6',
+      numTweetsGroupRatio: { con: 0.24, lib: 0.76 }
     }
   ];
 
-  return <GlobalInterpreter tweets={data} clusters={clusters} />;
+  return (
+    <GlobalInterpreter tweets={tweets} clusters={clusters} words={words} />
+  );
 };
 
 export default GlobalInterpreterContainer;

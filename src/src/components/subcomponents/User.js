@@ -5,6 +5,7 @@ import _ from 'lodash';
 import styled, { css } from 'styled-components';
 import { Grommet, Button, Tabs, Tab, Box } from 'grommet';
 import { grommet } from 'grommet/themes';
+import { globalColors } from '../../GlobalStyles';
 
 const GroupDiv = styled.div.attrs({
   className: 'group'
@@ -19,7 +20,9 @@ const GroupDiv = styled.div.attrs({
   text-align: center;
 
   ${({ group }) =>
-    group === 'lib' ? `background-color: skyblue;` : `background-color: pink`}
+    group === 'lib'
+      ? `background-color: ` + globalColors.group.lib
+      : `background-color: ` + globalColors.group.con}
 `;
 
 const ScoreDiv = styled.div.attrs({
@@ -39,7 +42,9 @@ const DocDiv = styled.div.attrs({
   text-align: center;
 
   ${({ group }) =>
-    group === 'lib' ? `background-color: skyblue;` : `background-color: pink`}
+    group === 'lib'
+      ? `background-color: ` + globalColors.group.lib
+      : `background-color: ` + globalColors.group.con}
 `;
 
 const ContentDiv = styled.div.attrs({
@@ -126,7 +131,7 @@ const UserScoreView = props => {
             layout.svg.height - layout.marginBottom - yNumRetweetedScale(d)
           );
       })
-      .style('fill', 'green');
+      .style('fill', globalColors.userFeature);
 
     const featureTitle = d3
       .select(ref.current)

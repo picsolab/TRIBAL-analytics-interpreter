@@ -1,5 +1,15 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Button } from 'grommet';
+
+export const globalColors = {
+  group: {
+    lib: 'darkblue',
+    con: 'crimson'
+  },
+  feature: 'mediumslateblue',
+  userFeature: 'lightpink'
+};
 
 export const SectionWrapper = styled.div`
   padding: 5px;
@@ -7,6 +17,7 @@ export const SectionWrapper = styled.div`
 `;
 
 export const SectionTitle = styled.div`
+  display: inline-block;
   padding: 5px;
   margin: 3px;
   border-bottom: 4px solid gray;
@@ -34,4 +45,15 @@ export const ListViewStyle = styled.div`
   height: 100%;
   padding: 3px 7px;
   background-color: whitesmoke;
+`;
+
+export const Button1 = styled(Button)`
+  background: blue;
+  border: none;
+  padding: 1px 5px;
+  font-size: 0.8rem;
+  height: 30px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-left: 5px;
 `;

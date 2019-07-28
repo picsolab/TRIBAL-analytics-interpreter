@@ -4,6 +4,7 @@ import { createLogger } from 'redux-logger';
 import counter from './counter';
 import browser from './browser';
 import dataLoader from './dataLoader';
+import cluster from './cluster';
 
 const logger = createLogger();
 
@@ -17,10 +18,10 @@ const logger = createLogger();
 // });
 
 const rootReducer = (state = {}, action) => {
-  const ddd = 'dd';
   const actionFetchData = dataLoader.fetch;
   return {
     dataLoader: dataLoader(state.dataLoader, action),
+    cluster: cluster(state.cluster, action),
     browser: browser(state.browser, { ...action, actionFetchData })
   };
 };

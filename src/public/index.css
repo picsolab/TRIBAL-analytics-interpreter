@@ -1,6 +1,16 @@
 .canvas_tweet_paths {
-  width: 620px;
-  height: 240px;
+  /* width: 620px;
+  height: 240px; */
   position: relative;
   top: -300px;
+}
+.button1 {
+  background: blue;
+  border: none;
+  padding: 1px 5px;
+  font-size: 0.8rem;
+  height: 30px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-left: 5px;
 }
