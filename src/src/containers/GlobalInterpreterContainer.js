@@ -28,9 +28,27 @@ const GlobalInterpreterContainer = () => {
     },
     {
       word: 'dominant',
-      fromFeature: 'dominance',
+      fromFeature: 'arousal',
+      importance: '0.6',
+      numTweetsGroupRatio: { con: 0.94, lib: 0.06 }
+    },
+    {
+      word: 'fair',
+      fromFeature: 'moral1',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.24, lib: 0.76 }
+    },
+    {
+      word: 'care',
+      fromFeature: 'moral2',
+      importance: '0.6',
+      numTweetsGroupRatio: { con: 0.14, lib: 0.86 }
+    },
+    {
+      word: 'bad',
+      fromFeature: 'valence',
+      importance: '0.6',
+      numTweetsGroupRatio: { con: 0.5, lib: 0.5 }
     }
   ];
 

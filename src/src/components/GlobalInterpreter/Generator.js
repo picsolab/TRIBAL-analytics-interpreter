@@ -49,6 +49,7 @@ const Generator = props => {
   return (
     <GeneratorWrapper>
       <GeneratorSubTitle>Aggregate</GeneratorSubTitle>
+      <div style={{ backgroundColor: '#beffe7', fontWeight: 600 }}>All</div>
       <div>Emotion</div>
       <div>Moral</div>
       <GeneratorSubTitle>Select features</GeneratorSubTitle>

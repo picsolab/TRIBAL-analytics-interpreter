@@ -18,7 +18,7 @@ const GlobalInterpreterWrapper = styled.div.attrs({
   grid-area: g;
   display: grid;
   grid-template-columns: 15% 85%;
-  grid-template-rows: 50px 50px 300px 100px;
+  grid-template-rows: 50px 5px 300px 100px;
   grid-template-areas:
     't t'
     'ge ab'

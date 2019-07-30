@@ -5,7 +5,12 @@ import styled from 'styled-components';
 import { Button } from 'grommet';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+import {
+  SectionWrapper,
+  SectionTitle,
+  SubTitle,
+  globalColors
+} from '../../GlobalStyles';
 
 const layout = {
   margin: { top: 20, right: 110, bottom: 20, left: 30 },
@@ -19,8 +24,8 @@ const layout = {
     leftMargin: 10
   },
   wordGroupPlot: {
-    width: 200,
-    height: 240,
+    width: 150,
+    height: 150,
     leftMargin: 30
   }
 };
@@ -78,12 +83,12 @@ const WordPlotView = ({ words }) => {
     return <WordListWrapper>{divWords}</WordListWrapper>;
   };
 
-  //* For the word group vidw
+  //* For the word group view
   const svg = d3.select(ref.current);
 
   const yWordScale = d3
     .scaleBand()
-    .domain(words.map((d, i) => i))
+    .domain(words.map((d, i) => d.word))
     .range([0, layout.wordGroupPlot.height]);
 
   const xGroupRatio = d3
@@ -91,13 +96,18 @@ const WordPlotView = ({ words }) => {
     .domain([0, 1])
     .range([
       layout.wordGroupPlot.leftMargin,
-      layout.wordGroupPlot.width / 2 - 2
+      layout.wordGroupPlot.width / 3 + 2
     ]);
 
-  const colorPDPScale = d3
+  const colorConPDPScale = d3
     .scaleLinear()
     .domain([0, 1])
-    .range(['red', 'blue']);
+    .range(['whitesmoke', globalColors.group.con]);
+
+  const colorLibPDPScale = d3
+    .scaleLinear()
+    .domain([0, 1])
+    .range(['whitesmoke', globalColors.group.lib]);
 
   const yLiberalAxisSetting = d3.axisLeft(yWordScale).tickSize(0),
     yLiberalAxis = svg
@@ -132,10 +142,10 @@ const WordPlotView = ({ words }) => {
     .enter()
     .append('rect')
     .attr('x', layout.wordGroupPlot.leftMargin)
-    .attr('y', (d, i) => yWordScale(i))
+    .attr('y', (d, i) => yWordScale(d.word))
     .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.con))
     .attr('height', yWordScale.bandwidth() - 3)
-    .style('fill', d => colorPDPScale(d.numTweetsGroupRatio.con))
+    .style('fill', d => colorLibPDPScale(d.numTweetsGroupRatio.con))
     .style('fill-opacity', 0.5);
 
   const conservativeRatioBars = svg
@@ -150,10 +160,10 @@ const WordPlotView = ({ words }) => {
         layout.wordGroupPlot.leftMargin -
         xGroupRatio(d.numTweetsGroupRatio.lib)
     )
-    .attr('y', (d, i) => yWordScale(i))
+    .attr('y', (d, i) => yWordScale(d.word))
     .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.lib))
     .attr('height', yWordScale.bandwidth() - 3)
-    .style('fill', d => colorPDPScale(d.numTweetsGroupRatio.lib))
+    .style('fill', d => colorConPDPScale(d.numTweetsGroupRatio.lib))
     .style('fill-opacity', 0.5);
 
   return (

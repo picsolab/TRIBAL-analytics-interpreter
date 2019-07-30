@@ -7,44 +7,31 @@ import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
 
-import Generator from './Generator';
-import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
-import FeaturePlotView from './FeaturePlotView';
-import WordPlotView from './WordPlotView';
-
-const GlobalInterpreterWrapper = styled.div.attrs({
-  className: 'global_interpreter'
+const LocalInterpreterWrapper = styled(SectionWrapper).attrs({
+  className: 'local_interpreter'
 })`
-  grid-area: g;
+  grid-area: l;
   display: grid;
-  grid-template-columns: 15% 85%;
-  grid-template-rows: 50px 50px 300px 100px;
-  grid-template-areas:
-    't t'
-    'ge ab'
-    'ge f'
-    'ge w';
+  // grid-template-columns: 15% 85%;
+  // grid-template-rows: 50px 50px 300px 100px;
+  // grid-template-areas:
+  //   't t'
+  //   'ge ab'
+  //   'ge f'
+  //   'ge w';
 `;
 
-const GlobalInterpreter = ({ tweets, clusters, words }) => {
+const LocalInterpreter = ({ tweets, clusters, words }) => {
   const numFeatures = 6,
     numAbstractFeatures = 1;
 
   return (
-    <GlobalInterpreterWrapper>
-      <div style={{ gridArea: 't' }}>
-        <SectionTitle>Global Interpretability</SectionTitle>
+    <LocalInterpreterWrapper>
+      <div>
+        <SectionTitle>Local Interpretability</SectionTitle>
       </div>
-      <Generator tweets={tweets} />
-      <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} />
-      <FeaturePlotView
-        numFeatures={numFeatures}
-        tweets={tweets}
-        clusters={clusters}
-      />
-      <WordPlotView numFeatures={numFeatures} words={words} />
-    </GlobalInterpreterWrapper>
+    </LocalInterpreterWrapper>
   );
 };
 
-export default GlobalInterpreter;
+export default LocalInterpreter;

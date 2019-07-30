@@ -13,15 +13,29 @@ const AbstractFeaturePlotViewWrapper = styled(SectionWrapper).attrs({
   grid-area: ab;
 `;
 
+const AggregationBar = styled.div.attrs({
+  className: 'aggregation_bar'
+})`
+  width: 350px;
+  height: 5px;
+  margin-left: 20px;
+  border-bottom: 1px solid #6af1bf;
+  background-color: #beffe7;
+`;
+
 const layout = {
   margin: { top: 20, right: 110, bottom: 20, left: 30 },
   width: 400,
-  height: 200,
+  height: 5,
   innerHeight: 340 - 2
 };
 
 const AbstractFeaturePlotView = ({ numAbstractFeatures }) => {
-  return <div>Emotion and Moral</div>;
+  return (
+    <div>
+      <AggregationBar />
+    </div>
+  );
 };
 
 export default AbstractFeaturePlotView;
