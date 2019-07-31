@@ -5,6 +5,7 @@ import counter from './counter';
 import browser from './browser';
 import dataLoader from './dataLoader';
 import cluster from './cluster';
+import localInterpreter from './localInterpreter';
 
 const logger = createLogger();
 
@@ -22,7 +23,8 @@ const rootReducer = (state = {}, action) => {
   return {
     dataLoader: dataLoader(state.dataLoader, action),
     cluster: cluster(state.cluster, action),
-    browser: browser(state.browser, { ...action, actionFetchData })
+    browser: browser(state.browser, { ...action, actionFetchData }),
+    localInterpreter: localInterpreter(state.localInterpreter, action)
   };
 };
 

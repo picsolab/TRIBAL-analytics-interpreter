@@ -9,6 +9,7 @@ import { runClustering } from './modules/cluster';
 import ExplorerContainer from './containers/ExplorerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
+import LocalInterpreterContainer from './containers/LocalInterpreterContainer';
 
 const Container = styled.div`
   width: 80%;
@@ -19,7 +20,7 @@ const Container = styled.div`
   grid-template-areas:
     'h h h'
     'e m2 g'
-    'e m3 m';
+    'e m3 l';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -68,6 +69,7 @@ function App() {
       <ExplorerContainer />
       <Mockup2 />
       <GlobalInterpreterContainer />
+      <LocalInterpreterContainer />
       <Mockup3 />
       <Mockup />
     </Container>
