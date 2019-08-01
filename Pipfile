@@ -39,7 +39,7 @@ django-cors-headers = "*"
 pandas = "*"
 numpy = "*"
 sklearn = "*"
-json = "*"
+pickle = "*"
 
 [requires]
 python_version = "3.7"

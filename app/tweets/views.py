@@ -6,11 +6,30 @@ from . import models
 
 import pandas as pd
 import numpy as np
-import json, math
+import json, math, pickle
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+from sklearn.inspection import partial_dependence
+
+
+def save_model(model, model_id):
+    file_name = './app/static/models/' + model_id
+    file_name = file_name + '.pkl'
+    with open(file_name, 'wb') as f:
+        pickle.dump(model, f)
+
+def load_model(model_id):
+    file_name = './app/static/models/' + model_id + '.pkl'
+    model = ''
+
+    f = open(file_name, 'rb')
+    unpickler = pickle.Unpickler(f)
+    model = unpickler.load()
+    f.close()
+
+    return model
 
 ### For the initial run
 class LoadData(APIView):
@@ -29,12 +48,12 @@ class RunDecisionTree(APIView):
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         tweets = request_json['tweets']
-        selected_featuers = request_json['selectedFeatures']
+        selected_features = request_json['selectedFeatures']
         df_tweets = pd.DataFrame(tweets)
         
         lb = preprocessing.LabelBinarizer()
 
-        X = df_tweets[selected_featuers]
+        X = df_tweets[selected_features]
         y = lb.fit_transform(df_tweets['group'].astype(str))
         y = np.ravel(y)
         
@@ -48,36 +67,33 @@ class RunDecisionTree(APIView):
 
         # performance
 
-        return Response(df_tweets.to_json(orient='records'))
+        save_model(clf, 'dt_0')
+
+        return Response({
+            'modelId': 'dt_0',
+            'tweets': df_tweets.to_json(orient='records')
+        })
 
 class RunClustering(APIView):
-    def get(self, request, format=None):
-        print('hello')
 
+    def get(self, request, format=None):
         selected_features = ['valence', 'arousal', 'dominance']
         tweet_objects = models.Tweet.objects.all()
         tweet_objects_json = eval(serializers.serialize('json', tweet_objects)) # serializer return string, so convert it to list with eval()
         tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
 
         df_tweets = pd.DataFrame(tweets_json)
-        print('df_tweets: ', df_tweets.head())
         df_tweets_selected = df_tweets[selected_features]
         fit_cls = AgglomerativeClustering(n_clusters=10).fit(df_tweets_selected)
         cls_labels = fit_cls.labels_
-        print(cls_labels)
         df_tweets['cluster'] = cls_labels
         
         df_tweets_by_cluster = df_tweets.groupby(['cluster'])
         num_tweets_per_group = df_tweets_by_cluster.size()
-        print('size: ', df_tweets_by_cluster.size())
-        print('here: ', df_tweets_by_cluster.describe())
-
 
         df_group_ratio = df_tweets_by_cluster.agg({ 
             'grp': lambda x: math.ceil((x.loc[x == 'lib'].shape[0] / x.shape[0]) * 100) / 100
         }).rename(columns={'grp': 'group_lib_ratio'})
-
-        print('group_ratio: ', df_group_ratio)
 
         df_clusters = pd.DataFrame({
             'clusterId': list(df_tweets_by_cluster.groups),
@@ -86,6 +102,31 @@ class RunClustering(APIView):
             'pdpValue': 0.2
         })
 
-        print('df_clusters: ', df_clusters.head())
-
         return Response(df_clusters.to_json(orient='records'))
+
+class CalculatePartialDependence(APIView):
+
+    def post(self, request, format=None):
+        request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        model_id = request_json['modelId']
+        tweets = request_json['tweets']
+        features = request_json['features']
+
+        df_tweets = pd.DataFrame(tweets)
+        
+        lb = preprocessing.LabelBinarizer()
+        X = df_tweets['valence']
+        y = lb.fit_transform(df_tweets['group'].astype(str))
+        y = np.ravel(y)
+
+        print('features: ', features)
+        model = load_model(model_id)
+        pdp, axes = partial_dependence(model, X.reshape(-1, 1), [0])   # 0 is the target label for output probability
+        print('pdp values: ', pdp)
+
+        # performance
+
+        return Response({
+            'modelId': 'dt_1',
+            'tweets': df_tweets.to_json(orient='records')
+        })

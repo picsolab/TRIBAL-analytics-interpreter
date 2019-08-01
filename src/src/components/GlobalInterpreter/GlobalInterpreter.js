@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
@@ -6,6 +7,9 @@ import { Button } from 'grommet';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+
+import { runDT } from '../../modules/dataLoader';
+import { calculatePartialDependence } from '../../modules/globalInterpreter';
 
 import Generator from './Generator';
 import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
@@ -26,16 +30,36 @@ const GlobalInterpreterWrapper = styled.div.attrs({
     'ge w';
 `;
 
-const GlobalInterpreter = ({ tweets, clusters, words }) => {
+const GlobalInterpreter = ({
+  currentModel,
+  selectedFeatures,
+  tweets,
+  clusters,
+  words
+}) => {
+  const dispatch = useDispatch();
+
   const numFeatures = 6,
     numAbstractFeatures = 1;
+
+  useEffect(() => {
+    console.log('tweets in useEffect: ', tweets);
+    dispatch(runDT({ tweets: tweets, selectedFeatures: selectedFeatures }));
+    dispatch(
+      calculatePartialDependence({
+        modelId: currentModel,
+        tweets: tweets,
+        features: selectedFeatures
+      })
+    );
+  }, [currentModel]);
 
   return (
     <GlobalInterpreterWrapper>
       <div style={{ gridArea: 't' }}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
-      <Generator tweets={tweets} />
+      <Generator tweets={tweets} selectedFeatures={selectedFeatures} />
       <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} />
       <FeaturePlotView
         numFeatures={numFeatures}

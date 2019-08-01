@@ -32,6 +32,7 @@ export const fetchTweets = () => {
 
 export const runDT = ({ tweets, selectedFeatures }) => {
   return async dispatch => {
+    console.log('in useEffect');
     await axios({
       method: 'post',
       url: '/tweets/runDecisionTree/',
@@ -40,8 +41,7 @@ export const runDT = ({ tweets, selectedFeatures }) => {
         selectedFeatures: selectedFeatures
       })
     }).then(res => {
-      console.log('res: ', res);
-      dispatch({ type: 'RUN_DT', payload: JSON.parse(res.data) });
+      dispatch({ type: 'RUN_DT', payload: res.data });
     });
   };
 };
@@ -53,24 +53,21 @@ const initialState = {
 
 // Reducers
 const dataLoader = (state = initialState, action) => {
-  console.log('state: ', state);
-  console.log('action: ', action);
   switch (action.type) {
     case FETCH_TWEETS:
-      console.log('in the case of FETCH_TWEETS');
       return {
         ...state,
         tweets: action.payload
       };
     case RUN_DT:
-      console.log('in the case of RUN_DT');
-      console.log(action.payload);
+      console.log('action.payload in RUN_DT: ', action.payload);
       return {
         ...state,
-        tweets: action.payload
+        currentModel: action.payload.modelId,
+        modelId: action.payload.modelId,
+        tweets: JSON.parse(action.payload.tweets)
       };
     default:
-      console.log('in the case of default in dataLoader: ', state);
       return state;
   }
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useHover } from 'react';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
@@ -338,6 +338,10 @@ const FeaturePlotView = props => {
     ];
 
   useEffect(() => {
+    console.log('heelllo');
+  }, [props.isChanging]);
+
+  useEffect(() => {
     const xFeatureScale = d3
       .scalePoint()
       .domain(d3.range(scoreFeatures.length))
@@ -360,7 +364,8 @@ const FeaturePlotView = props => {
       .attr('width', layout.width * devicePixelRatio)
       .attr('height', layout.height * devicePixelRatio)
       .style('width', layout.width + 'px')
-      .style('height', layout.height + 'px');
+      .style('height', layout.height + 'px')
+      .style('z-index', -1);
 
     const ctx = canvas.node().getContext('2d');
     ctx.globalCompositeOperation = 'darken';
@@ -591,7 +596,11 @@ const FeaturePlotView = props => {
       .attr('r', d => numTweetClusterScale(d.numTweets))
       .style('fill', d => groupRatioScale(d.groupRatio.lib))
       .style('fill-opacity', 0.5)
-      .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker());
+      .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
+      .on('mouseover', d => {
+        console.log('mouseovered');
+        console.log(d);
+      });
 
     const clusterTitle = gClusterPlot
       .append('text')
@@ -639,6 +648,7 @@ const FeaturePlotView = props => {
       .data(clusters)
       .enter()
       .append('rect')
+      .attr('class', 'cluster_circle')
       .attr('x', 0)
       .attr('y', d => yClusterCoordPDPScale(d.clusterId))
       .attr('width', d => xPDPScale(d.pdpValue))

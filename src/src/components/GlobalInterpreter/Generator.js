@@ -41,10 +41,9 @@ const layout = {
 
 const Generator = props => {
   const dispatch = useDispatch();
-  const { tweets } = props;
+  const { tweets, selectedFeatures } = props;
 
   // to be a props... updated by the layout below, then update states then come back as props
-  const selectedFeatures = ['valence', 'arousal', 'dominance'];
 
   return (
     <GeneratorWrapper>
@@ -62,11 +61,15 @@ const Generator = props => {
       <GeneratorSubTitle>Select a method</GeneratorSubTitle>
       <div>Decision Tree</div>
       <Form
-        onSubmit={({ value }) =>
-          dispatch(
-            runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
-          )
-        }
+      // onSubmit={({ value }) => {
+      //   dispatch(
+      //     runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
+      //   );
+      //   dispatch({
+      //     type: 'SET_SELECTED_FEATURES',
+      //     payload: ['valence', 'arousal', 'dominance']
+      //   });
+      // }}
       >
         {/* </FormField> */}
         <Button1

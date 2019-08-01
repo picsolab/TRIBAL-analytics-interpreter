@@ -5,6 +5,7 @@ import counter from './counter';
 import browser from './browser';
 import dataLoader from './dataLoader';
 import cluster from './cluster';
+import globalInterpreter from './globalInterpreter';
 import localInterpreter from './localInterpreter';
 
 const logger = createLogger();
@@ -24,6 +25,7 @@ const rootReducer = (state = {}, action) => {
     dataLoader: dataLoader(state.dataLoader, action),
     cluster: cluster(state.cluster, action),
     browser: browser(state.browser, { ...action, actionFetchData }),
+    globalInterpreter: globalInterpreter(state.globalInterpreter, action),
     localInterpreter: localInterpreter(state.localInterpreter, action)
   };
 };

@@ -4,10 +4,11 @@ import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter
 
 const GlobalInterpreterContainer = () => {
   const { tweets } = useSelector(state => state.dataLoader, []),
-    { clusters } = useSelector(state => {
-      console.log('reducers: ', state);
-      return state.cluster;
-    }, []);
+    { clusters } = useSelector(state => state.cluster, []),
+    { currentModel, selectedFeatures } = useSelector(
+      state => state.globalInterpreter,
+      []
+    );
   const dispatch = useDispatch();
 
   const words = [
@@ -49,9 +50,17 @@ const GlobalInterpreterContainer = () => {
     }
   ];
 
-  return (
-    <GlobalInterpreter tweets={tweets} clusters={clusters} words={words} />
-  );
+  if (!tweets || tweets.length === 0) return <div />;
+  else
+    return (
+      <GlobalInterpreter
+        tweets={tweets}
+        clusters={clusters}
+        words={words}
+        currentModel={currentModel}
+        selectedFeatures={selectedFeatures}
+      />
+    );
 };
 
 export default GlobalInterpreterContainer;

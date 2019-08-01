@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import './App.css';
 import styled from 'styled-components';
 
-import { fetchTweets } from './modules/dataLoader';
+import { fetchTweets, runDT } from './modules/dataLoader';
 import { runClustering } from './modules/cluster';
 import ExplorerContainer from './containers/ExplorerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';

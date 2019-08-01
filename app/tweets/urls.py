@@ -17,4 +17,9 @@ urlpatterns = [
         view=views.RunClustering.as_view(),
         name='run_clustering'
     ),
+    url(
+        regex=r'^calculatePartialDependence/$',
+        view=views.CalculatePartialDependence.as_view(),
+        name='calculate_partial_dependence'
+    ),
 ];
