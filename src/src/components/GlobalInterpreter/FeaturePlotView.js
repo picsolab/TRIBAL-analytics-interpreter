@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useHover } from 'react';
 import * as d3 from 'd3';
+import _ from 'lodash';
 
 import styled from 'styled-components';
 import { Button } from 'grommet';
@@ -327,7 +328,15 @@ const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
 
-  const { tweets, clusters, words } = props,
+  const {
+      tweets,
+      clusters,
+      // clusterIdsForTweets,
+      words,
+      // pdpValues,
+      selectedFeatures,
+      isLoaded
+    } = props,
     scoreFeatures = [
       { key: 'valence', abbr: 'V' },
       { key: 'arousal', abbr: 'A' },
@@ -338,13 +347,12 @@ const FeaturePlotView = props => {
     ];
 
   useEffect(() => {
-    console.log('heelllo');
-  }, [props.isChanging]);
-
-  useEffect(() => {
+    console.log('in featureplotview useeffect: ', isLoaded);
+    console.log('in featureplotview useeffect: ', clusters);
+    console.log('in featureplotview useeffect: ', tweets);
     const xFeatureScale = d3
       .scalePoint()
-      .domain(d3.range(scoreFeatures.length))
+      .domain(selectedFeatures)
       .range([layout.margin.left, layout.featurePlot.width]);
 
     const yScoreScale = d3
@@ -385,16 +393,16 @@ const FeaturePlotView = props => {
         return 'axis ';
       })
       .attr('transform', function(d, i) {
-        return 'translate(' + xFeatureScale(i) + ')';
+        return 'translate(' + xFeatureScale(d.key) + ')';
       });
 
     const featureTitle = svg
       .selectAll('text')
-      .data(scoreFeatures.map(d => d.abbr))
+      .data(scoreFeatures)
       .enter()
       .append('text')
-      .text(d => d)
-      .attr('x', (d, i) => xFeatureScale(i) - 10)
+      .text(d => d.abbr)
+      .attr('x', (d, i) => xFeatureScale(d.key) - 10)
       .attr('y', (d, i) => layout.margin.top - 10)
       .style('font-size', '0.8rem');
 
@@ -439,15 +447,17 @@ const FeaturePlotView = props => {
 
     // For feature plots
     function project(d) {
+      console.log('d in project: ', d);
       return scoreFeatures.map(function(p, i) {
         // check if data element has property and contains a value
         if (!(p.key in d) || d[p.key] === null) return null;
 
-        return [xFeatureScale(i), yScoreScale(d[p.key])];
+        return [xFeatureScale(p.key), yScoreScale(d[p.key])];
       });
     }
 
     function draw(d) {
+      console.log('d in draw: ', d);
       ctx.strokeStyle = groupColorScale(d.group);
       ctx.beginPath();
       const coords = project(d);
@@ -586,6 +596,15 @@ const FeaturePlotView = props => {
         .attr('class', 'g_cluster_y_axis')
         .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
 
+    const drawTweetLine = d3
+      .line()
+      .x(d => {
+        console.log('d: ', d);
+        console.log('d: ', xFeatureScale(d[0]));
+        return xFeatureScale(d[0]);
+      })
+      .y(d => yScoreScale(d[1]));
+
     const clusterCircles = gClusterPlot
       .selectAll('.cluster_circle')
       .data(clusters)
@@ -598,9 +617,57 @@ const FeaturePlotView = props => {
       .style('fill-opacity', 0.5)
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
       .on('mouseover', d => {
+        const clusterId = d.clusterId,
+          tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+
         console.log('mouseovered');
         console.log(d);
+        console.log(tweets);
+        console.log(tweetsInCluster);
+
+        const tweetsPathData = tweetsInCluster.map(d => {
+          const tweetWithSelectedFeatures = _.pick(d, selectedFeatures);
+
+          return Object.entries(tweetWithSelectedFeatures);
+        });
+
+        console.log(tweetsPathData);
+
+        gFeaturePlot
+          .selectAll('.path_tweet')
+          .data(tweetsPathData)
+          .enter()
+          .append('path')
+          .attr('class', 'path_tweet')
+          .attr('d', drawTweetLine)
+          .style('stroke', 'black')
+          .style('fill', 'none')
+          .style('stroke-width', '2px')
+          .style('stroke-dasharray', '3,1');
+
+        // tweetsInCluster.forEach((tweet) => {
+        //   gClusterPlot.append('path')
+        //     .datum(tweetsInCluster)
+        //     .attr('d', drawTweetLine)
+        //     .style('stroke', precisionKPlotColor)
+        //     .style('fill', 'none')
+        //     .style('stroke-width', '2px')
+        //     .style('stroke-dasharray', '3,1');
+        // });
+
+        // fittedPrecisionKPathForTopk = gTopkRanking.append('path')
+        //   .datum(precisionKData.slice(0, topk))
+        //   .attr('d', drawTweetLine)
+        //   .style('stroke', precisionKPlotColor)
+        //   .style('fill', 'none')
+        //   .style('stroke-width', '2px')
+        //   .style('stroke-dasharray', '3,1'),
+      })
+      .on('mouseout', d => {
+        gFeaturePlot.selectAll('.path_tweet').remove();
       });
+
+    function drawPath() {}
 
     const clusterTitle = gClusterPlot
       .append('text')

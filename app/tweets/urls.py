@@ -22,4 +22,9 @@ urlpatterns = [
         view=views.CalculatePartialDependence.as_view(),
         name='calculate_partial_dependence'
     ),
+    url(
+        regex=r'^runClusteringAndPartialDependenceForClusters/$',
+        view=views.RunClusteringAndPartialDependenceForClusters.as_view(),
+        name='run_clustering_and_partial_dependence_for_clusters'
+    ),
 ];

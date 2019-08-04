@@ -3,6 +3,9 @@ import axios from 'axios';
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
 const RUN_DT = 'RUN_DT';
+const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
+const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
+const RUN_CL_N_CAL_PD_FOR_TWEETS = 'RUN_CL_N_CAL_PD_FOR_TWEETS';
 
 // Action functions
 export const fetchTweets = () => {
@@ -48,13 +51,15 @@ export const runDT = ({ tweets, selectedFeatures }) => {
 
 // initial value for state
 const initialState = {
-  tweets: []
+  tweets: [],
+  isLoaded: false
 };
 
 // Reducers
-const dataLoader = (state = initialState, action) => {
+const tweet = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_TWEETS:
+      console.log('action.payload in FETCH_TWEETS: ', action.payload);
       return {
         ...state,
         tweets: action.payload
@@ -67,9 +72,30 @@ const dataLoader = (state = initialState, action) => {
         modelId: action.payload.modelId,
         tweets: JSON.parse(action.payload.tweets)
       };
+    case CAL_PD_FOR_TWEETS:
+      console.log('cal_pd_for_tweets');
+    case RUN_CLUSTERING_FOR_TWEETS:
+      console.log('RUN_CLUSTERING_FOR_TWEETS: ', action.payload);
+      return {
+        ...state,
+        tweets: JSON.parse(action.payload.tweets)
+      };
+    case RUN_CL_N_CAL_PD_FOR_TWEETS:
+      console.log('RUN_CL_N_CAL_PD_FOR_TWEETS: ', action.payload);
+      const updatedTweets = state.tweets.map((d, i) => ({
+        ...d,
+        pdpValue: action.payload.pdpValues[i],
+        clusterId: action.payload.clusterIdsForTweets[i]
+      }));
+      console.log('RUN_CL_N_CAL_PD_FOR_TWEETS: ', updatedTweets);
+      return {
+        ...state,
+        tweets: updatedTweets,
+        isLoaded: true
+      };
     default:
       return state;
   }
 };
 
-export default dataLoader;
+export default tweet;

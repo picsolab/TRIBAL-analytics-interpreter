@@ -4,10 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import './App.css';
 import styled from 'styled-components';
 
-import { fetchTweets, runDT } from './modules/dataLoader';
+import { fetchTweets, runDT } from './modules/tweet';
 import { runClustering } from './modules/cluster';
+import { calculatePartialDependence } from './modules/globalInterpreter';
+
 import ExplorerContainer from './containers/ExplorerContainer';
-import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
 import LocalInterpreterContainer from './containers/LocalInterpreterContainer';
 
@@ -58,7 +59,6 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchTweets());
-    dispatch(runClustering());
   });
 
   return (

@@ -3,7 +3,7 @@ import ReduxThunk from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import counter from './counter';
 import browser from './browser';
-import dataLoader from './dataLoader';
+import tweet from './tweet';
 import cluster from './cluster';
 import globalInterpreter from './globalInterpreter';
 import localInterpreter from './localInterpreter';
@@ -12,7 +12,7 @@ const logger = createLogger();
 
 // instead of using combineReducers(),
 // const rootReducer = combineReducers({
-//   dataLoader,
+//   tweet,
 //   counter,
 //   browser,
 //   scaler: scaler(state.scaler, )
@@ -20,9 +20,9 @@ const logger = createLogger();
 // });
 
 const rootReducer = (state = {}, action) => {
-  const actionFetchData = dataLoader.fetch;
+  const actionFetchData = tweet.fetch;
   return {
-    dataLoader: dataLoader(state.dataLoader, action),
+    tweet: tweet(state.tweet, action),
     cluster: cluster(state.cluster, action),
     browser: browser(state.browser, { ...action, actionFetchData }),
     globalInterpreter: globalInterpreter(state.globalInterpreter, action),

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const CAL_PD = 'CAL_PD';
+const RUN_CL_N_CAL_PD_FOR_PDP_VALUES = 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES';
 
 // Three modes:
 // (1) calculate pd per every feature
@@ -18,16 +19,22 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
         tweets: tweets
       })
     }).then(res => {
-      console.log('res: ', res);
-      dispatch({ type: 'CAL_PD', payload: JSON.parse(res.data) });
+      dispatch({ type: 'CAL_PD', payload: res.data });
+      dispatch({ type: 'CAL_PD_FOR_TWEETS', payload: res.data });
     });
   };
 };
 
 // initial value for state
 const initialState = {
-  data: [],
-  selectedFeatures: ['valence', 'arousal', 'dominance'],
+  selectedFeatures: [
+    'valence',
+    'arousal',
+    'dominance',
+    'moral1',
+    'moral2',
+    'moral3'
+  ],
   currentModel: 'dt_0',
   models: [
     {
@@ -43,7 +50,7 @@ const initialState = {
     }
     // And all the predictions and clusters???
   ],
-  pdResult: {}
+  pdpValues: []
 };
 
 // Reducers
@@ -58,9 +65,20 @@ const globalInterpreter = (state = initialState, action) => {
     //     data: action.payload
     //   };
     case CAL_PD:
+      console.log('calculatePartialDependence state: ', state);
+      console.log(
+        'calculatePartialDependence payload: ',
+        JSON.parse(action.payload.tweets)
+      );
+      console.log('pdpvalues0: ', action.payload.pdpValues);
       return {
         ...state,
-        pdResult: action.payload
+        pdpValues: action.payload.pdpValues
+      };
+    case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
+      return {
+        ...state,
+        pdpValues: action.payload.pdpValues
       };
     default:
       console.log('dddddddd: ', state);

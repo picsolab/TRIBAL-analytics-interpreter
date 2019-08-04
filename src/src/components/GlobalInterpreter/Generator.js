@@ -12,7 +12,7 @@ import {
   Button1
 } from '../../GlobalStyles';
 
-import { runDT } from '../../modules/dataLoader';
+import { runDT } from '../../modules/tweet';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
@@ -51,6 +51,9 @@ const Generator = props => {
       <div style={{ backgroundColor: '#beffe7', fontWeight: 600 }}>All</div>
       <div>Emotion</div>
       <div>Moral</div>
+      <GeneratorSubTitle>Select a feature type</GeneratorSubTitle>
+      <div>True</div>
+      <div>Prediction</div>
       <GeneratorSubTitle>Select features</GeneratorSubTitle>
       <div>Valence</div>
       <div>Arousal</div>

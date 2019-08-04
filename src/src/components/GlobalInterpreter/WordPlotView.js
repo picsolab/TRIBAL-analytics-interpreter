@@ -83,88 +83,90 @@ const WordPlotView = ({ words }) => {
     return <WordListWrapper>{divWords}</WordListWrapper>;
   };
 
-  //* For the word group view
-  const svg = d3.select(ref.current);
+  useEffect(() => {
+    //* For the word group view
+    const svg = d3.select(ref.current);
 
-  const yWordScale = d3
-    .scaleBand()
-    .domain(words.map((d, i) => d.word))
-    .range([0, layout.wordGroupPlot.height]);
+    const yWordScale = d3
+      .scaleBand()
+      .domain(words.map((d, i) => d.word))
+      .range([0, layout.wordGroupPlot.height]);
 
-  const xGroupRatio = d3
-    .scaleLinear()
-    .domain([0, 1])
-    .range([
-      layout.wordGroupPlot.leftMargin,
-      layout.wordGroupPlot.width / 3 + 2
-    ]);
+    const xGroupRatio = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([
+        layout.wordGroupPlot.leftMargin,
+        layout.wordGroupPlot.width / 3 + 2
+      ]);
 
-  const colorConPDPScale = d3
-    .scaleLinear()
-    .domain([0, 1])
-    .range(['whitesmoke', globalColors.group.con]);
+    const colorConPDPScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range(['whitesmoke', globalColors.group.con]);
 
-  const colorLibPDPScale = d3
-    .scaleLinear()
-    .domain([0, 1])
-    .range(['whitesmoke', globalColors.group.lib]);
+    const colorLibPDPScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range(['whitesmoke', globalColors.group.lib]);
 
-  const yLiberalAxisSetting = d3.axisLeft(yWordScale).tickSize(0),
-    yLiberalAxis = svg
-      .append('g')
-      .call(yLiberalAxisSetting)
-      .attr('class', 'g_liberal_y_axis')
+    const yLiberalAxisSetting = d3.axisLeft(yWordScale).tickSize(0),
+      yLiberalAxis = svg
+        .append('g')
+        .call(yLiberalAxisSetting)
+        .attr('class', 'g_liberal_y_axis')
+        .attr(
+          'transform',
+          'translate(' + layout.wordGroupPlot.leftMargin + ',' + 0 + ')'
+        );
+
+    const yConservativeAxisSetting = d3
+        .axisRight(yWordScale)
+        .tickValues([])
+        .tickSize(0),
+      yConservativeAxis = svg
+        .append('g')
+        .call(yConservativeAxisSetting)
+        .attr('class', 'g_conservative_y_axis')
+        .attr(
+          'transform',
+          'translate(' +
+            (layout.wordGroupPlot.width - layout.wordGroupPlot.leftMargin) +
+            ',' +
+            0 +
+            ')'
+        );
+
+    const liberalRatioBars = svg
+      .selectAll('.lib_ratio_bar')
+      .data(words)
+      .enter()
+      .append('rect')
+      .attr('x', layout.wordGroupPlot.leftMargin)
+      .attr('y', (d, i) => yWordScale(d.word))
+      .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.con))
+      .attr('height', yWordScale.bandwidth() - 3)
+      .style('fill', d => colorLibPDPScale(d.numTweetsGroupRatio.con))
+      .style('fill-opacity', 0.5);
+
+    const conservativeRatioBars = svg
+      .selectAll('.con_ratio_bar')
+      .data(words)
+      .enter()
+      .append('rect')
       .attr(
-        'transform',
-        'translate(' + layout.wordGroupPlot.leftMargin + ',' + 0 + ')'
-      );
-
-  const yConservativeAxisSetting = d3
-      .axisRight(yWordScale)
-      .tickValues([])
-      .tickSize(0),
-    yConservativeAxis = svg
-      .append('g')
-      .call(yConservativeAxisSetting)
-      .attr('class', 'g_conservative_y_axis')
-      .attr(
-        'transform',
-        'translate(' +
-          (layout.wordGroupPlot.width - layout.wordGroupPlot.leftMargin) +
-          ',' +
-          0 +
-          ')'
-      );
-
-  const liberalRatioBars = svg
-    .selectAll('.lib_ratio_bar')
-    .data(words)
-    .enter()
-    .append('rect')
-    .attr('x', layout.wordGroupPlot.leftMargin)
-    .attr('y', (d, i) => yWordScale(d.word))
-    .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.con))
-    .attr('height', yWordScale.bandwidth() - 3)
-    .style('fill', d => colorLibPDPScale(d.numTweetsGroupRatio.con))
-    .style('fill-opacity', 0.5);
-
-  const conservativeRatioBars = svg
-    .selectAll('.con_ratio_bar')
-    .data(words)
-    .enter()
-    .append('rect')
-    .attr(
-      'x',
-      d =>
-        layout.wordGroupPlot.width -
-        layout.wordGroupPlot.leftMargin -
-        xGroupRatio(d.numTweetsGroupRatio.lib)
-    )
-    .attr('y', (d, i) => yWordScale(d.word))
-    .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.lib))
-    .attr('height', yWordScale.bandwidth() - 3)
-    .style('fill', d => colorConPDPScale(d.numTweetsGroupRatio.lib))
-    .style('fill-opacity', 0.5);
+        'x',
+        d =>
+          layout.wordGroupPlot.width -
+          layout.wordGroupPlot.leftMargin -
+          xGroupRatio(d.numTweetsGroupRatio.lib)
+      )
+      .attr('y', (d, i) => yWordScale(d.word))
+      .attr('width', d => xGroupRatio(d.numTweetsGroupRatio.lib))
+      .attr('height', yWordScale.bandwidth() - 3)
+      .style('fill', d => colorConPDPScale(d.numTweetsGroupRatio.lib))
+      .style('fill-opacity', 0.5);
+  }, []);
 
   return (
     <WordPlotViewWrapper>
