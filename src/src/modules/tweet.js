@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
+const SELECT_TWEET = 'SELECT_TWEET';
 const RUN_DT = 'RUN_DT';
 const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
 const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
@@ -21,12 +22,7 @@ export const fetchTweets = () => {
         moral2: d.moral2,
         moral3: d.moral3,
         userId: d.user_id,
-        screenName: d.screen_name,
-        numFollowers: d.num_followers,
-        numFriends: d.num_friends,
-        numRetweeted: d.num_retweeted,
-        numTweets: d.num_tweets,
-        botScore: d.bot_score
+        screenName: d.screen_name
       }));
       dispatch({ type: 'FETCH_TWEETS', payload: data });
     });
@@ -52,6 +48,7 @@ export const runDT = ({ tweets, selectedFeatures }) => {
 // initial value for state
 const initialState = {
   tweets: [],
+  selectedTweet: [],
   isLoaded: false
 };
 
@@ -64,6 +61,8 @@ const tweet = (state = initialState, action) => {
         ...state,
         tweets: action.payload
       };
+    case SELECT_TWEET:
+
     case RUN_DT:
       console.log('action.payload in RUN_DT: ', action.payload);
       return {

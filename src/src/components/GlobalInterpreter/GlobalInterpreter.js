@@ -3,10 +3,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import { Button, Select } from 'grommet';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+import {
+  SectionWrapper,
+  SectionTitle,
+  SubsectionTitle,
+  SubTitle
+} from '../../GlobalStyles';
 
 import { runDT } from '../../modules/tweet';
 import {
@@ -20,24 +25,97 @@ import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
 import FeaturePlotView from './FeaturePlotView';
 import WordPlotView from './WordPlotView';
 
-const GlobalInterpreterWrapper = styled.div.attrs({
+const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   className: 'global_interpreter'
 })`
   grid-area: g;
   display: grid;
   grid-template-columns: 15% 85%;
-  grid-template-rows: 50px 5px 300px 100px;
+  grid-template-rows: 50px 50px 20px 300px 150px;
   grid-template-areas:
     't t'
+    'md md'
     'ge ab'
     'ge f'
     'ge w';
 `;
 
+const ModeViewWrapper = styled.div.attrs({
+  className: 'mode_view_wrapper'
+})`
+  grid-area: md;
+  border: 1px solid #dadada;
+  background-color: whitesmoke;
+  padding: 4px;
+`;
+
+const ModeDropdown = styled(Select).attrs({
+  className: 'mode_dropdown'
+})`
+  width: 80%;
+  height: 30px;
+  background-color: white;
+  border: 1px solid whitesmoke;
+  border-radius: 10px;
+`;
+
+const FeatureIndicator = styled.div.attrs({
+  className: 'data_indicator'
+})`
+  height: 20px;
+  background-color: black;
+  color: white;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 3px;
+`;
+
+const TargetIndicator = styled.div.attrs({
+  className: 'target_indicator'
+})`
+  height: 20px;
+  background-color: black;
+  color: white;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 3px;
+`;
+
+const QuestionDiv = styled.div.attrs({
+  className: 'question_wrapper'
+})`
+  height: 20px;
+  background-color: gray;
+  color: white;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 3px;
+`;
+
+const GlobalModeDisplay = (
+  <div style={{ padding: '5px' }}>
+    <div style={{ display: 'flex', height: '30px', alignItems: 'center' }}>
+      <FeatureIndicator>{'TRUE'}</FeatureIndicator>
+      &nbsp;
+      <span>{'-'}</span>
+      &nbsp;
+      <TargetIndicator>{'TRUE'}</TargetIndicator>
+      &nbsp;&nbsp;&nbsp;
+      <QuestionDiv>
+        {
+          'Are groups predictable by their tendency in expressing emotion and moral values?'
+        }
+      </QuestionDiv>
+    </div>
+  </div>
+);
+
 const GlobalInterpreter = props => {
   const dispatch = useDispatch();
   const {
+    globalMode,
     currentModel,
+    features,
     selectedFeatures,
     tweets,
     clusters,
@@ -144,13 +222,49 @@ const GlobalInterpreter = props => {
   console.log('in GlobalInterpreterWrapper: ', tweets);
   console.log('in GlobalInterpreterWrapper: ', clusters);
 
+  const globalModes = [
+    {
+      type: 1,
+      question:
+        'Are groups predictable by their tendency in expressing emotion and moral values?',
+      display: GlobalModeDisplay
+    },
+    {
+      type: 2,
+      question: 'How well can (shallow) machine predict ideological groups?',
+      display: GlobalModeDisplay
+    }
+  ];
+
   return (
     <GlobalInterpreterWrapper>
       <div style={{ gridArea: 't' }}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
-      <Generator tweets={tweets} selectedFeatures={selectedFeatures} />
-      <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} />
+      <div style={{ gridArea: 'md' }}>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <SubsectionTitle>Mode: </SubsectionTitle>
+        &nbsp;&nbsp;&nbsp;
+        <ModeDropdown
+          multiple={false}
+          value={globalModes[globalMode].display}
+          // onChange={}
+          options={globalModes.map(d => d.display)}
+          size={'xsmall'}
+        />
+        {/* <QuestionDiv>
+          {'How well can (shallow) machine predict ideological groups?'}
+        </QuestionDiv> */}
+      </div>
+      <Generator
+        tweets={tweets}
+        features={features}
+        selectedFeatures={selectedFeatures}
+      />
+      <AbstrctFeaturePlotView
+        numAbstractFeatures={numAbstractFeatures}
+        globalMode={globalMode}
+      />
       <FeaturePlotView
         numFeatures={numFeatures}
         tweets={tweets}

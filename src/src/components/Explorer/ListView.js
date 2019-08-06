@@ -17,14 +17,13 @@ const ListViewWrapper = styled.div.attrs({
   className: 'list_view_wrapper'
 })`
   grid-area: l;
-  display: flex;
 `;
 
 const UserListWrapper = styled(ListViewStyle).attrs({
   className: 'user_list'
 })`
-  height: 90%;
   grid-area: u;
+  height: 90%;
   margin-right: 5px;
   overflow-y: scroll;
 `;
@@ -33,6 +32,7 @@ const WordListWrapper = styled(ListViewStyle).attrs({
   className: 'word_list'
 })`
   grid-area: w;
+  height: 90%;
 `;
 
 const layout = {
@@ -202,20 +202,18 @@ const UserListView = ({ users }) => {
   );
 };
 
-const ListView = ({ data }) => {
-  console.log('data in ListView: ', data);
-
-  const users = data;
+const ListView = ({ users }) => {
+  console.log('data in ListView: ', users);
 
   return (
     <ListViewWrapper>
-      <div>
+      <div style={{ height: '40%' }}>
         <ComponentSubTitle>User</ComponentSubTitle>
         <UserListWrapper>
           <UserListView users={users} />
         </UserListWrapper>
       </div>
-      <div>
+      <div style={{ height: '40%' }}>
         <ComponentSubTitle>Word</ComponentSubTitle>
         <WordListWrapper />
       </div>

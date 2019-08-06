@@ -5,7 +5,7 @@ import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter
 const GlobalInterpreterContainer = () => {
   const { tweets, isLoaded } = useSelector(state => state.tweet, []),
     { clusters } = useSelector(state => state.cluster, []),
-    { currentModel, selectedFeatures } = useSelector(
+    { currentModel, features, selectedFeatures, globalMode } = useSelector(
       state => state.globalInterpreter,
       []
     );
@@ -55,11 +55,13 @@ const GlobalInterpreterContainer = () => {
 
   return (
     <GlobalInterpreter
+      globalMode={globalMode}
       tweets={tweets}
       clusters={clusters}
       // clusterIdsForTweets={clusterIdsForTweets}
       words={words}
       currentModel={currentModel}
+      features={features}
       selectedFeatures={selectedFeatures}
       // pdpValues={pdpValues}
       isLoaded={isLoaded}

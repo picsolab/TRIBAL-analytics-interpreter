@@ -48,6 +48,16 @@ class LoadData(APIView):
 
         return Response(tweets_json)
 
+
+class LoadUsers(APIView):
+    def get(self, request, format=None):
+        users_objects = models.User.objects.all()
+        # serializer return string, so convert it to list with eval()
+        users_objects_json = eval(serializers.serialize('json', users_objects))
+        users_json = [user['fields'] for user in users_objects_json]
+
+        return Response(users_json)
+
 # For the global interpretability,
 
 
@@ -57,7 +67,8 @@ class RunDecisionTree(APIView):
 
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
-        features = request_json['selectedFeatures']
+        feature_objs = request_json['selectedFeatures']
+        features = [feature['key'] for feature in feature_objs]
         tweets = request_json['tweets']
 
         # tweet_objects = models.Tweet.objects.all()
@@ -139,7 +150,8 @@ class CalculatePartialDependence(APIView):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         model_id = request_json['modelId']
         tweets = request_json['tweets']
-        features = request_json['features']
+        feature_objs = request_json['features']
+        features = [feature['key'] for feature in feature_objs]
 
         df_tweets = pd.DataFrame(tweets)
 
@@ -169,8 +181,11 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         model_id = request_json['modelId']
-        features = request_json['features']
+        feature_objs = request_json['features']
+        features = [feature['key'] for feature in feature_objs]
         tweets = request_json['tweets']
+
+        print(features)
 
         # tweet_objects = models.Tweet.objects.all()
         # tweet_objects_json = eval(serializers.serialize('json', tweet_objects)) # serializer return string, so convert it to list with eval()

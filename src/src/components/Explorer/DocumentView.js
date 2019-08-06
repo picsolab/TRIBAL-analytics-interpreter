@@ -107,24 +107,17 @@ const ScoreView = props => {
 };
 
 const DocumentView = ({ data }) => {
-  const mockup = [0.7, 0.5, 0.3, 0.4];
-  const top10Tweets = data.slice(0, 3);
-
-  const [mode, setMode] = useState('whole');
-
-  if (mode === 'whole')
-    return (
-      <DocumentViewWrapper>
-        <ComponentSubTitle>Document</ComponentSubTitle>
-        <DocumentListWrapper>
-          <ScoreView tweets={data} />
-          {data.map(tweet => (
-            <Document tweet={tweet} />
-          ))}
-        </DocumentListWrapper>
-      </DocumentViewWrapper>
-    );
-  else return <div />;
+  return (
+    <DocumentViewWrapper>
+      <ComponentSubTitle>Document</ComponentSubTitle>
+      <DocumentListWrapper>
+        <ScoreView tweets={data} />
+        {data.map(tweet => (
+          <Document tweet={tweet} />
+        ))}
+      </DocumentListWrapper>
+    </DocumentViewWrapper>
+  );
 };
 
 export default DocumentView;

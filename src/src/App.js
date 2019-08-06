@@ -5,23 +5,24 @@ import './App.css';
 import styled from 'styled-components';
 
 import { fetchTweets, runDT } from './modules/tweet';
-import { runClustering } from './modules/cluster';
-import { calculatePartialDependence } from './modules/globalInterpreter';
+import { fetchUsers } from './modules/user';
+import { SectionTitle, SectionWrapper } from './GlobalStyles';
 
 import ExplorerContainer from './containers/ExplorerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
 import LocalInterpreterContainer from './containers/LocalInterpreterContainer';
+import InstanceViewerContainer from './containers/InstanceViewerContainer';
 
 const Container = styled.div`
-  width: 80%;
+  width: 85%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 500px 500px;
-  grid-template-columns: 42.5% 2.5% 55%;
+  grid-template-rows: 50px 600px 500px;
+  grid-template-columns: 32.5% 17.5% 50%;
   grid-template-areas:
     'h h h'
-    'e m2 g'
-    'e m3 l';
+    'e gr g'
+    'e i l';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -46,8 +47,9 @@ const Mockup = styled.div`
   grid-area: m;
 `;
 
-const Mockup2 = styled.div`
-  grid-area: m2;
+const GroupView = styled(SectionWrapper)`
+  grid-area: gr;
+  background-color: whitesmoke;
 `;
 
 const Mockup3 = styled.div`
@@ -59,6 +61,7 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchTweets());
+    dispatch(fetchUsers());
   });
 
   return (
@@ -67,7 +70,10 @@ function App() {
         <Title className=".App-link">TRIBAL</Title>
       </Header>
       <ExplorerContainer />
-      <Mockup2 />
+      <GroupView>
+        <SectionTitle>Group</SectionTitle>
+      </GroupView>
+      <InstanceViewerContainer />
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />
       <Mockup3 />

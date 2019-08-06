@@ -24,7 +24,7 @@ const LocalButton = styled(Button)`
 const SearchBarWrapper = styled.div.attrs({
   className: 'search_bar_wrapper'
 })`
-  width: 100%;
+  width: 95%;
   height: 80px;
   display: flex;
   margin: 5px;

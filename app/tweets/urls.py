@@ -8,6 +8,11 @@ urlpatterns = [
         name='load_data'
     ),
     url(
+        regex=r'^loadUsers/$',
+        view=views.LoadUsers.as_view(),
+        name='load_users'
+    ),
+    url(
         regex=r'^runDecisionTree/$',
         view=views.RunDecisionTree.as_view(),
         name='run_dt'
@@ -27,4 +32,4 @@ urlpatterns = [
         view=views.RunClusteringAndPartialDependenceForClusters.as_view(),
         name='run_clustering_and_partial_dependence_for_clusters'
     ),
-];
+]

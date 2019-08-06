@@ -11,7 +11,6 @@ import { SectionTitle, SubTitle } from '../../GlobalStyles';
 import RetrievalView from './RetrievalView';
 import DocumentView from './DocumentView';
 import ListView from './ListView';
-import InstanceViewer from './InstanceViewer';
 
 const ExplorerWrapper = styled.div.attrs({
   className: 'Explorer'
@@ -19,22 +18,21 @@ const ExplorerWrapper = styled.div.attrs({
   grid-area: e;
   display: grid;
   grid-template-rows: 150px 300px 600px;
-  grid-template-columns: 40% 60%;
+  grid-template-columns: 60% 40%;
   grid-template-areas:
     'rt rt'
     'd l'
-    'd i';
+    'd l';
 `;
 
-const Explorer = ({ tweets }) => {
-  console.log('tweets in explorer: ', tweets);
+const Explorer = ({ tweets, users }) => {
+  console.log('tweets in explorer: ', tweets, users);
   const selectedTweet = tweets[0];
   return (
     <ExplorerWrapper>
       <RetrievalView data={tweets} />
       <DocumentView data={tweets} />
-      <ListView data={tweets} />
-      <InstanceViewer tweets={tweets} selectedTweet={selectedTweet} />
+      <ListView users={users} />
     </ExplorerWrapper>
   );
 };

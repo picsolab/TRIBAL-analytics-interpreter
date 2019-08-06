@@ -25,6 +25,16 @@ export const SectionTitle = styled.div`
   font-weight: 600;
 `;
 
+export const SubsectionTitle = styled.div.attrs({
+  className: 'subsection_title'
+})`
+  display: inline-block;
+  font-weight: 550;
+  border-bottom: 2px solid gray;
+  padding-bottom: 2px;
+  margin: 10px 0;
+`;
+
 export const SubTitle = styled.div`
   font-weight: 500;
 `;

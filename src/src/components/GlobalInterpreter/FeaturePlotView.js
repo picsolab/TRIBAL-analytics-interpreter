@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useHover } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useHover,
+  useCallback
+} from 'react';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
@@ -16,11 +22,11 @@ import {
 import data from '../../data/planets.json';
 import { renderQueue } from '../../lib/renderQueue';
 
-const FeaturePlotViewWrapper = styled(SectionWrapper).attrs({
+const FeaturePlotViewWrapper = styled.div.attrs({
   className: 'feature_plot_view_wrapper'
 })`
   grid-area: f;
-  height: 300px;
+  height: 100%;
 `;
 
 function d3_functor(v) {
@@ -31,8 +37,27 @@ function d3_functor(v) {
       };
 }
 
+function useHookWithRefCallback() {
+  const ref = useRef(null);
+  const setRef = useCallback(node => {
+    if (ref.current) {
+      // Make sure to cleanup any events/references added to the last instance
+    }
+
+    if (node) {
+      // Check if a node is actually passed. Otherwise node would be null.
+      // You can now do what you need to, addEventListeners, measure, etc.
+    }
+
+    // Save a reference to the node
+    ref.current = node;
+  }, []);
+
+  return [setRef];
+}
+
 const layout = {
-  margin: { top: 20, right: 110, bottom: 20, left: 30 },
+  margin: { top: 30, right: 110, bottom: 20, left: 30 },
   width: 640,
   height: 240,
   leftMargin: 50,
@@ -40,12 +65,19 @@ const layout = {
   featurePlot: {
     width: 350
   },
+  outputProbPlot: {
+    width: 70,
+    height: 240,
+    leftMargin: 80,
+    minRadius: 4,
+    maxRadius: 10
+  },
   clusterPlot: {
     width: 70,
     height: 240,
     leftMargin: 80,
     minRadius: 4,
-    maxRadius: 8
+    maxRadius: 10
   },
   pdpPlot: {
     width: 70,
@@ -56,42 +88,6 @@ const layout = {
 
 const wholeWidth = layout.width + layout.margin.left + layout.margin.right,
   wholeHeight = layout.height + layout.margin.top + layout.margin.bottom;
-
-const types = {
-  Number: {
-    key: 'Number',
-    coerce: function(d) {
-      return +d;
-    },
-    extent: d3.extent,
-    within: function(d, extent, dim) {
-      return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
-    },
-    defaultScale: d3.scaleLinear().range([layout.innerHeight, 0])
-  },
-  String: {
-    key: 'String',
-    coerce: String,
-    extent: function(data) {
-      return data.sort();
-    },
-    within: function(d, extent, dim) {
-      return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
-    },
-    defaultScale: d3.scalePoint().range([0, layout.innerHeight])
-  },
-  Date: {
-    key: 'Date',
-    coerce: function(d) {
-      return new Date(d);
-    },
-    extent: d3.extent,
-    within: function(d, extent, dim) {
-      return extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1];
-    },
-    defaultScale: d3.scaleTime().range([layout.innerHeight, 0])
-  }
-};
 
 const color = d3
   .scaleOrdinal()
@@ -140,219 +136,27 @@ const groupColorScale = d3
   .domain(['lib', 'con'])
   .range([globalColors.group.lib, globalColors.group.con]);
 
-const dimensions = [
-  {
-    key: 'pl_discmethod',
-    description: 'Discovery Method',
-    type: types['String'],
-    axis: d3.axisLeft().tickFormat(function(d, i) {
-      return d;
-    })
-  },
-  {
-    key: 'pl_letter',
-    description: 'Planet Letter',
-    type: types['String']
-  },
-  {
-    key: 'pl_pnum',
-    description: 'Number of Planets in System',
-    type: types['Number']
-  },
-  {
-    key: 'pl_orbper',
-    type: types['Number'],
-    description: 'Planet Orbital Period',
-    scale: d3.scaleLog().range([layout.innerHeight, 0])
-  },
-  {
-    key: 'pl_orbsmax',
-    type: types['Number'],
-    description: 'Planet Semi-Major Axis',
-    scale: d3.scaleLog().range([layout.innerHeight, 0])
-  },
-  {
-    key: 'pl_orbeccen',
-    description: 'Planet Eccentricity',
-    type: types['Number']
-  },
-  {
-    key: 'pl_orbincl',
-    description: 'Planet Inclination',
-    type: types['Number']
-  },
-  {
-    key: 'pl_bmassj',
-    description: 'Mass in Jupiters',
-    type: types['Number']
-  },
-  {
-    key: 'pl_rade',
-    description: 'Planet Radius in Earth Radii',
-    type: types['Number']
-  },
-  {
-    key: 'pl_eqt',
-    description: 'Planet Equilibrium Temperature (K)',
-    type: types['Number']
-  },
-  {
-    key: 'pl_imppar',
-    description: 'Impact Parameter',
-    type: types['Number']
-  },
-  {
-    key: 'pl_trandep',
-    description: 'Transit Depth (%)',
-    type: types['Number']
-  },
-  {
-    key: 'pl_trandur',
-    description: 'Transit Duration (days)',
-    type: types['Number']
-  },
-  {
-    key: 'pl_ratror',
-    description: 'Planet-Star Radius Ratio',
-    type: types['Number']
-  },
-  {
-    key: 'st_spstr',
-    description: 'Star Spectral Type',
-    type: types['String'],
-    axis: d3.axisLeft().tickFormat(function(d, i) {
-      if (i % 4) return;
-      return d;
-    })
-  },
-  {
-    key: 'pl_locale',
-    type: types['String'],
-    axis: d3.axisLeft().tickFormat(function(d, i) {
-      if (d == 'Multiple Locales') return 'Multiple';
-      return d;
-    })
-  },
-  {
-    key: 'pl_disc',
-    description: 'Year of Discovery',
-    type: types['Date']
-  },
-  {
-    key: 'pl_facility',
-    description: 'Facility',
-    type: types['String'],
-    domain: [
-      'Kepler',
-      'La Silla Observatory',
-      'K2',
-      'W. M. Keck Observatory',
-      'SuperWASP',
-      'Multiple Observatories',
-      'HATNet',
-      'Haute-Provence Observatory',
-      'Anglo-Australian Telescope',
-      'OGLE',
-      'Lick Observatory',
-      'HATSouth',
-      'CoRoT',
-      'McDonald Observatory',
-      'Okayama Astrophysical Observatory',
-      'MOA',
-      'Bohyunsan Optical Astronomical Observatory',
-      'Las Campanas Observatory',
-      'SuperWASP-South',
-      'Roque de los Muchachos Observatory',
-      'Paranal Observatory',
-      'Gemini Observatory',
-      'KELT',
-      'Subaru Telescope',
-      'Thueringer Landessternwarte Tautenburg',
-      'XO',
-      'Multiple Facilities',
-      'Hubble Space Telescope',
-      'Fred Lawrence Whipple Observatory',
-      'TrES',
-      'kepler',
-      'KELT-South',
-      'Spitzer Space Telescope',
-      'Arecibo Observatory',
-      'United Kingdom Infrared Telescope',
-      'Large Binocular Telescope Observatory',
-      'Xinglong Station',
-      'Cerro Tololo Inter-American Observatory',
-      'Palomar Observatory',
-      'SuperWASP-North',
-      'Qatar',
-      'Teide Observatory',
-      'European Southern Observatory',
-      'Leoncito Astronomical Complex',
-      'Infrared Survey Facility',
-      'KMTNet',
-      'Parkes Observatory',
-      'Apache Point Observatory',
-      'Oak Ridge Observatory',
-      'MEarth Project',
-      'Yunnan Astronomical Observatory',
-      'Kitt Peak National Observatory'
-    ],
-    axis: d3.axisRight().tickFormat(function(d, i) {
-      return d;
-    })
-  }
-  /*
-  {
-    key: 'pl_telescope',
-    description: 'Telescope',
-    type: types['String'],
-    axis: d3.axisRight()
-      .tickFormat(function(d,i) {
-        return d;
-      })
-  }
-  */
-  /*
-  {
-    key: 'pl_instrument',
-    description: 'Instrument',
-    type: types['String'],
-    axis: d3.axisRight()
-      .tickFormat(function(d,i) {
-        return d;
-      })
-  }
-  */
-];
-
 const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
 
   const {
-      tweets,
-      clusters,
-      // clusterIdsForTweets,
-      words,
-      // pdpValues,
-      selectedFeatures,
-      isLoaded
-    } = props,
-    scoreFeatures = [
-      { key: 'valence', abbr: 'V' },
-      { key: 'arousal', abbr: 'A' },
-      { key: 'dominance', abbr: 'D' },
-      { key: 'moral1', abbr: 'M1' },
-      { key: 'moral2', abbr: 'M2' },
-      { key: 'moral3', abbr: 'M3' }
-    ];
+    tweets,
+    clusters,
+    // clusterIdsForTweets,
+    words,
+    // pdpValues,
+    selectedFeatures,
+    isLoaded
+  } = props;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     console.log('in featureplotview useeffect: ', isLoaded);
     console.log('in featureplotview useeffect: ', clusters);
     console.log('in featureplotview useeffect: ', tweets);
     const xFeatureScale = d3
       .scalePoint()
-      .domain(selectedFeatures)
+      .domain(selectedFeatures.map(({ key }) => key))
       .range([layout.margin.left, layout.featurePlot.width]);
 
     const yScoreScale = d3
@@ -371,8 +175,8 @@ const FeaturePlotView = props => {
       .attr('class', 'canvas_tweet_paths')
       .attr('width', layout.width * devicePixelRatio)
       .attr('height', layout.height * devicePixelRatio)
-      .style('width', layout.width + 'px')
-      .style('height', layout.height + 'px')
+      .style('width', layout.width - 20 + 'px')
+      .style('height', layout.height - 10 + 'px')
       .style('z-index', -1);
 
     const ctx = canvas.node().getContext('2d');
@@ -384,10 +188,14 @@ const FeaturePlotView = props => {
     //* Render the feature plot
     const gFeaturePlot = svg.append('g').attr('class', 'g_feature_plot');
 
-    const axes = gFeaturePlot
+    const axesData = gFeaturePlot
       .selectAll('.axis')
-      .data(scoreFeatures)
-      .enter()
+      .data(selectedFeatures)
+      .enter();
+
+    // axesData.exit().remove();
+
+    const axes = axesData
       .append('g')
       .attr('class', function(d) {
         return 'axis ';
@@ -396,14 +204,21 @@ const FeaturePlotView = props => {
         return 'translate(' + xFeatureScale(d.key) + ')';
       });
 
-    const featureTitle = svg
+    const featureTitleData = gFeaturePlot
       .selectAll('text')
-      .data(scoreFeatures)
-      .enter()
+      .data(selectedFeatures)
+      .enter();
+
+    featureTitleData.exit().remove();
+
+    const featureTitles = featureTitleData
       .append('text')
-      .text(d => d.abbr)
+      .text(d => {
+        console.log('in text: ', d);
+        return d.abbr;
+      })
       .attr('x', (d, i) => xFeatureScale(d.key) - 10)
-      .attr('y', (d, i) => layout.margin.top - 10)
+      .attr('y', (d, i) => 10)
       .style('font-size', '0.8rem');
 
     const render = renderQueue(draw).rate(30);
@@ -447,8 +262,7 @@ const FeaturePlotView = props => {
 
     // For feature plots
     function project(d) {
-      console.log('d in project: ', d);
-      return scoreFeatures.map(function(p, i) {
+      return selectedFeatures.map(function(p, i) {
         // check if data element has property and contains a value
         if (!(p.key in d) || d[p.key] === null) return null;
 
@@ -457,7 +271,6 @@ const FeaturePlotView = props => {
     }
 
     function draw(d) {
-      console.log('d in draw: ', d);
       ctx.strokeStyle = groupColorScale(d.group);
       ctx.beginPath();
       const coords = project(d);
@@ -558,6 +371,24 @@ const FeaturePlotView = props => {
       render(selected);
     } // end of brush()
 
+    //* Render output prob plot
+    const gOutputProbPlot = svg
+      .append('g')
+      .attr('class', 'g_output_prob_plot')
+      .attr(
+        'transform',
+        'translate(' +
+          (layout.featurePlot.width +
+            layout.outputProbPlot.leftMargin +
+            layout.outputProbPlot.maxRadius * 2) +
+          ',0)'
+      );
+
+    const yOutputPlot = d3
+      .scaleBand()
+      .domain(clusters.map(d => d.clusterId))
+      .range([layout.margin.top, layout.outputProbPlot.height]);
+
     //* Render clusters
     const gClusterPlot = svg
       .append('g')
@@ -566,6 +397,8 @@ const FeaturePlotView = props => {
         'transform',
         'translate(' +
           (layout.featurePlot.width +
+            layout.outputProbPlot.leftMargin +
+            layout.outputProbPlot.width +
             layout.clusterPlot.leftMargin +
             layout.clusterPlot.maxRadius * 2) +
           ',0)'
@@ -578,7 +411,7 @@ const FeaturePlotView = props => {
 
     const numTweetClusterScale = d3
       .scaleLinear()
-      .domain(clusters.map(d => d.numTweets))
+      .domain(d3.extent(clusters.map(d => d.numTweets)))
       .range([layout.clusterPlot.minRadius, layout.clusterPlot.maxRadius]);
 
     const groupRatioScale = d3
@@ -599,11 +432,11 @@ const FeaturePlotView = props => {
     const drawTweetLine = d3
       .line()
       .x(d => {
-        console.log('d: ', d);
-        console.log('d: ', xFeatureScale(d[0]));
         return xFeatureScale(d[0]);
       })
       .y(d => yScoreScale(d[1]));
+
+    console.log('clusters: ', clusters);
 
     const clusterCircles = gClusterPlot
       .selectAll('.cluster_circle')
@@ -616,7 +449,8 @@ const FeaturePlotView = props => {
       .style('fill', d => groupRatioScale(d.groupRatio.lib))
       .style('fill-opacity', 0.5)
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
-      .on('mouseover', d => {
+      .on('mouseover', function(d) {
+        const selectedCluster = d3.select(this).style('stroke-width', '2px');
         const clusterId = d.clusterId,
           tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
 
@@ -626,9 +460,14 @@ const FeaturePlotView = props => {
         console.log(tweetsInCluster);
 
         const tweetsPathData = tweetsInCluster.map(d => {
-          const tweetWithSelectedFeatures = _.pick(d, selectedFeatures);
+          const tweetWithSelectedFeatures = _.pick(
+            d,
+            selectedFeatures.map(({ key }) => key)
+          );
+          var tweetPathData = Object.entries(tweetWithSelectedFeatures);
+          tweetPathData.group = d.group;
 
-          return Object.entries(tweetWithSelectedFeatures);
+          return tweetPathData;
         });
 
         console.log(tweetsPathData);
@@ -640,10 +479,10 @@ const FeaturePlotView = props => {
           .append('path')
           .attr('class', 'path_tweet')
           .attr('d', drawTweetLine)
-          .style('stroke', 'black')
+          .style('stroke', d => groupColorScale(d.group))
           .style('fill', 'none')
           .style('stroke-width', '2px')
-          .style('stroke-dasharray', '3,1');
+          .style('stroke-dasharray', '5,5');
 
         // tweetsInCluster.forEach((tweet) => {
         //   gClusterPlot.append('path')
@@ -663,7 +502,8 @@ const FeaturePlotView = props => {
         //   .style('stroke-width', '2px')
         //   .style('stroke-dasharray', '3,1'),
       })
-      .on('mouseout', d => {
+      .on('mouseout', function(d) {
+        const selectedCluster = d3.select(this).style('stroke-width', '1px');
         gFeaturePlot.selectAll('.path_tweet').remove();
       });
 
@@ -682,6 +522,8 @@ const FeaturePlotView = props => {
         'transform',
         'translate(' +
           (layout.featurePlot.width +
+            layout.outputProbPlot.leftMargin +
+            layout.outputProbPlot.width +
             layout.clusterPlot.width +
             layout.clusterPlot.maxRadius * 2 +
             layout.pdpPlot.leftMargin) +
@@ -725,17 +567,17 @@ const FeaturePlotView = props => {
 
     const pdpTitle = gPDP
       .append('text')
-      .text('PDP')
+      .text('Output Prob')
       .attr('y', 10);
-  }, [props, ref.current]);
+  }, [selectedFeatures, ref.current]);
 
   d3.selectAll('canvas').remove();
 
   return (
     <FeaturePlotViewWrapper
       ref={ref}
-      width={wholeWidth}
-      height={wholeHeight}
+      // width={wholeWidth}
+      // height={wholeHeight}
       // style={{ display: 'flex' }}
     >
       <svg

@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const CAL_PD = 'CAL_PD';
 const RUN_CL_N_CAL_PD_FOR_PDP_VALUES = 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES';
+const SET_SELECTED_FEATURES = 'SET_SELECTED_FEATURES';
+const IS_CHECKED = 'IS_CHECKED';
 
 // Three modes:
 // (1) calculate pd per every feature
@@ -27,14 +29,23 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
 
 // initial value for state
 const initialState = {
-  selectedFeatures: [
-    'valence',
-    'arousal',
-    'dominance',
-    'moral1',
-    'moral2',
-    'moral3'
+  features: [
+    { key: 'valence', abbr: 'V' },
+    { key: 'arousal', abbr: 'A' },
+    { key: 'dominance', abbr: 'D' },
+    { key: 'moral1', abbr: 'M1' },
+    { key: 'moral2', abbr: 'M2' },
+    { key: 'moral3', abbr: 'M3' }
   ],
+  selectedFeatures: [
+    { key: 'valence', abbr: 'V' },
+    { key: 'arousal', abbr: 'A' },
+    { key: 'dominance', abbr: 'D' },
+    { key: 'moral1', abbr: 'M1' },
+    { key: 'moral2', abbr: 'M2' },
+    { key: 'moral3', abbr: 'M3' }
+  ],
+  areFeaturesChecked: { valence: false },
   currentModel: 'dt_0',
   models: [
     {
@@ -50,7 +61,8 @@ const initialState = {
     }
     // And all the predictions and clusters???
   ],
-  pdpValues: []
+  pdpValues: [],
+  globalMode: 1
 };
 
 // Reducers
@@ -64,6 +76,16 @@ const globalInterpreter = (state = initialState, action) => {
     //     ...state,
     //     data: action.payload
     //   };
+    case SET_SELECTED_FEATURES:
+      return {
+        ...state,
+        selectedFeatures: action.payload
+      };
+    case IS_CHECKED:
+      return {
+        ...state,
+        isValenceChecked: action.payload
+      };
     case CAL_PD:
       console.log('calculatePartialDependence state: ', state);
       console.log(

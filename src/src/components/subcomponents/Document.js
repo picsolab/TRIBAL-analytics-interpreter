@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useDispatch, useRef } from 'react';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
@@ -57,6 +57,7 @@ const ScoreView = props => {
       height: 25
     }
   };
+
   const xFeatureScale = d3
     .scaleBand()
     .domain(d3.range(6))
@@ -94,16 +95,6 @@ const ScoreView = props => {
       })
       .attr('y', (d, i) => layout.svg.height - yScoreScale(d))
       .style('fill', globalColors.feature);
-
-    // const featureTitle = d3
-    //   .select(ref.current)
-    //   .selectAll('text')
-    //   .data(['R', 'A', 'D', 'M'])
-    //   .enter()
-    //   .append('text')
-    //   .text(d => d)
-    //   .attr('x', 10)
-    //   .attr('y', (d, i) => i * 25 + 45);
   }, [props.tweet, ref.current]);
 
   return (
@@ -115,13 +106,21 @@ const ScoreView = props => {
   );
 };
 
-const Document = ({ tweet }) => {
+const Document = props => {
+  const { tweet } = props;
+
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
 
   return (
     <DocumentWrapper>
-      <div style={{ display: 'flex', height: 30, alignItems: 'center' }}>
+      <div
+        style={{ display: 'flex', height: 30, alignItems: 'center' }}
+        // onClick={dispatch({
+        //   type: 'SELECT_TWEET',
+        //   payload: tweet
+        // })}
+      >
         <GroupDiv group={tweet.group} />
         <div>{tweet.screenName}</div>
         <ScoreView tweet={tweet} />
