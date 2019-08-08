@@ -72,7 +72,8 @@ const WordGroupPlot = styled.div.attrs({
   className: 'word_group_plot_wrapper'
 })``;
 
-const WordPlotView = ({ words }) => {
+const WordPlotView = props => {
+  const { words, selectedFeatures, globalMode } = props;
   const ref = useRef(null);
   //* For the word plot
   const filterWordsByFeature = feature => {
@@ -84,8 +85,27 @@ const WordPlotView = ({ words }) => {
   };
 
   useEffect(() => {
+    console.log('globalMode in WordPlotView useEffect: ', globalMode);
     //* For the word group view
     const svg = d3.select(ref.current);
+
+    // d3.selectAll('text').remove();
+    d3.select('.g_word_plot').remove();
+
+    const gWordPlot = svg.append('g').attr('class', 'g_word_plot');
+
+    const update = gWordPlot.selectAll('text').data([globalMode]);
+
+    update.exit().remove();
+
+    // Enter new D3 elements
+    update
+      .enter()
+      .append('text')
+      .attr('x', (d, i) => i * 80)
+      .attr('y', 80)
+      .style('font-size', 14)
+      .text(d => d);
 
     const yWordScale = d3
       .scaleBand()
@@ -111,7 +131,7 @@ const WordPlotView = ({ words }) => {
       .range(['whitesmoke', globalColors.group.lib]);
 
     const yLiberalAxisSetting = d3.axisLeft(yWordScale).tickSize(0),
-      yLiberalAxis = svg
+      yLiberalAxis = gWordPlot
         .append('g')
         .call(yLiberalAxisSetting)
         .attr('class', 'g_liberal_y_axis')
@@ -124,7 +144,7 @@ const WordPlotView = ({ words }) => {
         .axisRight(yWordScale)
         .tickValues([])
         .tickSize(0),
-      yConservativeAxis = svg
+      yConservativeAxis = gWordPlot
         .append('g')
         .call(yConservativeAxisSetting)
         .attr('class', 'g_conservative_y_axis')
@@ -137,7 +157,7 @@ const WordPlotView = ({ words }) => {
             ')'
         );
 
-    const liberalRatioBars = svg
+    const liberalRatioBars = gWordPlot
       .selectAll('.lib_ratio_bar')
       .data(words)
       .enter()
@@ -149,7 +169,7 @@ const WordPlotView = ({ words }) => {
       .style('fill', d => colorLibPDPScale(d.numTweetsGroupRatio.con))
       .style('fill-opacity', 0.5);
 
-    const conservativeRatioBars = svg
+    const conservativeRatioBars = gWordPlot
       .selectAll('.con_ratio_bar')
       .data(words)
       .enter()
@@ -166,7 +186,7 @@ const WordPlotView = ({ words }) => {
       .attr('height', yWordScale.bandwidth() - 3)
       .style('fill', d => colorConPDPScale(d.numTweetsGroupRatio.lib))
       .style('fill-opacity', 0.5);
-  }, []);
+  });
 
   return (
     <WordPlotViewWrapper>
@@ -194,6 +214,9 @@ const WordPlotView = ({ words }) => {
           ref={ref}
         />
       </WordGroupPlot>
+      {selectedFeatures.map(d => (
+        <div>{d.key}</div>
+      ))}
     </WordPlotViewWrapper>
   );
 };

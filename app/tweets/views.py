@@ -10,7 +10,7 @@ import json
 import math
 import pickle
 import matplotlib
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -76,21 +76,27 @@ class RunDecisionTree(APIView):
         # tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
 
         df_tweets = pd.DataFrame(tweets)
+        print('tweets: ', df_tweets.head())
         print('features: ', features)
 
         lb = preprocessing.LabelBinarizer()
 
         X = df_tweets[features]
-        y = lb.fit_transform(df_tweets['group'].astype(str))
+        y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
         y = np.ravel(y)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-        clf = DecisionTreeRegressor(max_depth=15, random_state=1)
+        clf = DecisionTreeClassifier(max_depth=2, random_state=1)
         clf.fit(X_train, y_train)
+        print('depth: ', clf.get_depth())
 
         y_pred_binary = clf.predict(X)
+        y_pred_prob = clf.predict_proba(X)
         y_pred_string = lb.inverse_transform(y_pred_binary)
+        print('y_pred_string: ', y_pred_string)
+        print('y_pred_prob: ', y_pred_prob)
         df_tweets['pred'] = y_pred_string
+        df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
 
         # performance
 

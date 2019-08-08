@@ -66,7 +66,13 @@ const setSelectedFeatures = (feature, checked) => {
 const Generator = props => {
   const dispatch = useDispatch();
   const forceUpdate = useForceUpdate();
-  const { tweets, features, selectedFeatures } = props;
+  const {
+    globalMode,
+    tweets,
+    tweetsWithPredFeatures,
+    features,
+    selectedFeatures
+  } = props;
 
   console.log('selectedFeatures: ', currentlySelectedFeatures);
 
@@ -102,9 +108,14 @@ const Generator = props => {
       <div>Moral</div>
       <Form
         onSubmit={({ value }) => {
-          // dispatch(
-          //   runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
-          // );
+          const selectedTweetsByMode =
+            globalMode === 2 ? tweetsWithPredFeatures : tweets;
+          dispatch(
+            runDT({
+              tweets: selectedTweetsByMode,
+              selectedFeatures: selectedFeatures
+            })
+          );
           dispatch({
             type: 'SET_SELECTED_FEATURES',
             payload: currentlySelectedFeatures.map(d => ({

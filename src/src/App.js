@@ -11,6 +11,7 @@ import { SectionTitle, SectionWrapper } from './GlobalStyles';
 import ExplorerContainer from './containers/ExplorerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
 import LocalInterpreterContainer from './containers/LocalInterpreterContainer';
+import GroupViewerContainer from './containers/GroupViewerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
 
 const Container = styled.div`
@@ -47,11 +48,6 @@ const Mockup = styled.div`
   grid-area: m;
 `;
 
-const GroupView = styled(SectionWrapper)`
-  grid-area: gr;
-  background-color: whitesmoke;
-`;
-
 const Mockup3 = styled.div`
   grid-area: m3;
 `;
@@ -70,9 +66,7 @@ function App() {
         <Title className=".App-link">TRIBAL</Title>
       </Header>
       <ExplorerContainer />
-      <GroupView>
-        <SectionTitle>Group</SectionTitle>
-      </GroupView>
+      <GroupViewerContainer />
       <InstanceViewerContainer />
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />

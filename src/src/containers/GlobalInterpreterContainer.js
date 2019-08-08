@@ -3,13 +3,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter';
 
 const GlobalInterpreterContainer = () => {
-  const { tweets, isLoaded } = useSelector(state => state.tweet, []),
+  const { tweets, tweetsWithPredFeatures, isLoaded } = useSelector(
+      state => state.tweet,
+      []
+    ),
     { clusters } = useSelector(state => state.cluster, []),
     { currentModel, features, selectedFeatures, globalMode } = useSelector(
       state => state.globalInterpreter,
       []
     );
-  const dispatch = useDispatch();
+
   console.log('in global container: ', tweets);
   const words = [
     {
@@ -57,6 +60,7 @@ const GlobalInterpreterContainer = () => {
     <GlobalInterpreter
       globalMode={globalMode}
       tweets={tweets}
+      tweetsWithPredFeatures={tweetsWithPredFeatures}
       clusters={clusters}
       // clusterIdsForTweets={clusterIdsForTweets}
       words={words}

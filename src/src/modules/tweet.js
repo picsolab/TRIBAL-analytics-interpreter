@@ -1,3 +1,5 @@
+import { runClusteringAndPartialDependenceForClusters } from './cluster';
+
 import axios from 'axios';
 
 // Action type
@@ -12,7 +14,7 @@ const RUN_CL_N_CAL_PD_FOR_TWEETS = 'RUN_CL_N_CAL_PD_FOR_TWEETS';
 export const fetchTweets = () => {
   return async dispatch => {
     await axios.get('/tweets/loadData').then(res => {
-      const data = res.data.map(d => ({
+      const tweets = res.data.map(d => ({
         group: d.grp,
         content: d.content,
         valence: d.valence,
@@ -24,14 +26,34 @@ export const fetchTweets = () => {
         userId: d.user_id,
         screenName: d.screen_name
       }));
-      dispatch({ type: 'FETCH_TWEETS', payload: data });
+
+      const tweetsWithPredFeatures = res.data.map(d => ({
+        group: d.grp,
+        content: d.content,
+        valence: d.valence,
+        arousal: d.arousal,
+        dominance: d.dominance,
+        moral1: d.moral1,
+        moral2: d.moral2,
+        moral3: d.moral3,
+        userId: d.user_id,
+        screenName: d.screen_name
+      }));
+
+      dispatch({
+        type: 'FETCH_TWEETS',
+        payload: {
+          tweets: tweets,
+          tweetsWithPredFeatures: tweetsWithPredFeatures
+        }
+      });
     });
   };
 };
 
 export const runDT = ({ tweets, selectedFeatures }) => {
   return async dispatch => {
-    console.log('in useEffect');
+    console.log('in RUN_DT');
     await axios({
       method: 'post',
       url: '/tweets/runDecisionTree/',
@@ -45,9 +67,33 @@ export const runDT = ({ tweets, selectedFeatures }) => {
   };
 };
 
+export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
+  // Again, Redux Thunk will inject dispatch here.
+  // It also injects a second argument called getState() that lets us read the current state.
+  return (dispatch, getState) => {
+    // Remember I told you dispatch() can now handle thunks?
+    return dispatch(
+      runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
+    ).then(() => {
+      // Assuming this is where the fetched user got stored
+      console.log('getState in runDTCL: ', getState());
+      const fetchedTweets = getState().tweet.tweets;
+      // And we can dispatch() another thunk now!
+      return dispatch(
+        runClusteringAndPartialDependenceForClusters({
+          tweets: fetchedTweets,
+          features: selectedFeatures,
+          modelId: modelId
+        })
+      );
+    });
+  };
+}
+
 // initial value for state
 const initialState = {
   tweets: [],
+  tweetsWithPredFeatures: [],
   selectedTweet: [],
   isLoaded: false
 };
@@ -59,7 +105,9 @@ const tweet = (state = initialState, action) => {
       console.log('action.payload in FETCH_TWEETS: ', action.payload);
       return {
         ...state,
-        tweets: action.payload
+        tweets: action.payload.tweets,
+        tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
+        selectedTweet: action.payload.tweets[0]
       };
     case SELECT_TWEET:
 

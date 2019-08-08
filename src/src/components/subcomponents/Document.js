@@ -1,4 +1,4 @@
-import React, { useEffect, useDispatch, useRef } from 'react';
+import React, { useDispatch, useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import _ from 'lodash';
 

@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const CAL_PD = 'CAL_PD';
 const RUN_CL_N_CAL_PD_FOR_PDP_VALUES = 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES';
+const CHANGE_GLOBAL_MODE = 'CHANGE_GLOBAL_MODE';
 const SET_SELECTED_FEATURES = 'SET_SELECTED_FEATURES';
 const IS_CHECKED = 'IS_CHECKED';
 
@@ -62,7 +63,7 @@ const initialState = {
     // And all the predictions and clusters???
   ],
   pdpValues: [],
-  globalMode: 1
+  globalMode: 0 // 1: true-true, 2: true-pred, 3: pred-pred, 4:
 };
 
 // Reducers
@@ -76,6 +77,12 @@ const globalInterpreter = (state = initialState, action) => {
     //     ...state,
     //     data: action.payload
     //   };
+    case CHANGE_GLOBAL_MODE:
+      console.log('in CHANGE_GLOBAL_MODE', action.payload);
+      return {
+        ...state,
+        globalMode: action.payload
+      };
     case SET_SELECTED_FEATURES:
       return {
         ...state,

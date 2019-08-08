@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useDispatch } from 'react';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
@@ -26,6 +26,7 @@ const ExplorerWrapper = styled.div.attrs({
 `;
 
 const Explorer = ({ tweets, users }) => {
+  // const dispatch = useDispatch();
   console.log('tweets in explorer: ', tweets, users);
   const selectedTweet = tweets[0];
   return (

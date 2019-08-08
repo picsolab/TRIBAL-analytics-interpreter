@@ -13,7 +13,7 @@ import {
   SubTitle
 } from '../../GlobalStyles';
 
-import { runDT } from '../../modules/tweet';
+import { runDT, runDTThenRunClandPD } from '../../modules/tweet';
 import {
   runClustering,
   runClusteringAndPartialDependenceForClusters
@@ -92,23 +92,46 @@ const QuestionDiv = styled.div.attrs({
   border-radius: 3px;
 `;
 
-const GlobalModeDisplay = (
-  <div style={{ padding: '5px' }}>
-    <div style={{ display: 'flex', height: '30px', alignItems: 'center' }}>
-      <FeatureIndicator>{'TRUE'}</FeatureIndicator>
-      &nbsp;
-      <span>{'-'}</span>
-      &nbsp;
-      <TargetIndicator>{'TRUE'}</TargetIndicator>
-      &nbsp;&nbsp;&nbsp;
-      <QuestionDiv>
-        {
-          'Are groups predictable by their tendency in expressing emotion and moral values?'
-        }
-      </QuestionDiv>
+const globalModes = [
+  {
+    type: 1,
+    question:
+      'Are groups predictable by their tendency in expressing emotion and moral values?',
+    display: ''
+  },
+  {
+    type: 2,
+    question: 'How well can (shallow) machine predict ideological groups?',
+    display: ''
+  },
+  {
+    type: 3,
+    question: 'How well can (shallow) machine predict ideological groups?',
+    display: ''
+  },
+  {
+    type: 4,
+    question: 'How well can (shallow) machine predict ideological groups?',
+    display: ''
+  }
+];
+
+const globalModesWithDisplay = globalModes.map(d => ({
+  ...d,
+  display: (
+    <div style={{ padding: '5px' }}>
+      <div style={{ display: 'flex', height: '30px', alignItems: 'center' }}>
+        <FeatureIndicator>{'TRUE'}</FeatureIndicator>
+        &nbsp;
+        <span>{'-'}</span>
+        &nbsp;
+        <TargetIndicator>{'TRUE'}</TargetIndicator>
+        &nbsp;&nbsp;&nbsp;
+        <QuestionDiv>{d.question}</QuestionDiv>
+      </div>
     </div>
-  </div>
-);
+  )
+}));
 
 const GlobalInterpreter = props => {
   const dispatch = useDispatch();
@@ -118,6 +141,7 @@ const GlobalInterpreter = props => {
     features,
     selectedFeatures,
     tweets,
+    tweetsWithPredFeatures,
     clusters,
     clusterIdsForTweets,
     words,
@@ -152,15 +176,25 @@ const GlobalInterpreter = props => {
     //     features: selectedFeatures
     //   })
     // );
-    console.log('in globalinterpreter useeffect: ', tweets);
-    dispatch(runDT({ tweets: tweets, selectedFeatures: selectedFeatures }));
+
+    // console.log('in globalinterpreter useeffect: ', tweets);
+    // dispatch(runDT({ tweets: tweets, selectedFeatures: selectedFeatures }));
+    // dispatch(
+    //   runClusteringAndPartialDependenceForClusters({
+    //     tweets: tweets,
+    //     features: selectedFeatures,
+    //     modelId: currentModel
+    //   })
+    // );
+
     dispatch(
-      runClusteringAndPartialDependenceForClusters({
+      runDTThenRunClandPD({
         tweets: tweets,
-        features: selectedFeatures,
+        selectedFeatures: selectedFeatures,
         modelId: currentModel
       })
     );
+
     // dispatch([
     //   dispatch(runClustering()),
     //   (dispatch, getState) => {
@@ -222,20 +256,6 @@ const GlobalInterpreter = props => {
   console.log('in GlobalInterpreterWrapper: ', tweets);
   console.log('in GlobalInterpreterWrapper: ', clusters);
 
-  const globalModes = [
-    {
-      type: 1,
-      question:
-        'Are groups predictable by their tendency in expressing emotion and moral values?',
-      display: GlobalModeDisplay
-    },
-    {
-      type: 2,
-      question: 'How well can (shallow) machine predict ideological groups?',
-      display: GlobalModeDisplay
-    }
-  ];
-
   return (
     <GlobalInterpreterWrapper>
       <div style={{ gridArea: 't' }}>
@@ -247,9 +267,12 @@ const GlobalInterpreter = props => {
         &nbsp;&nbsp;&nbsp;
         <ModeDropdown
           multiple={false}
-          value={globalModes[globalMode].display}
-          // onChange={}
-          options={globalModes.map(d => d.display)}
+          value={globalModesWithDisplay[globalMode].display}
+          onChange={(e, i) => {
+            console.log('onChange in value: ', e, e.option);
+            dispatch({ type: 'CHANGE_GLOBAL_MODE', payload: e.selected });
+          }}
+          options={globalModesWithDisplay.map(d => d.display)}
           size={'xsmall'}
         />
         {/* <QuestionDiv>
@@ -257,7 +280,9 @@ const GlobalInterpreter = props => {
         </QuestionDiv> */}
       </div>
       <Generator
+        globalMode={globalMode}
         tweets={tweets}
+        tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
         selectedFeatures={selectedFeatures}
       />
@@ -274,7 +299,12 @@ const GlobalInterpreter = props => {
         // pdpValues={pdpValues}
         isLoaded={isLoaded}
       />
-      <WordPlotView numFeatures={numFeatures} words={words} />
+      <WordPlotView
+        globalMode={globalMode}
+        numFeatures={numFeatures}
+        words={words}
+        selectedFeatures={selectedFeatures}
+      />
     </GlobalInterpreterWrapper>
   );
 };

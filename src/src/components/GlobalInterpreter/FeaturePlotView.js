@@ -37,25 +37,6 @@ function d3_functor(v) {
       };
 }
 
-function useHookWithRefCallback() {
-  const ref = useRef(null);
-  const setRef = useCallback(node => {
-    if (ref.current) {
-      // Make sure to cleanup any events/references added to the last instance
-    }
-
-    if (node) {
-      // Check if a node is actually passed. Otherwise node would be null.
-      // You can now do what you need to, addEventListeners, measure, etc.
-    }
-
-    // Save a reference to the node
-    ref.current = node;
-  }, []);
-
-  return [setRef];
-}
-
 const layout = {
   margin: { top: 30, right: 110, bottom: 20, left: 30 },
   width: 640,
@@ -68,7 +49,7 @@ const layout = {
   outputProbPlot: {
     width: 70,
     height: 240,
-    leftMargin: 80,
+    leftMargin: 40,
     minRadius: 4,
     maxRadius: 10
   },
@@ -136,6 +117,11 @@ const groupColorScale = d3
   .domain(['lib', 'con'])
   .range([globalColors.group.lib, globalColors.group.con]);
 
+const groupRatioScale = d3
+  .scaleLinear()
+  .domain([0, 0.5, 1])
+  .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
+
 const FeaturePlotView = props => {
   const ref = useRef(null),
     ref2 = useRef(null);
@@ -150,7 +136,12 @@ const FeaturePlotView = props => {
     isLoaded
   } = props;
 
-  useLayoutEffect(() => {
+  // prettier-ignore
+  const tweetsCorrectPred = tweets.filter(d => d.group === d.pred),
+    tweetsConWrongPred = tweets.filter(d => (d.group !== d.pred) && (d.group === 'con')),
+    tweetsLibWrongPred = tweets.filter(d => (d.group !== d.pred) && (d.group === 'lib'));
+
+  useEffect(() => {
     console.log('in featureplotview useeffect: ', isLoaded);
     console.log('in featureplotview useeffect: ', clusters);
     console.log('in featureplotview useeffect: ', tweets);
@@ -166,8 +157,14 @@ const FeaturePlotView = props => {
 
     const yAxis = d3.axisLeft();
 
-    const container = d3.select(ref.current);
-    const svg = d3.select(ref2.current);
+    const container = d3.select(ref.current),
+      svg = d3.select(ref2.current);
+
+    // Clean up old elements before update
+    d3.selectAll('.g_feature_plot').remove();
+    d3.selectAll('.g_cluster_plot').remove();
+    d3.selectAll('.g_output_prob_plot').remove();
+    d3.selectAll('.g_pdp_plot').remove();
 
     const devicePixelRatio = window.devicePixelRatio || 1;
     const canvas = container
@@ -208,8 +205,6 @@ const FeaturePlotView = props => {
       .selectAll('text')
       .data(selectedFeatures)
       .enter();
-
-    featureTitleData.exit().remove();
 
     const featureTitles = featureTitleData
       .append('text')
@@ -384,10 +379,144 @@ const FeaturePlotView = props => {
           ',0)'
       );
 
-    const yOutputPlot = d3
-      .scaleBand()
-      .domain(clusters.map(d => d.clusterId))
+    // Calculate the histogram data
+    const dataBinCorrectPredTweets = d3
+        .histogram()
+        .domain([0, 1])
+        .value(d => d.prob)
+        .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred),
+      dataBinConWrongPredTweets = d3
+        .histogram()
+        .domain([0, 1])
+        .value(d => d.prob)
+        .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPred),
+      dataBinLibWrongPredTweets = d3
+        .histogram()
+        .domain([0, 1])
+        .value(d => d.prob)
+        .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
+
+    const yOutputProbScale = d3
+      .scaleLinear()
+      .domain([1, 0])
       .range([layout.margin.top, layout.outputProbPlot.height]);
+
+    const xOutputProbHistScale = d3
+      .scaleLinear()
+      .domain([0, 30])
+      .range([10, layout.outputProbPlot.width / 2]);
+
+    const yOutputProbHistBinScale = d3
+      .scaleBand()
+      .domain(dataBinCorrectPredTweets.map(d => d.x0).reverse()) // From 1 to 0
+      .range([layout.margin.top, layout.outputProbPlot.height]);
+
+    const yOutputProbSetting = d3
+      .axisLeft(yOutputProbScale)
+      .tickValues([0, 0.5, 1]);
+
+    const yOutputProbAxis = gOutputProbPlot
+      .append('g')
+      .call(yOutputProbSetting)
+      .attr('class', 'g_output_prob_axis')
+      .attr(
+        'transform',
+        'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
+      );
+
+    const outputProbTitle = gOutputProbPlot
+        .append('text')
+        .text('Output')
+        .attr('x', 10)
+        .attr('y', 10),
+      textWrong = gOutputProbPlot
+        .append('text')
+        .text('Wrong')
+        .attr('x', -5)
+        .attr('y', 23)
+        .style('font-size', '0.8rem'),
+      textCorrect = gOutputProbPlot
+        .append('text')
+        .text('Correct')
+        .attr('x', 40)
+        .attr('y', 23)
+        .style('font-size', '0.8rem');
+
+    const tweetHistForCorrectPred = gOutputProbPlot
+      .append('g')
+      .attr('class', 'g_output_prob_hist_for_correct_pred')
+      .attr('transform', d => {
+        return 'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')';
+      })
+      .selectAll('.rect_output_prob_hist_for_correct_pred')
+      .data(dataBinCorrectPredTweets)
+      .enter()
+      .append('rect')
+      .attr('class', 'rect_output_prob_hist_for_correct_pred')
+      .attr('x', 3)
+      .attr('y', d => {
+        console.log('y=x0: ', d.x0);
+        console.log(yOutputProbHistBinScale(d.x0));
+        return yOutputProbHistBinScale(d.x0);
+      })
+      .attr('width', d => xOutputProbHistScale(d.length))
+      .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+      .style('fill', d =>
+        d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
+      )
+      .style('opacity', 0.3);
+
+    const tweetLibHistForWrongPred = gOutputProbPlot
+      .append('g')
+      .attr('class', 'g_output_prob_lib_hist_for_correct_pred')
+      .attr('transform', d => {
+        return 'translate(' + 0 + ',' + 0 + ')';
+      })
+      .selectAll('.rect_output_prob_hist_for_correct_pred')
+      .data(dataBinLibWrongPredTweets)
+      .enter()
+      .append('rect')
+      .attr('class', 'rect_output_prob_hist_for_correct_pred')
+      .attr(
+        'x',
+        d =>
+          layout.outputProbPlot.width / 2 - 3 - xOutputProbHistScale(d.length)
+      )
+      .attr('y', d => {
+        console.log('y=x0: ', d.x0);
+        console.log(yOutputProbHistBinScale(d.x0));
+        return yOutputProbHistBinScale(d.x0);
+      })
+      .attr('width', d => xOutputProbHistScale(d.length))
+      .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+      .style('fill', d => globalColors.group.lib)
+      .style('opacity', 0.3);
+
+    const tweetConHistForWrongPred = gOutputProbPlot
+      .append('g')
+      .attr('class', 'g_output_prob_con_hist_for_correct_pred')
+      .attr('transform', d => {
+        return 'translate(' + 0 + ',' + 0 + ')';
+      })
+      .selectAll('.rect_output_prob_hist_for_correct_pred')
+      .data(dataBinConWrongPredTweets)
+      .enter()
+      .append('rect')
+      .attr('class', 'rect_output_prob_hist_for_correct_pred')
+      .attr(
+        'x',
+        d =>
+          layout.outputProbPlot.width / 2 - 3 - xOutputProbHistScale(d.length)
+      )
+      .attr('y', d => {
+        console.log('y=x0: ', d.x0);
+        console.log(yOutputProbHistBinScale(d.x0));
+        return yOutputProbHistBinScale(d.x0);
+      })
+      .attr('width', d => xOutputProbHistScale(d.length))
+      .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+      .style('fill', d => globalColors.group.con)
+      .style('opacity', 0.3);
 
     //* Render clusters
     const gClusterPlot = svg
@@ -414,11 +543,6 @@ const FeaturePlotView = props => {
       .domain(d3.extent(clusters.map(d => d.numTweets)))
       .range([layout.clusterPlot.minRadius, layout.clusterPlot.maxRadius]);
 
-    const groupRatioScale = d3
-      .scaleLinear()
-      .domain([0, 0.5, 1])
-      .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
-
     const yClusterAxisSetting = d3
         .axisLeft(yClusterCoordScale)
         .tickValues([])
@@ -438,6 +562,7 @@ const FeaturePlotView = props => {
 
     console.log('clusters: ', clusters);
 
+    // prettier-ignore
     const clusterCircles = gClusterPlot
       .selectAll('.cluster_circle')
       .data(clusters)
@@ -450,61 +575,129 @@ const FeaturePlotView = props => {
       .style('fill-opacity', 0.5)
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
       .on('mouseover', function(d) {
-        const selectedCluster = d3.select(this).style('stroke-width', '2px');
-        const clusterId = d.clusterId,
-          tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
-
-        console.log('mouseovered');
-        console.log(d);
-        console.log(tweets);
-        console.log(tweetsInCluster);
-
-        const tweetsPathData = tweetsInCluster.map(d => {
-          const tweetWithSelectedFeatures = _.pick(
-            d,
-            selectedFeatures.map(({ key }) => key)
-          );
-          var tweetPathData = Object.entries(tweetWithSelectedFeatures);
-          tweetPathData.group = d.group;
-
-          return tweetPathData;
-        });
-
-        console.log(tweetsPathData);
-
-        gFeaturePlot
-          .selectAll('.path_tweet')
-          .data(tweetsPathData)
-          .enter()
-          .append('path')
-          .attr('class', 'path_tweet')
-          .attr('d', drawTweetLine)
-          .style('stroke', d => groupColorScale(d.group))
-          .style('fill', 'none')
-          .style('stroke-width', '2px')
-          .style('stroke-dasharray', '5,5');
-
-        // tweetsInCluster.forEach((tweet) => {
-        //   gClusterPlot.append('path')
-        //     .datum(tweetsInCluster)
-        //     .attr('d', drawTweetLine)
-        //     .style('stroke', precisionKPlotColor)
-        //     .style('fill', 'none')
-        //     .style('stroke-width', '2px')
-        //     .style('stroke-dasharray', '3,1');
-        // });
-
-        // fittedPrecisionKPathForTopk = gTopkRanking.append('path')
-        //   .datum(precisionKData.slice(0, topk))
-        //   .attr('d', drawTweetLine)
-        //   .style('stroke', precisionKPlotColor)
-        //   .style('fill', 'none')
-        //   .style('stroke-width', '2px')
-        //   .style('stroke-dasharray', '3,1'),
+          d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
       })
       .on('mouseout', function(d) {
-        const selectedCluster = d3.select(this).style('stroke-width', '1px');
-        gFeaturePlot.selectAll('.path_tweet').remove();
+          d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
+      })
+      .on('click', function(d) {
+          const selectedCluster = d3.select(this),
+                clusterId = d.clusterId;
+          if (selectedCluster.classed('cluster_selected') === true) {
+              gFeaturePlot.selectAll('.path_tweet').remove();
+              selectedCluster.classed('cluster_selected', false);
+
+              // To put back the output prob plot
+              const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
+                e => e.clusterId === clusterId
+              );
+
+              const dataBinCorrectPredTweetsForCluster = d3
+                .histogram()
+                .domain([0, 1])
+                .value(d => d.prob)
+                .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred);
+
+              gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_hist_for_correct_pred')
+                .attr('transform', d => {
+                  return (
+                    'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
+                  );
+                })
+                .selectAll('.rect_output_prob_hist_for_correct_pred')
+                .data(dataBinCorrectPredTweetsForCluster)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_correct_pred')
+                .attr('x', 3)
+                .attr('y', d => {
+                  console.log('y=x0: ', d.x0);
+                  console.log(yOutputProbHistBinScale(d.x0));
+                  return yOutputProbHistBinScale(d.x0);
+                })
+                .attr('width', d => xOutputProbHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d =>
+                  d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
+                )
+                .style('opacity', 0.3);
+          } else {
+              selectedCluster.classed('cluster_selected', true);
+              selectedCluster.style('stroke-width', '2px');
+              const clusterId = d.clusterId,
+                tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+              d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
+
+              // To highlight the paths
+              console.log('mouseovered');
+              console.log(d);
+              console.log(tweets);
+              console.log(tweetsInCluster);
+
+              const tweetsPathData = tweetsInCluster.map(d => {
+                const tweetWithSelectedFeatures = _.pick(
+                  d,
+                  selectedFeatures.map(({ key }) => key)
+                );
+                var tweetPathData = Object.entries(tweetWithSelectedFeatures);
+                tweetPathData.group = d.group;
+
+                return tweetPathData;
+              });
+
+              console.log(tweetsPathData);
+
+              gFeaturePlot
+                .selectAll('.path_tweet')
+                .data(tweetsPathData)
+                .enter()
+                .append('path')
+                .attr('class', 'path_tweet')
+                .attr('d', drawTweetLine)
+                .style('stroke', d => groupColorScale(d.group))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('stroke-dasharray', '5,5');
+
+              // To adjust the output prob plot
+              const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
+                e => e.clusterId === clusterId
+              );
+
+              const dataBinCorrectPredTweetsForCluster = d3
+                .histogram()
+                .domain([0, 1])
+                .value(d => d.prob)
+                .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPredForCluster);
+
+              gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_hist_for_correct_pred')
+                .attr('transform', d => {
+                  return (
+                    'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
+                  );
+                })
+                .selectAll('.rect_output_prob_hist_for_correct_pred')
+                .data(dataBinCorrectPredTweetsForCluster)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_correct_pred')
+                .attr('x', 3)
+                .attr('y', d => {
+                  console.log('y=x0: ', d.x0);
+                  console.log(yOutputProbHistBinScale(d.x0));
+                  return yOutputProbHistBinScale(d.x0);
+                })
+                .attr('width', d => xOutputProbHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d =>
+                  d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
+                )
+                .style('opacity', 0.3);
+            }
       });
 
     function drawPath() {}
@@ -554,22 +747,35 @@ const FeaturePlotView = props => {
 
     const pdpBars = gPDP
       .selectAll('.cluster_circle')
-      .data(clusters)
+      .data(
+        clusters.map(d => {
+          const clusterId = d.clusterId,
+            tweetPDPValuesInCluster = tweets
+              .filter(e => e.clusterId === clusterId)
+              .map(f => f.pdpValue);
+          const avgPDPValuesForCluster = _.mean(tweetPDPValuesInCluster);
+
+          return {
+            clusterId: clusterId,
+            avgPDPValue: avgPDPValuesForCluster
+          };
+        })
+      )
       .enter()
       .append('rect')
       .attr('class', 'cluster_circle')
       .attr('x', 0)
       .attr('y', d => yClusterCoordPDPScale(d.clusterId))
-      .attr('width', d => xPDPScale(d.pdpValue))
+      .attr('width', d => xPDPScale(d.avgPDPValue))
       .attr('height', yClusterCoordPDPScale.bandwidth() - 3)
-      .style('fill', d => colorPDPScale(d.pdpValue))
+      .style('fill', d => colorPDPScale(d.avgPDPValue))
       .style('fill-opacity', 0.5);
 
     const pdpTitle = gPDP
       .append('text')
       .text('Output Prob')
       .attr('y', 10);
-  }, [selectedFeatures, ref.current]);
+  }, [props, ref.current]);
 
   d3.selectAll('canvas').remove();
 

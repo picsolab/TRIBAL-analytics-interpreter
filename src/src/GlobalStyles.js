@@ -58,12 +58,13 @@ export const ListViewStyle = styled.div`
 `;
 
 export const Button1 = styled(Button)`
-  background: blue;
+  background: mediumpurple;
   border: none;
-  padding: 1px 5px;
+  padding: 1px 10px;
   font-size: 0.8rem;
-  height: 30px;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-left: 5px;
+  font-weight: 600;
+  height: 25px;
+  border-radius: 3px;
+  margin-top: 15px;
+  // margin-left: 5px;
 `;
