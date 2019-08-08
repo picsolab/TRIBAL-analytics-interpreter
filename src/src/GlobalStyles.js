@@ -3,17 +3,23 @@ import styled from 'styled-components';
 import { Button } from 'grommet';
 
 export const globalColors = {
+  system: 'mediumpurple',
   group: {
     lib: 'darkblue',
-    con: 'crimson'
+    con: 'crimson',
+    wrong: {
+      lib: 'rosybrown',
+      con: '#8eabd0'
+    }
   },
-  feature: 'mediumslateblue',
+  feature: 'mediumpurple',
   userFeature: 'lightpink'
 };
 
 export const SectionWrapper = styled.div`
-  padding: 5px;
-  margin: 5px;
+  padding: 10px;
+  // margin: 5px;
+  margin-top: 15px;
 `;
 
 export const SectionTitle = styled.div`
@@ -21,8 +27,11 @@ export const SectionTitle = styled.div`
   padding: 5px;
   margin: 3px;
   border-bottom: 4px solid gray;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  text-transform: capitalize;
+  font-variant: small-caps;
+  font-weight: bold;
 `;
 
 export const SubsectionTitle = styled.div.attrs({

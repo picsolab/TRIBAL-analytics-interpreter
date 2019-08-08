@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
@@ -67,6 +68,7 @@ const UserWrapper = styled.div.attrs({
 
 const UserScoreView = props => {
   const ref = useRef(null);
+  const dispatch = useDispatch();
   const layout = {
     width: 50,
     height: 35,

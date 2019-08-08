@@ -110,7 +110,10 @@ const tweet = (state = initialState, action) => {
         selectedTweet: action.payload.tweets[0]
       };
     case SELECT_TWEET:
-
+      return {
+        ...state,
+        selectedTweet: action.payload
+      };
     case RUN_DT:
       console.log('action.payload in RUN_DT: ', action.payload);
       return {

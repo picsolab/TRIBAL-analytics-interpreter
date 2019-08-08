@@ -19,3 +19,8 @@ code {
 .MuiPaper-elevation1 {
   box-shadow: none !important;
 }
+
+.axis_feature path {
+  stroke: gray;
+  stroke-width: 2px;
+}

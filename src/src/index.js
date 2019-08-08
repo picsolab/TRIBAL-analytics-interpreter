@@ -5,14 +5,13 @@ import { composeWithDevTools } from 'redux-devtools-extension'; // Make the code
 import rootReducer from './modules';
 import { Provider } from 'react-redux';
 import ReduxThunk from 'redux-thunk';
-import sequenceAction from 'redux-sequence-action';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 const store = createStore(
   rootReducer,
-  applyMiddleware(ReduxThunk, sequenceAction),
+  applyMiddleware(ReduxThunk),
   composeWithDevTools()
 );
 

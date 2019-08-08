@@ -218,7 +218,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         y = np.ravel(y)
 
         model = load_model(model_id)
-        pdp_values, _ = partial_dependence(model, X, [1], percentiles=(0, 1))   # 0 is the selected feature index
+        pdp_values, _ = partial_dependence(model, X, [2], percentiles=(0, 1))   # 0 is the selected feature index
         # plot_partial_dependence(model, X, [0])
         print('pdp values: ', pdp_values)
 

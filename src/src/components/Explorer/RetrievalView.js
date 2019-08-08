@@ -6,12 +6,12 @@ import { Button } from 'grommet';
 import CustomizedInputBase from '../subcomponents/SearchBar';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionTitle, SubTitle } from '../../GlobalStyles';
+import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
 
 import FeatureView from './FeatureView';
 import ListView from './ListView';
 
-const RetrievalViewWrapper = styled.div.attrs({
+const RetrievalViewWrapper = styled(SectionWrapper).attrs({
   className: 'RetrievalView'
 })`
   grid-area: rt;
@@ -25,9 +25,8 @@ const SearchBarWrapper = styled.div.attrs({
   className: 'search_bar_wrapper'
 })`
   width: 95%;
-  height: 80px;
+  height: 70px;
   display: flex;
-  margin: 5px;
   padding: 5px;
   border-bottom: 0.5px solid #e6e6e6;
   background-color: whitesmoke;

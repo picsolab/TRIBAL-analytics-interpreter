@@ -40,8 +40,9 @@ const Header = styled.div`
 `;
 
 const Title = styled.div`
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 600;
+  color: indigo;
 `;
 
 const Mockup = styled.div`

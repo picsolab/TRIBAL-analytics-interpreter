@@ -5,7 +5,9 @@ import _ from 'lodash';
 import styled from 'styled-components';
 import { Button } from 'grommet';
 import {
+  SectionWrapper,
   ComponentSubTitle,
+  SubsectionTitle,
   SubTitle,
   SubTitle2,
   ListViewStyle
@@ -13,7 +15,7 @@ import {
 
 import User from '../subcomponents/User';
 
-const ListViewWrapper = styled.div.attrs({
+const ListViewWrapper = styled(SectionWrapper).attrs({
   className: 'list_view_wrapper'
 })`
   grid-area: l;
@@ -208,7 +210,7 @@ const ListView = ({ users }) => {
   return (
     <ListViewWrapper>
       <div style={{ height: '40%' }}>
-        <ComponentSubTitle>User</ComponentSubTitle>
+        <SubsectionTitle>User</SubsectionTitle>
         <UserListWrapper>
           <UserListView users={users} />
         </UserListWrapper>

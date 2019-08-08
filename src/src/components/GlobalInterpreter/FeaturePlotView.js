@@ -46,6 +46,10 @@ const layout = {
   featurePlot: {
     width: 350
   },
+  featureToOutputLines: {
+    width: 40,
+    height: 240
+  },
   outputProbPlot: {
     width: 70,
     height: 240,
@@ -117,6 +121,11 @@ const groupColorScale = d3
   .domain(['lib', 'con'])
   .range([globalColors.group.lib, globalColors.group.con]);
 
+const groupWrongColorScale = d3
+  .scaleOrdinal()
+  .domain(['lib', 'con'])
+  .range([globalColors.group.wrong.lib, globalColors.group.wrong.con]);
+
 const groupRatioScale = d3
   .scaleLinear()
   .domain([0, 0.5, 1])
@@ -170,10 +179,12 @@ const FeaturePlotView = props => {
     const canvas = container
       .append('canvas')
       .attr('class', 'canvas_tweet_paths')
-      .attr('width', layout.width * devicePixelRatio)
-      .attr('height', layout.height * devicePixelRatio)
-      .style('width', layout.width - 20 + 'px')
-      .style('height', layout.height - 10 + 'px')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      // .style('width', layout.width - 20 + 'px')
+      // .style('height', layout.height - 10 + 'px')
+      .attr('viewBox', '0 0 ' + wholeWidth + ' ' + wholeHeight)
+      .attr('preserveAspectRatio', 'xMinYMin')
       .style('z-index', -1);
 
     const ctx = canvas.node().getContext('2d');
@@ -195,7 +206,7 @@ const FeaturePlotView = props => {
     const axes = axesData
       .append('g')
       .attr('class', function(d) {
-        return 'axis ';
+        return 'axis_feature';
       })
       .attr('transform', function(d, i) {
         return 'translate(' + xFeatureScale(d.key) + ')';
@@ -366,6 +377,43 @@ const FeaturePlotView = props => {
       render(selected);
     } // end of brush()
 
+    //* Render featureToOutput lines
+    const gFeatureToOutputLines = svg
+      .append('g')
+      .attr('class', 'g_feature_to_output_paths')
+      .attr('transform', 'translate(' + layout.featurePlot.width + ',0)');
+
+    const xFeatureToOutputScale = d3
+      .scaleOrdinal()
+      .domain([0, 1])
+      .range([
+        0,
+        layout.featureToOutputLines.width + layout.outputProbPlot.leftMargin
+      ]);
+
+    const yOutputProbScale = d3
+      .scaleLinear()
+      .domain([1, 0])
+      .range([layout.margin.top, layout.outputProbPlot.height]);
+
+    const featureToOutputLines = gFeatureToOutputLines
+      .selectAll('.line_feature_to_output')
+      .data(tweets)
+      .enter()
+      .append('line')
+      .attr('class', 'line_feature_to_output')
+      .attr('x1', xFeatureToOutputScale(0))
+      .attr('y1', d => yScoreScale(d.moral3))
+      .attr('x2', d => xFeatureToOutputScale(1))
+      .attr('y2', d => yOutputProbScale(d.prob))
+      .style('stroke', d =>
+        d.group === d.pred
+          ? groupColorScale(d.group)
+          : groupWrongColorScale(d.group)
+      )
+      .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
+      .style('opacity', 0.5);
+
     //* Render output prob plot
     const gOutputProbPlot = svg
       .append('g')
@@ -395,11 +443,6 @@ const FeaturePlotView = props => {
         .domain([0, 1])
         .value(d => d.prob)
         .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
-
-    const yOutputProbScale = d3
-      .scaleLinear()
-      .domain([1, 0])
-      .range([layout.margin.top, layout.outputProbPlot.height]);
 
     const xOutputProbHistScale = d3
       .scaleLinear()
@@ -464,7 +507,7 @@ const FeaturePlotView = props => {
       .style('fill', d =>
         d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
       )
-      .style('opacity', 0.3);
+      .style('opacity', 0.5);
 
     const tweetLibHistForWrongPred = gOutputProbPlot
       .append('g')
@@ -490,7 +533,7 @@ const FeaturePlotView = props => {
       .attr('width', d => xOutputProbHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
       .style('fill', d => globalColors.group.lib)
-      .style('opacity', 0.3);
+      .style('opacity', 0.5);
 
     const tweetConHistForWrongPred = gOutputProbPlot
       .append('g')
@@ -516,7 +559,7 @@ const FeaturePlotView = props => {
       .attr('width', d => xOutputProbHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
       .style('fill', d => globalColors.group.con)
-      .style('opacity', 0.3);
+      .style('opacity', 0.5);
 
     //* Render clusters
     const gClusterPlot = svg
@@ -569,7 +612,7 @@ const FeaturePlotView = props => {
       .enter()
       .append('circle')
       .attr('cx', 0)
-      .attr('cy', d => yClusterCoordScale(d.clusterId))
+      .attr('cy', d => yClusterCoordScale(d.clusterId) + yClusterCoordScale.bandwidth()/2)
       .attr('r', d => numTweetClusterScale(d.numTweets))
       .style('fill', d => groupRatioScale(d.groupRatio.lib))
       .style('fill-opacity', 0.5)

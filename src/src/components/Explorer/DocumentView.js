@@ -5,7 +5,9 @@ import _ from 'lodash';
 import styled from 'styled-components';
 import { Button } from 'grommet';
 import {
+  SectionWrapper,
   ComponentSubTitle,
+  SubsectionTitle,
   SubTitle,
   SubTitle2,
   ListViewStyle
@@ -13,8 +15,8 @@ import {
 
 import Document from '../subcomponents/Document';
 
-const DocumentViewWrapper = styled(SubTitle2).attrs({
-  className: 'document_view'
+const DocumentViewWrapper = styled(SectionWrapper).attrs({
+  className: 'document_view_wrapper'
 })`
   grid-area: d;
 `;
@@ -109,7 +111,7 @@ const ScoreView = props => {
 const DocumentView = ({ data }) => {
   return (
     <DocumentViewWrapper>
-      <ComponentSubTitle>Document</ComponentSubTitle>
+      <SubsectionTitle>Document</SubsectionTitle>
       <DocumentListWrapper>
         <ScoreView tweets={data} />
         {data.map(tweet => (

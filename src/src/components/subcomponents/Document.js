@@ -1,4 +1,5 @@
-import React, { useDispatch, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
@@ -23,6 +24,8 @@ const GroupDiv = styled.div.attrs({
     group === 'lib'
       ? `background-color: ` + globalColors.group.lib
       : `background-color: ` + globalColors.group.con}
+
+  opacity: 0.5;
 `;
 
 const ScoreDiv = styled.div.attrs({
@@ -108,7 +111,7 @@ const ScoreView = props => {
 
 const Document = props => {
   const { tweet } = props;
-
+  const dispatch = useDispatch();
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
 
@@ -116,10 +119,12 @@ const Document = props => {
     <DocumentWrapper>
       <div
         style={{ display: 'flex', height: 30, alignItems: 'center' }}
-        // onClick={dispatch({
-        //   type: 'SELECT_TWEET',
-        //   payload: tweet
-        // })}
+        onClick={() =>
+          dispatch({
+            type: 'SELECT_TWEET',
+            payload: tweet
+          })
+        }
       >
         <GroupDiv group={tweet.group} />
         <div>{tweet.screenName}</div>
