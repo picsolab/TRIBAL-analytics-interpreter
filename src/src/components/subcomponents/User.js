@@ -8,7 +8,7 @@ import { Grommet, Button, Tabs, Tab, Box } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { globalColors } from '../../GlobalStyles';
 
-const GroupDiv = styled.div.attrs({
+const UserGlyph = styled.div.attrs({
   className: 'group'
 })`
   width: 10px;
@@ -16,12 +16,14 @@ const GroupDiv = styled.div.attrs({
   line-height: 5;
   margin-right: 5px;
   border: 1px solid black;
+  border-radius: 10px;
   color: white;
   font-weight: 500;
   text-align: center;
+  opacity: 0.5;
 
   ${({ group }) =>
-    group === 'lib'
+    group === '1'
       ? `background-color: ` + globalColors.group.lib
       : `background-color: ` + globalColors.group.con}
 `;
@@ -43,7 +45,7 @@ const DocDiv = styled.div.attrs({
   text-align: center;
 
   ${({ group }) =>
-    group === 'lib'
+    group === '1'
       ? `background-color: ` + globalColors.group.lib
       : `background-color: ` + globalColors.group.con}
 `;
@@ -172,20 +174,22 @@ const User = ({
 
   return (
     <UserWrapper>
-      <div style={{ display: 'flex', height: 30, alignItems: 'center' }}>
-        <GroupDiv group={user.group} />
-        <div>{user.screenName}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+        <UserGlyph group={user.group} />
+        <div style={{ width: '80%', fontSize: '0.75rem' }}>
+          {user.screenName}
+        </div>
+        <div style={{ display: 'flex' }}>
+          {[1, 0, 1].map(group => (
+            <DocDiv group={group} />
+          ))}
+        </div>
         <UserScoreView
           user={user}
           yNumFollowersScale={yNumFollowersScale}
           yNumFreindsScale={yNumFreindsScale}
           yNumRetweetedScale={yNumRetweetedScale}
         />
-      </div>
-      <div style={{ display: 'flex' }}>
-        {['lib', 'con', 'lib'].map(group => (
-          <DocDiv group={group} />
-        ))}
       </div>
     </UserWrapper>
   );

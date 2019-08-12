@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
+import 'antd/dist/antd.css';
 import './App.css';
+// import './index.css';
 import styled from 'styled-components';
 
 import { fetchTweets, runDT } from './modules/tweet';
@@ -19,7 +21,7 @@ const Container = styled.div`
   margin: 10px auto;
   display: grid;
   grid-template-rows: 50px 600px 500px;
-  grid-template-columns: 32.5% 17.5% 50%;
+  grid-template-columns: 25% 15% 60%;
   grid-template-areas:
     'h h h'
     'e gr g'
@@ -52,6 +54,9 @@ const Mockup = styled.div`
 const Mockup3 = styled.div`
   grid-area: m3;
 `;
+
+const issues = ['Gun control', 'Abortion'];
+const datasets = ['Tweets'];
 
 function App() {
   const dispatch = useDispatch();

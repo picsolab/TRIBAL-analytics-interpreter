@@ -24,3 +24,11 @@ code {
   stroke: gray;
   stroke-width: 2px;
 }
+
+.g_feature_group_axis path {
+  stroke: none;
+}
+
+.g_feature_axis text {
+  fill: black;
+}

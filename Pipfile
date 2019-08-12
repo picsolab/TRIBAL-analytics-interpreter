@@ -40,8 +40,9 @@ django-cors-headers = "*"
 pandas = "*"
 numpy = "*"
 sklearn = "*"
-pickle = "*"
 matplotlib = "*"
+pycairo = "*"
+sys = "*"
 
 [requires]
 python_version = "3.7"

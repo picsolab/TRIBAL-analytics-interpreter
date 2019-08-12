@@ -6,6 +6,7 @@ import _ from 'lodash';
 
 import styled from 'styled-components';
 import {
+  Grommet,
   Button,
   Form,
   Table,
@@ -15,6 +16,8 @@ import {
   TableCell,
   CheckBox
 } from 'grommet';
+import { grommet } from 'grommet/themes';
+import { deepMerge } from 'grommet/utils';
 import index from '../../index.css';
 import {
   SectionWrapper,
@@ -42,26 +45,34 @@ const layout = {
   innerHeight: 340 - 2
 };
 
-var currentlySelectedFeatures = [
-  'valence',
-  'arousal',
-  'dominance',
-  'moral1',
-  'moral2',
-  'moral3'
-];
-var isChecked = {
-  valence: false,
-  arousal: false
+const customCheckBoxTheme = {
+  checkBox: {
+    size: '18px',
+    // toggle: {
+    //   extend: `
+    //   font-size: 0.9rem;
+    //   margin-right: 3px;
+    // `
+    // },
+    icon: {
+      size: '15px'
+    },
+    border: {
+      width: '1px',
+      extend: `
+      font-size: 0.9rem;
+      margin-right: 3px;
+    `
+    },
+    gap: 'xsmall',
+    extend: `
+      font-size: 0.9rem;
+      margin-right: 3px;
+    `
+  }
 };
 
-const setSelectedFeatures = (feature, checked) => {
-  isChecked[feature]
-    ? currentlySelectedFeatures.push(feature)
-    : _.remove(currentlySelectedFeatures, d => d !== feature);
-
-  isChecked[feature] = !checked;
-};
+var currentlySelectedFeatures = ['valence', 'arousal', 'harm', 'fairness'];
 
 const Generator = props => {
   const dispatch = useDispatch();
@@ -80,23 +91,25 @@ const Generator = props => {
 
   const featureDivs = features.map(featureObj => (
     <div>
-      <CheckBox
-        checked={
-          currentlySelectedFeatures.filter(e => e === featureObj.key).length
-            ? true
-            : false
-        }
-        label={featureObj.key}
-        onChange={e => {
-          console.log(e.target.checked, featureObj.key);
-          e.target.checked
-            ? currentlySelectedFeatures.push(featureObj.key)
-            : _.remove(currentlySelectedFeatures, e => e === featureObj.key);
+      <Grommet theme={deepMerge(grommet, customCheckBoxTheme)}>
+        <CheckBox
+          checked={
+            currentlySelectedFeatures.filter(e => e === featureObj.key).length
+              ? true
+              : false
+          }
+          label={featureObj.key}
+          onChange={e => {
+            console.log(e.target.checked, featureObj.key);
+            e.target.checked
+              ? currentlySelectedFeatures.push(featureObj.key)
+              : _.remove(currentlySelectedFeatures, e => e === featureObj.key);
 
-          console.log('in onChange: ', currentlySelectedFeatures);
-          forceUpdate();
-        }}
-      />
+            console.log('in onChange: ', currentlySelectedFeatures);
+            forceUpdate();
+          }}
+        />
+      </Grommet>
     </div>
   ));
 

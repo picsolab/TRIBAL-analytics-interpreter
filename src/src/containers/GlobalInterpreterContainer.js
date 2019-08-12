@@ -8,12 +8,15 @@ const GlobalInterpreterContainer = () => {
       []
     ),
     { clusters } = useSelector(state => state.cluster, []),
-    { currentModel, features, selectedFeatures, globalMode } = useSelector(
-      state => state.globalInterpreter,
-      []
-    );
+    {
+      currentModel,
+      features,
+      selectedFeatures,
+      globalMode,
+      pdpValues
+    } = useSelector(state => state.globalInterpreter, []);
 
-  console.log('in global container: ', tweets);
+  console.log('in global container: ', pdpValues);
   const words = [
     {
       word: 'hate',
@@ -35,19 +38,19 @@ const GlobalInterpreterContainer = () => {
     },
     {
       word: 'fair',
-      fromFeature: 'moral1',
+      fromFeature: 'fairness',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.24, lib: 0.76 }
     },
     {
       word: 'care',
-      fromFeature: 'moral2',
+      fromFeature: 'harm',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.14, lib: 0.86 }
     },
     {
       word: 'bad',
-      fromFeature: 'valence',
+      fromFeature: 'harm',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.5, lib: 0.5 }
     }
@@ -67,7 +70,7 @@ const GlobalInterpreterContainer = () => {
       currentModel={currentModel}
       features={features}
       selectedFeatures={selectedFeatures}
-      // pdpValues={pdpValues}
+      pdpValues={pdpValues}
       isLoaded={isLoaded}
     />
   );

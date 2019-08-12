@@ -21,7 +21,7 @@ export const runClusteringAndPartialDependenceForClusters = ({
       })
     }).then(res => {
       dispatch({ type: 'RUN_CL_N_CAL_PD', payload: res.data });
-      // dispatch({ type: 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES', payload: res.data });
+      dispatch({ type: 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES', payload: res.data });
       dispatch({ type: 'RUN_CL_N_CAL_PD_FOR_TWEETS', payload: res.data });
     });
   };

@@ -7,13 +7,11 @@ export const fetchUsers = () => {
   return async dispatch => {
     await axios.get('/tweets/loadUsers').then(res => {
       const data = res.data.map(d => ({
-        userId: d.user_id,
         screenName: d.screen_name,
         numFollowers: d.num_followers,
         numFriends: d.num_friends,
         numTweets: d.num_tweets,
         numRetweeted: d.num_retweeted,
-        botScore: d.bot_score,
         numTweetsInDataset: d.num_tweets_in_dataset,
         libRatio: d.lib_ratio
       }));
@@ -24,7 +22,8 @@ export const fetchUsers = () => {
 
 // initial value for state
 const initialState = {
-  users: []
+  users: [],
+  userList: []
 };
 
 // Reducers
@@ -34,7 +33,8 @@ const user = (state = initialState, action) => {
       console.log('action.payload in FETCH_USERS: ', action.payload);
       return {
         ...state,
-        users: action.payload
+        users: action.payload,
+        userList: action.payload.slice(0, 20)
       };
     default:
       return state;

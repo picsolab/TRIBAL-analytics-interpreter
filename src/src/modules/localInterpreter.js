@@ -20,10 +20,8 @@ const initialState = {
     botScore: 'N/A',
     valence: 0.215672608,
     arousal: 0.801444548,
-    dominance: 0.465004046,
-    moral1: 0.988902207,
-    moral2: 0.415014834,
-    moral3: 0.13263312
+    harm: 0.988902207,
+    fairness: 0.415014834
   }
 };
 

@@ -23,7 +23,7 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
       })
     }).then(res => {
       dispatch({ type: 'CAL_PD', payload: res.data });
-      dispatch({ type: 'CAL_PD_FOR_TWEETS', payload: res.data });
+      dispatch({ type: 'CAL_PD_FOR_TWEETS', payload: res.data }); // output probability
     });
   };
 };
@@ -33,18 +33,14 @@ const initialState = {
   features: [
     { key: 'valence', abbr: 'V' },
     { key: 'arousal', abbr: 'A' },
-    { key: 'dominance', abbr: 'D' },
-    { key: 'moral1', abbr: 'M1' },
-    { key: 'moral2', abbr: 'M2' },
-    { key: 'moral3', abbr: 'M3' }
+    { key: 'harm', abbr: 'H' },
+    { key: 'fairness', abbr: 'F' }
   ],
   selectedFeatures: [
     { key: 'valence', abbr: 'V' },
     { key: 'arousal', abbr: 'A' },
-    { key: 'dominance', abbr: 'D' },
-    { key: 'moral1', abbr: 'M1' },
-    { key: 'moral2', abbr: 'M2' },
-    { key: 'moral3', abbr: 'M3' }
+    { key: 'harm', abbr: 'H' },
+    { key: 'fairness', abbr: 'F' }
   ],
   areFeaturesChecked: { valence: false },
   currentModel: 'dt_0',
@@ -104,10 +100,24 @@ const globalInterpreter = (state = initialState, action) => {
         ...state,
         pdpValues: action.payload.pdpValues
       };
+    // case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
+    //   console.log('RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ', action.payload);
+    //   return {
+    //     ...state,
+    //     pdpValues: action.payload.pdpValues
+    //   };
     case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
+      console.log(
+        'in the case of RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ',
+        action.payload.pdpValues
+      );
+      var pdpValues_obj = {};
+      Object.keys(action.payload.pdpValues).forEach(feature => {
+        pdpValues_obj[feature] = JSON.parse(action.payload.pdpValues[feature]);
+      });
       return {
         ...state,
-        pdpValues: action.payload.pdpValues
+        pdpValues: pdpValues_obj
       };
     default:
       console.log('dddddddd: ', state);

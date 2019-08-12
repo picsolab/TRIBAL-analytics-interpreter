@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import _ from 'lodash';
 
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import { Button, InfiniteScroll } from 'grommet';
 import {
   SectionWrapper,
   ComponentSubTitle,
@@ -27,77 +27,77 @@ const DocumentListWrapper = styled(ListViewStyle).attrs({
   overflow-y: scroll;
 `;
 
-const ScoreView = props => {
+const ScoreView = ({ tweetList }) => {
   const ref = useRef(null);
   const layout = {
-    width: 70,
+    width: 40,
     height: 35,
     marginBottom: 10,
     svg: {
-      width: 70,
+      width: 40,
       height: 35
     }
   };
-  const avgScores = {
-    valence: 0.5,
-    arousal: 0.5,
-    dominance: 0.3,
-    moral1: 0.8,
-    moral2: 0.2,
-    moral3: 0.1
-  };
-
-  const xFeatureScale = d3
-    .scaleBand()
-    .domain(d3.range(Object.values(avgScores).length))
-    .range([0, layout.svg.width]);
-
-  const yScoreScale = d3
-    .scaleLinear()
-    .domain([0, 1])
-    .range([layout.svg.height - layout.marginBottom, 0]);
 
   useEffect(() => {
-    // Use avgScores up there temporarily
-    const { tweet } = props;
-    const tweetScores = _.pick(tweet, [
-      'valence',
-      'arousal',
-      'dominance',
-      'moral1',
-      'moral2',
-      'moral3'
-    ]);
+    const features = ['valence', 'arousal', 'harm', 'fairness'],
+      numFeatures = features.length;
+    const avgScores = features.map(feature => {
+      return _.mean(tweetList.map(d => d[feature]));
+    });
 
-    const featureRecData = d3
+    // const avgScores = {
+    //   valence: 0.5,
+    //   arousal: 0.5,
+    //   fairness: 0.3,
+    //   harm: 0.8
+    // };
+    console.log('avgScores: ', avgScores);
+
+    const xFeatureScale = d3
+      .scaleBand()
+      .domain(d3.range(numFeatures))
+      .range([0, layout.svg.width]);
+
+    const yScoreScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([layout.svg.height - layout.marginBottom, 0]);
+
+    const yHarmScale = d3
+      .scaleLinear()
+      .domain([0, 3])
+      .range([layout.svg.width, 0]);
+
+    const featureRect = d3
       .select(ref.current)
-      .selectAll('.feature_rect')
-      .data(Object.values(avgScores));
-
-    const featureRec = featureRecData
+      .selectAll('.feature_avg_rect')
+      .data(avgScores)
       .enter()
       .append('rect')
-      .attr('class', 'feature_rect')
-      .attr('width', layout.svg.width / 5 - 5)
-      .attr('height', d => yScoreScale(d))
+      .attr('class', 'feature_avg_rect')
+      .attr('width', layout.svg.width / numFeatures - 3)
+      .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr(
-        'y',
-        (d, i) => layout.svg.height - layout.marginBottom - yScoreScale(d)
-      )
+      .attr('y', (d, i) => {
+        console.log('in y: ', d, i, yHarmScale(d), yScoreScale(d));
+        return i === 2
+          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          : layout.svg.height - layout.marginBottom - yScoreScale(d);
+      })
       .style('fill', 'mediumpurple');
 
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(['V', 'A', 'D', 'M', 'M', 'M'])
+      .data(['V', 'A', 'H', 'F'])
       .enter()
       .append('text')
       .text(d => d)
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => layout.svg.height)
       .style('font-size', '0.6rem');
-  }, [props.tweets, ref.current]);
+  }, [tweetList, ref.current]);
 
   return (
     <div
@@ -108,15 +108,20 @@ const ScoreView = props => {
   );
 };
 
-const DocumentView = ({ data }) => {
+const DocumentView = ({ tweetList, selectedTweet }) => {
   return (
     <DocumentViewWrapper>
       <SubsectionTitle>Document</SubsectionTitle>
       <DocumentListWrapper>
-        <ScoreView tweets={data} />
-        {data.map(tweet => (
-          <Document tweet={tweet} />
-        ))}
+        <ScoreView tweetList={tweetList} />
+        <div style={{ fontWeight: 600, fontSize: '0.7rem' }}>Selected</div>
+        <Document tweet={selectedTweet} isSelected={true} />
+        <div style={{ borderBottom: '1px solid gray', height: '1px' }}>
+          &nbsp;
+        </div>
+        <InfiniteScroll items={tweetList} step={10}>
+          {item => <Document tweet={item} />}
+        </InfiniteScroll>
       </DocumentListWrapper>
     </DocumentViewWrapper>
   );

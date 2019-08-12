@@ -1,7 +1,6 @@
 """
 Base settings to build other settings files upon.
 """
-
 import environ
 
 ROOT_DIR = (
@@ -277,3 +276,7 @@ SOCIALACCOUNT_ADAPTER = "app.users.adapters.SocialAccountAdapter"
 # Your stuff...
 # ------------------------------------------------------------------------------
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    'UNICODE_JSON': False
+}

@@ -15,27 +15,27 @@ export const fetchTweets = () => {
   return async dispatch => {
     await axios.get('/tweets/loadData').then(res => {
       const tweets = res.data.map(d => ({
+        tweetId: d.tweet_id,
         group: d.grp,
         content: d.content,
         valence: d.valence,
         arousal: d.arousal,
-        dominance: d.dominance,
-        moral1: d.moral1,
-        moral2: d.moral2,
-        moral3: d.moral3,
+        dominance: 0,
+        harm: d.harm,
+        fairness: d.fairness,
         userId: d.user_id,
         screenName: d.screen_name
       }));
 
       const tweetsWithPredFeatures = res.data.map(d => ({
+        tweetId: d.tweet_id,
         group: d.grp,
         content: d.content,
         valence: d.valence,
         arousal: d.arousal,
-        dominance: d.dominance,
-        moral1: d.moral1,
-        moral2: d.moral2,
-        moral3: d.moral3,
+        dominance: 0,
+        harm: d.harm,
+        fairness: d.fairness,
         userId: d.user_id,
         screenName: d.screen_name
       }));
@@ -94,6 +94,7 @@ export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
 const initialState = {
   tweets: [],
   tweetsWithPredFeatures: [],
+  tweetList: [],
   selectedTweet: [],
   isLoaded: false
 };
@@ -103,13 +104,16 @@ const tweet = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_TWEETS:
       console.log('action.payload in FETCH_TWEETS: ', action.payload);
+      console.log('action.payload in FETCH_TWEETS: ', action.payload.tweets);
       return {
         ...state,
         tweets: action.payload.tweets,
+        tweetList: action.payload.tweets.slice(0, 20),
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
         selectedTweet: action.payload.tweets[0]
       };
     case SELECT_TWEET:
+      console.log('action.payload in SELECT_TWEET: ', action.payload);
       return {
         ...state,
         selectedTweet: action.payload

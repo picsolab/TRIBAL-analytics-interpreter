@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import _ from 'lodash';
 
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import { Button, InfiniteScroll } from 'grommet';
 import {
   SectionWrapper,
   ComponentSubTitle,
@@ -25,7 +25,7 @@ const UserListWrapper = styled(ListViewStyle).attrs({
   className: 'user_list'
 })`
   grid-area: u;
-  height: 90%;
+  height: 85%;
   margin-right: 5px;
   overflow-y: scroll;
 `;
@@ -35,6 +35,9 @@ const WordListWrapper = styled(ListViewStyle).attrs({
 })`
   grid-area: w;
   height: 90%;
+  height: 85%;
+  margin-right: 5px;
+  overflow-y: scroll;
 `;
 
 const layout = {
@@ -144,10 +147,10 @@ const UserAvgScoreView = props => {
   );
 };
 
-const UserListView = ({ users }) => {
-  const numFollowersData = users.map(d => d.numFollowers),
-    numFriendsData = users.map(d => d.numFriends),
-    numRetweetedData = users.map(d => d.numRetweeted);
+const UserListView = ({ userList }) => {
+  const numFollowersData = userList.map(d => d.numFollowers),
+    numFriendsData = userList.map(d => d.numFriends),
+    numRetweetedData = userList.map(d => d.numRetweeted);
 
   const avgUserScores = [
     _.mean(numFollowersData),
@@ -183,13 +186,13 @@ const UserListView = ({ users }) => {
   return (
     <div>
       <UserAvgScoreView
-        users={users}
+        users={userList}
         avgUserScores={avgUserScores}
         yNumFollowersScale={yNumFollowersScale}
         yNumFreindsScale={yNumFreindsScale}
         yNumRetweetedScale={yNumRetweetedScale}
       />
-      {users.map(function(user) {
+      {/* {userList.map(function(user) {
         console.log('check yscale: ', yNumFollowersScale);
         return (
           <User
@@ -199,25 +202,37 @@ const UserListView = ({ users }) => {
             yNumRetweetedScale={yNumRetweetedScale}
           />
         );
-      })}
+      })} */}
+      <InfiniteScroll items={userList} step={10}>
+        {item => (
+          <User
+            user={item}
+            yNumFollowersScale={yNumFollowersScale}
+            yNumFreindsScale={yNumFreindsScale}
+            yNumRetweetedScale={yNumRetweetedScale}
+          />
+        )}
+      </InfiniteScroll>
     </div>
   );
 };
 
-const ListView = ({ users }) => {
-  console.log('data in ListView: ', users);
+const ListView = ({ userList }) => {
+  console.log('data in ListView: ', userList);
 
   return (
     <ListViewWrapper>
-      <div style={{ height: '40%' }}>
+      <div style={{ height: '50%' }}>
         <SubsectionTitle>User</SubsectionTitle>
         <UserListWrapper>
-          <UserListView users={users} />
+          <UserListView userList={userList} />
         </UserListWrapper>
       </div>
-      <div style={{ height: '40%' }}>
-        <ComponentSubTitle>Word</ComponentSubTitle>
-        <WordListWrapper />
+      <div style={{ height: '50%' }}>
+        <SubsectionTitle>Word</SubsectionTitle>
+        <WordListWrapper>
+          <UserListView userList={userList} />
+        </WordListWrapper>
       </div>
     </ListViewWrapper>
   );

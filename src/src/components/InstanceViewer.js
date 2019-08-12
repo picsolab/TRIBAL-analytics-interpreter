@@ -108,7 +108,7 @@ const InstanceViewer = ({ tweets, selectedTweet }) => {
               </div>
             </div>
             <div
-              style={{ fontSize: '10px', height: '370px', overflowY: 'scroll' }}
+              style={{ fontSize: '10px', height: '300px', overflowY: 'scroll' }}
             >
               <Tabs style={{ fontSize: '0.8rem' }}>
                 <Tab title="Similar" style={{ fontSize: '0.8rem' }}>

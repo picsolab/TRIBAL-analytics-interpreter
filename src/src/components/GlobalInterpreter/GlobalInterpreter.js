@@ -3,7 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
-import { Button, Select } from 'grommet';
+import { Grommet, Button, Select } from 'grommet';
+import { grommet } from 'grommet/themes';
+import { deepMerge } from 'grommet/utils';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import {
@@ -44,6 +46,8 @@ const ModeViewWrapper = styled.div.attrs({
   className: 'mode_view_wrapper'
 })`
   grid-area: md;
+  display: flex;
+  align-items: center;
   border: 1px solid #dadada;
   background-color: whitesmoke;
   padding: 4px;
@@ -62,23 +66,25 @@ const ModeDropdown = styled(Select).attrs({
 const FeatureIndicator = styled.div.attrs({
   className: 'data_indicator'
 })`
-  height: 20px;
+  height: 15px;
   background-color: black;
   color: white;
   font-weight: 600;
   padding: 4px;
   border-radius: 3px;
+  line-height: 1.5;
 `;
 
 const TargetIndicator = styled.div.attrs({
   className: 'target_indicator'
 })`
-  height: 20px;
+  height: 15px;
   background-color: black;
   color: white;
   font-weight: 600;
   padding: 4px;
   border-radius: 3px;
+  line-height: 1.5;
 `;
 
 const QuestionDiv = styled.div.attrs({
@@ -95,37 +101,102 @@ const QuestionDiv = styled.div.attrs({
 const globalModes = [
   {
     type: 1,
+    feature: 'True',
+    target: 'True',
     question:
       'Are groups predictable by their tendency in expressing emotion and moral values?',
     display: ''
   },
   {
     type: 2,
+    feature: 'True',
+    target: 'Predicted',
     question: 'How well can (shallow) machine predict ideological groups?',
     display: ''
   },
   {
     type: 3,
-    question: 'How well can (shallow) machine predict ideological groups?',
+    feature: 'Predicted',
+    target: 'Predicted',
+    question:
+      'how well can construct values be predicted by (shallow) machine?',
     display: ''
   },
   {
     type: 4,
-    question: 'How well can (shallow) machine predict ideological groups?',
+    feature: 'Predicted',
+    target: 'Predicted',
+    question:
+      'how well can groups be predicted by DL machine with low-level and theory-informed features?',
     display: ''
   }
 ];
+
+const customDropdownTheme = {
+  global: {
+    font: {
+      size: '0.7rem'
+    },
+    extend: `
+      width: 70%;
+    `
+  },
+  select: {
+    container: {
+      extend: `
+      width: 100%;
+    `
+    }
+  },
+  options: {
+    text: {
+      fontSize: '0.7rem'
+    }
+  }
+
+  // dropdown: {
+  //   // size: '18px',
+  //   // // toggle: {
+  //   // //   extend: `
+  //   // //   font-size: 0.9rem;
+  //   // //   margin-right: 3px;
+  //   // // `
+  //   // // },
+  //   // icon: {
+  //   //   size: '15px'
+  //   // },
+  //   // border: {
+  //   //   width: '1px',
+  //   //   extend: `
+  //   //   font-size: 0.9rem;
+  //   //   margin-right: 3px;
+  //   // `
+  //   // },
+  //   // gap: 'xsmall',
+  //   extend: `
+  //     font-size: 0.9rem;
+  //     // margin-right: 3px;
+  //   `
+  // }
+};
 
 const globalModesWithDisplay = globalModes.map(d => ({
   ...d,
   display: (
     <div style={{ padding: '5px' }}>
-      <div style={{ display: 'flex', height: '30px', alignItems: 'center' }}>
-        <FeatureIndicator>{'TRUE'}</FeatureIndicator>
+      <div
+        style={{
+          display: 'flex',
+          height: '30px',
+          alignItems: 'center',
+          fontSize: '0.7rem'
+        }}
+      >
+        <FeatureIndicator>{d.feature}</FeatureIndicator>
         &nbsp;
         <span>{'-'}</span>
         &nbsp;
-        <TargetIndicator>{'TRUE'}</TargetIndicator>
+        <TargetIndicator>{d.target}</TargetIndicator>
         &nbsp;&nbsp;&nbsp;
         <QuestionDiv>{d.question}</QuestionDiv>
       </div>
@@ -152,41 +223,6 @@ const GlobalInterpreter = props => {
     numAbstractFeatures = 1;
 
   useEffect(() => {
-    // dispatch(runClustering());
-    // dispatch(
-    //   runDT({
-    //     tweets: tweets,
-    //     selectedFeatures: selectedFeatures
-    //   })
-    // );
-    // dispatch(
-    //   calculatePartialDependence({
-    //     modelId: currentModel,
-    //     tweets: tweets,
-    //     features: selectedFeatures
-    //   })
-    // );
-    // const stateReturns = dispatch(runClustering());
-    // console.log('stateReturns: ', stateReturns);
-    // dispatch(runDT({ tweets: tweets, selectedFeatures: selectedFeatures }));
-    // dispatch(
-    //   calculatePartialDependence({
-    //     modelId: currentModel,
-    //     tweets: tweets,
-    //     features: selectedFeatures
-    //   })
-    // );
-
-    // console.log('in globalinterpreter useeffect: ', tweets);
-    // dispatch(runDT({ tweets: tweets, selectedFeatures: selectedFeatures }));
-    // dispatch(
-    //   runClusteringAndPartialDependenceForClusters({
-    //     tweets: tweets,
-    //     features: selectedFeatures,
-    //     modelId: currentModel
-    //   })
-    // );
-
     dispatch(
       runDTThenRunClandPD({
         tweets: tweets,
@@ -194,87 +230,56 @@ const GlobalInterpreter = props => {
         modelId: currentModel
       })
     );
-
-    // dispatch([
-    //   dispatch(runClustering()),
-    //   (dispatch, getState) => {
-    //     // `getState()` returns the state (or store) which is computed through
-    //     // first action, so you can use this updated store to find out needed
-    //     // portion and pass it to next action creator
-    //     const updatedTweets = getState().tweet.tweets;
-    //     console.log('updatedTweets: ', getState());
-    //     console.log('updatedTweets: ', updatedTweets);
-    //     dispatch(
-    //       runDT({ tweets: updatedTweets, selectedFeatures: selectedFeatures })
-    //     );
-    //   },
-    //   (dispatch, getState) => {
-    //     // `getState()` returns the state (or store) which is computed through
-    //     // first action, so you can use this updated store to find out needed
-    //     // portion and pass it to next action creator
-    //     const updatedTweets = getState().tweet.tweets;
-    //     dispatch(
-    //       calculatePartialDependence({
-    //         modelId: currentModel,
-    //         tweets: updatedTweets,
-    //         features: selectedFeatures
-    //       })
-    //     );
-    //   }
-    // ]);
   }, []);
-  // if (
-  //   !clusterIdsInTweets ||
-  //   clusterIdsInTweets.length === 0 ||
-  //   typeof clusterIdsInTweets[0] === 'undefined'
-  // )
-
-  // prettier-ignore
-  // if (
-  //   (!clusterIdsForTweets ||
-  //   clusterIdsForTweets.length === 0)||
-  //   (!pdpValues || pdpValues.length === 0) ||
-  //   typeof(tweets[0].clusterId) == 'undefined'
-  // )
 
   console.log('in GlobalInterpreterWrapper: before', isLoaded);
   console.log('in GlobalInterpreterWrapper: before', pdpValues);
   console.log('in GlobalInterpreterWrapper: before', clusterIdsForTweets);
 
-  if (
-    // !clusterIdsForTweets ||
-    // clusterIdsForTweets.length === 0 ||
-    // !pdpValues ||
-    // pdpValues.length === 0 ||
-    !clusters ||
-    clusters.length === 0 ||
-    isLoaded === false
-  )
-    return <div />;
+  if (!clusters || clusters.length === 0 || isLoaded === false) return <div />;
 
   console.log('in GlobalInterpreterWrapper: ', isLoaded);
   console.log('in GlobalInterpreterWrapper: ', tweets);
   console.log('in GlobalInterpreterWrapper: ', clusters);
+  console.log('in GlobalInterpreterWrapper: ', pdpValues);
 
   return (
     <GlobalInterpreterWrapper>
       <div style={{ gridArea: 't' }}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
-      <div style={{ gridArea: 'md' }}>
+      <div style={{ gridArea: 'md', display: 'flex', alignItems: 'center' }}>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <SubsectionTitle>Mode: </SubsectionTitle>
         &nbsp;&nbsp;&nbsp;
-        <ModeDropdown
-          multiple={false}
-          value={globalModesWithDisplay[globalMode].display}
-          onChange={(e, i) => {
-            console.log('onChange in value: ', e, e.option);
-            dispatch({ type: 'CHANGE_GLOBAL_MODE', payload: e.selected });
-          }}
-          options={globalModesWithDisplay.map(d => d.display)}
-          size={'xsmall'}
-        />
+        <Grommet theme={deepMerge(grommet, customDropdownTheme)}>
+          <ModeDropdown
+            multiple={false}
+            value={globalModesWithDisplay[globalMode].display}
+            onChange={(e, i) => {
+              console.log('onChange in value: ', e, e.option);
+              const selectedGlobalMode = e.selected;
+              dispatch({
+                type: 'CHANGE_GLOBAL_MODE',
+                payload: selectedGlobalMode
+              });
+
+              if (globalMode !== selectedGlobalMode) {
+                selectedGlobalMode === 2
+                  ? dispatch(
+                      runDTThenRunClandPD({
+                        tweets: tweets,
+                        selectedFeatures: selectedFeatures,
+                        modelId: currentModel
+                      })
+                    )
+                  : console.log('no');
+              }
+            }}
+            options={globalModesWithDisplay.map(d => d.display)}
+            size={'xsmall'}
+          />
+        </Grommet>
         {/* <QuestionDiv>
           {'How well can (shallow) machine predict ideological groups?'}
         </QuestionDiv> */}
@@ -296,7 +301,7 @@ const GlobalInterpreter = props => {
         selectedFeatures={selectedFeatures}
         clusters={clusters}
         // clusterIdsForTweets={clusterIdsForTweets}
-        // pdpValues={pdpValues}
+        pdpValues={pdpValues}
         isLoaded={isLoaded}
       />
       <WordPlotView

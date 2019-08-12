@@ -96,9 +96,8 @@ const WordPlotView = props => {
         {filterWordsByFeature('valence')}
         {filterWordsByFeature('arousal')}
         {filterWordsByFeature('dominance')}
-        {filterWordsByFeature('moral1')}
-        {filterWordsByFeature('moral2')}
-        {filterWordsByFeature('moral3')}
+        {filterWordsByFeature('harm')}
+        {filterWordsByFeature('fairness')}
       </WordPlotWrapper>
       <WordGroupPlot>
         <svg
@@ -116,9 +115,6 @@ const WordPlotView = props => {
           ref={ref}
         />
       </WordGroupPlot>
-      {selectedFeatures.map(d => (
-        <div>{d.key}</div>
-      ))}
     </WordPlotViewWrapper>
   );
 };

@@ -17,7 +17,7 @@ const ExplorerWrapper = styled.div.attrs({
 })`
   grid-area: e;
   display: grid;
-  grid-template-rows: 150px 300px 600px;
+  grid-template-rows: 150px 300px 650px;
   grid-template-columns: 60% 40%;
   grid-template-areas:
     'rt rt'
@@ -25,15 +25,15 @@ const ExplorerWrapper = styled.div.attrs({
     'd l';
 `;
 
-const Explorer = ({ tweets, users }) => {
+const Explorer = ({ tweets, tweetList, users, userList, selectedTweet }) => {
   // const dispatch = useDispatch();
   console.log('tweets in explorer: ', tweets, users);
-  const selectedTweet = tweets[0];
+
   return (
     <ExplorerWrapper>
-      <RetrievalView data={tweets} />
-      <DocumentView data={tweets} />
-      <ListView users={users} />
+      <RetrievalView tweets={tweets} />
+      <DocumentView tweetList={tweetList} selectedTweet={selectedTweet} />
+      <ListView userList={userList} />
     </ExplorerWrapper>
   );
 };
