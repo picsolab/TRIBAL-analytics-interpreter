@@ -13,6 +13,11 @@ urlpatterns = [
         name='load_users'
     ),
     url(
+        regex=r'^searchTweets/$',
+        view=views.SearchTweets.as_view(),
+        name='search_tweets'
+    ),
+    url(
         regex=r'^runDecisionTree/$',
         view=views.RunDecisionTree.as_view(),
         name='run_dt'

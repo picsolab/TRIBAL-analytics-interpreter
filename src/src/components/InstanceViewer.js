@@ -97,7 +97,6 @@ const InstanceViewer = ({ tweets, selectedTweet }) => {
           </Header>
           <div>
             <div>
-              <InstanceId>tweet 176</InstanceId>
               <div
                 style={{
                   padding: '5px'

@@ -44,27 +44,20 @@ const GroupViewerWrapper = styled(SectionWrapper)`
 const SearchIndicator = styled.div.attrs({
   className: 'search_indicator'
 })`
-  line-height: 1.5;
-  background-color: dimgray;
-  border-radius: 6px;
-  color: white;
-  padding: 5px;
-  padding-left: 15px;
+  padding: 5px 0;
+  font-size: 0.8rem;
+  color: dimgray;
 `;
 
-const FeatureGroupPlot = ({ tweets, features }) => {
+const FeatureGroupPlot = ({ tweetList, features }) => {
   const ref = useRef(null);
   useEffect(() => {
-    const conTweets = tweets.filter(d => d.group === '0'),
-      libTweets = tweets.filter(d => d.group === '1'); // 0: con, lib: 1
+    const conTweets = tweetList.filter(d => d.group === '0'),
+      libTweets = tweetList.filter(d => d.group === '1'); // 0: con, lib: 1
 
     const featureAvgs = features.map(feature => {
-      const avgCon = _.mean(
-          conTweets.map(conTweet => conTweet[feature.key]).slice(0, 10)
-        ),
-        avgLib = _.mean(
-          libTweets.map(libTweet => libTweet[feature.key]).slice(0, 10)
-        );
+      const avgCon = _.mean(conTweets.map(conTweet => conTweet[feature.key])),
+        avgLib = _.mean(libTweets.map(libTweet => libTweet[feature.key]));
 
       const diff = avgLib - avgCon;
 
@@ -84,8 +77,8 @@ const FeatureGroupPlot = ({ tweets, features }) => {
     d3.select('.g_feature_con_plot').remove();
     d3.select('.g_feature_diff_plot').remove();
 
-    console.log('featureAvgs: ', tweets);
-    console.log('featureAvgs: ', featureAvgs);
+    console.log('featureAvgs: ', tweetList);
+    console.log('featureAvgs: ', featureAvgs.map(d => d.avgCon));
 
     const gFeatureGroupPlot = svg
       .append('g')
@@ -130,7 +123,7 @@ const FeatureGroupPlot = ({ tweets, features }) => {
 
     const xDiffFeatureScale = d3
       .scaleLinear()
-      .domain([0, 0.3])
+      .domain([0, 0.5])
       .range([0, layout.featureGroupPlot.diffPlot.width / 3]);
 
     const colorConPDPScale = d3
@@ -207,8 +200,7 @@ const FeatureGroupPlot = ({ tweets, features }) => {
       .attr('y', (d, i) => yFeatureScale(d.abbr))
       .attr('width', d => xDiffFeatureScale(d.diffLib))
       .attr('height', yFeatureScale.bandwidth() - 3)
-      .style('fill', d => globalColors.group.lib)
-      .style('fill-opacity', 0.5);
+      .style('fill', d => globalColors.group.lib);
 
     const conFeatureBars = gFeatureConPlot
       .selectAll('.con_feature_avg_bar')
@@ -233,9 +225,8 @@ const FeatureGroupPlot = ({ tweets, features }) => {
       .attr('y', (d, i) => yFeatureScale(d.abbr))
       .attr('width', d => xDiffFeatureScale(d.diffCon))
       .attr('height', yFeatureScale.bandwidth() - 3)
-      .style('fill', d => globalColors.group.con)
-      .style('fill-opacity', 0.5);
-  }, [tweets, ref.current]);
+      .style('fill', d => globalColors.group.con);
+  }, [tweetList, ref.current]);
 
   return (
     <div>
@@ -257,11 +248,11 @@ const FeatureGroupPlot = ({ tweets, features }) => {
   );
 };
 
-const WordGroupPlot = ({ tweets, selectedTweet, features }) => {
+const WordGroupPlot = ({ tweetList, selectedTweet, features }) => {
   const ref = useRef(null);
   useEffect(() => {
-    const conTweets = tweets.filter(d => d.group === '0'),
-      libTweets = tweets.filter(d => d.group === '1'); // 0: con, lib: 1
+    const conTweets = tweetList.filter(d => d.group === '0'),
+      libTweets = tweetList.filter(d => d.group === '1'); // 0: con, lib: 1
 
     const featureAvgs = features.map(feature => {
       const avgCon = _.mean(
@@ -287,10 +278,6 @@ const WordGroupPlot = ({ tweets, selectedTweet, features }) => {
     // d3.selectAll('text').remove();
     d3.select('.g_word_lib_plot').remove();
     d3.select('.g_word_con_plot').remove();
-    d3.select('.g_feature_diff_plot').remove();
-
-    console.log('featureAvgs: ', tweets);
-    console.log('featureAvgs: ', featureAvgs);
 
     const gWordGroupPlot = svg.append('g').attr('class', 'g_word_group_plot');
 
@@ -438,7 +425,7 @@ const WordGroupPlot = ({ tweets, selectedTweet, features }) => {
       .attr('height', yFeatureScale.bandwidth() - 3)
       .style('fill', d => globalColors.group.con)
       .style('fill-opacity', 0.5);
-  }, [tweets, ref.current]);
+  }, [tweetList, ref.current]);
 
   return (
     <div>
@@ -460,17 +447,20 @@ const WordGroupPlot = ({ tweets, selectedTweet, features }) => {
   );
 };
 
-const GroupViewer = ({ tweets, selectedTweet, features }) => {
+const GroupViewer = ({ tweetList, selectedTweet, features }) => {
   return (
     <GroupViewerWrapper>
       <SectionTitle>Group</SectionTitle>
-      <SearchIndicator>300 tweets selected</SearchIndicator>
+      <SearchIndicator>From retrieved tweets</SearchIndicator>
       <SubsectionTitle>Features</SubsectionTitle>
-      <FeatureGroupPlot tweets={tweets} features={features} />
+      <FeatureGroupPlot tweetList={tweetList} features={features} />
       <SubsectionTitle>Words</SubsectionTitle>
-      <WordGroupPlot tweets={tweets} features={features} />
+      <WordGroupPlot tweetList={tweetList} features={features} />
       <SubsectionTitle>Models</SubsectionTitle>
-      <div>VAHF &nbsp;&nbsp;&nbsp; 75.8%</div>
+      <div>
+        VDHF &nbsp;&nbsp;&nbsp; 75.8% &nbsp;&nbsp;&nbsp; 82.6%
+        &nbsp;&nbsp;&nbsp; 69.8%
+      </div>
     </GroupViewerWrapper>
   );
 };

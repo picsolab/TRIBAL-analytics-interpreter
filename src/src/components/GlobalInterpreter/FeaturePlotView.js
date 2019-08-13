@@ -62,7 +62,7 @@ const layout = {
     height: 240,
     leftMargin: 80,
     minRadius: 4,
-    maxRadius: 10
+    maxRadius: 15
   },
   pdpPlot: {
     width: 70,

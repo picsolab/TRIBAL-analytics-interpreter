@@ -1,18 +1,14 @@
-# import sys
-# sys.path.append('/usr/local/opt/graph-tool/2.22_1/lib/python2.7/site-packages/')
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core import serializers
+from django.contrib.postgres.search import SearchQuery, SearchVector
+
 from rest_framework import status
 from . import models
 
 import pandas as pd
 import numpy as np
-import json
-import math
-import pickle
-import matplotlib
+import json, math, pickle, matplotlib
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split
@@ -40,8 +36,6 @@ def load_model(model_id):
     return model
 
 # For the initial run
-
-
 class LoadData(APIView):
     def get(self, request, format=None):
         tweet_objects = models.Tweet.objects.all()
@@ -72,7 +66,21 @@ class LoadUsers(APIView):
         return Response(users_json)
 
 # For the global interpretability,
+class SearchTweets(APIView):
+    def get(self, request, format=None):
+        pass
+    
+    def post(self, request, format=None):
+        request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        search_keyword = request_json['searchKeyword']
+        
+        retrieved_tweet_objects = models.Tweet.objects.filter(content__contains=search_keyword)
+        tweet_objects_json = eval(serializers.serialize('json', retrieved_tweet_objects))
 
+        tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
+        print(tweets_json)
+
+        return Response(tweets_json)
 
 class RunDecisionTree(APIView):
     def get(self, request, format=None):

@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { runClusteringAndPartialDependenceForClusters } from './cluster';
 
 import axios from 'axios';
@@ -5,6 +6,9 @@ import axios from 'axios';
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
 const SELECT_TWEET = 'SELECT_TWEET';
+const SEARCH_TWEETS = 'SEARCH_TWEETS';
+const SORT_TWEETS_BY_FEATURE = 'SORT_TWEETS_BY_FEATURE';
+const FILTER_TWEETLIST_BY_USER = 'FILTER_TWEETLIST_BY_USER';
 const RUN_DT = 'RUN_DT';
 const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
 const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
@@ -19,8 +23,7 @@ export const fetchTweets = () => {
         group: d.grp,
         content: d.content,
         valence: d.valence,
-        arousal: d.arousal,
-        dominance: 0,
+        dominance: d.dominance,
         harm: d.harm,
         fairness: d.fairness,
         userId: d.user_id,
@@ -32,8 +35,7 @@ export const fetchTweets = () => {
         group: d.grp,
         content: d.content,
         valence: d.valence,
-        arousal: d.arousal,
-        dominance: 0,
+        dominance: d.dominance,
         harm: d.harm,
         fairness: d.fairness,
         userId: d.user_id,
@@ -95,6 +97,7 @@ const initialState = {
   tweets: [],
   tweetsWithPredFeatures: [],
   tweetList: [],
+  filteredTweetList: [],
   selectedTweet: [],
   isLoaded: false
 };
@@ -108,7 +111,7 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         tweets: action.payload.tweets,
-        tweetList: action.payload.tweets.slice(0, 20),
+        tweetList: action.payload.tweets,
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
         selectedTweet: action.payload.tweets[0]
       };
@@ -117,6 +120,29 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         selectedTweet: action.payload
+      };
+    case SEARCH_TWEETS:
+      console.log('action.payload in SEARCH_TWEETS: ', action.payload);
+      return {
+        ...state,
+        tweetList: action.payload
+      };
+    case SORT_TWEETS_BY_FEATURE:
+      const sortBy = action.payload,
+        sortedTweetList = _.orderBy(state.tweetList, [sortBy]);
+      console.log('sortedTweetList: ', sortedTweetList);
+      return {
+        ...state,
+        tweetList: sortedTweetList
+      };
+    case FILTER_TWEETLIST_BY_USER:
+      const selectedUser = action.payload;
+      const filteredTweetList = state.tweetList.filter(
+        d => d.screenName === selectedUser.screenName
+      );
+      return {
+        ...state,
+        filteredTweetList: filteredTweetList
       };
     case RUN_DT:
       console.log('action.payload in RUN_DT: ', action.payload);

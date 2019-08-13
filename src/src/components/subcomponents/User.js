@@ -72,12 +72,12 @@ const UserScoreView = props => {
   const ref = useRef(null);
   const dispatch = useDispatch();
   const layout = {
-    width: 50,
-    height: 35,
+    width: 40,
+    height: 30,
     marginBottom: 10,
     svg: {
-      width: 50,
-      height: 35
+      width: 40,
+      height: 25
     }
   };
 
@@ -85,13 +85,15 @@ const UserScoreView = props => {
     user,
     yNumFollowersScale,
     yNumFreindsScale,
-    yNumRetweetedScale
+    yNumRetweetedScale,
+    yNumTweetsScale
   } = props;
 
   const userScores = _.pick(user, [
     'numFollowers',
     'numFriends',
-    'numRetweeted'
+    'numRetweeted',
+    'numTweets'
   ]);
   const userScoreValues = Object.values(userScores),
     numUserScores = userScoreValues.length;
@@ -116,11 +118,12 @@ const UserScoreView = props => {
       .enter()
       .append('rect')
       .attr('class', 'feature_rect')
-      .attr('width', layout.svg.width / numUserScores - 5)
+      .attr('width', layout.svg.width / numUserScores - 3)
       .attr('height', (d, i) => {
         if (i === 0) return yNumFollowersScale(d);
         else if (i === 1) return yNumFreindsScale(d);
         else if (i === 2) return yNumRetweetedScale(d);
+        else if (i === 3) return yNumTweetsScale(d);
       })
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => {
@@ -134,13 +137,15 @@ const UserScoreView = props => {
           return (
             layout.svg.height - layout.marginBottom - yNumRetweetedScale(d)
           );
+        else if (i === 3)
+          return layout.svg.height - layout.marginBottom - yNumTweetsScale(d);
       })
       .style('fill', globalColors.userFeature);
 
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(['F', 'F', 'R'])
+      .data(['F', 'F', 'R', 'T'])
       .enter()
       .append('text')
       .text(d => d)
@@ -165,17 +170,52 @@ const UserScoreView = props => {
 
 const User = ({
   user,
+  isSelected,
   yNumFollowersScale,
   yNumFreindsScale,
-  yNumRetweetedScale
+  yNumRetweetedScale,
+  yNumTweetsScale
 }) => {
+  const dispatch = useDispatch();
   if (typeof user === 'undefined' || Object.keys(user).length === 0)
     return <div />;
 
   return (
     <UserWrapper>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <UserGlyph group={user.group} />
+        <UserGlyph
+          group={user.group}
+          onClick={e => {
+            console.log('isSelected in user onClick: ', isSelected);
+            if (isSelected) {
+              d3.select(e.target).classed('user_glyph_selected', false);
+
+              dispatch({
+                type: 'SELECT_USER',
+                payload: {}
+              });
+            } else {
+              // Cancel all effects
+              d3.selectAll('.user_glyph_selected').classed(
+                '.user_glyph_selected',
+                false
+              );
+
+              // Adjust the effect to the selected user
+              d3.select(e.target).classed('user_glyph_selected', true);
+
+              dispatch({
+                type: 'SELECT_USER',
+                payload: user
+              });
+
+              dispatch({
+                type: 'FILTER_TWEETLIST_BY_USER',
+                payload: user
+              });
+            }
+          }}
+        />
         <div style={{ width: '80%', fontSize: '0.75rem' }}>
           {user.screenName}
         </div>
@@ -189,6 +229,7 @@ const User = ({
           yNumFollowersScale={yNumFollowersScale}
           yNumFreindsScale={yNumFreindsScale}
           yNumRetweetedScale={yNumRetweetedScale}
+          yNumTweetsScale={yNumTweetsScale}
         />
       </div>
     </UserWrapper>

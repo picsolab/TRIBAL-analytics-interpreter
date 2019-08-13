@@ -25,15 +25,29 @@ const ExplorerWrapper = styled.div.attrs({
     'd l';
 `;
 
-const Explorer = ({ tweets, tweetList, users, userList, selectedTweet }) => {
+const Explorer = ({
+  tweets,
+  tweetList,
+  filteredTweetList,
+  users,
+  userList,
+  selectedUser,
+  selectedTweet
+}) => {
   // const dispatch = useDispatch();
-  console.log('tweets in explorer: ', tweets, users);
+  console.log('tweets in explorer: ', tweets, users, selectedTweet);
+  const numRetrievedTweets = tweetList.length;
 
   return (
     <ExplorerWrapper>
-      <RetrievalView tweets={tweets} />
-      <DocumentView tweetList={tweetList} selectedTweet={selectedTweet} />
-      <ListView userList={userList} />
+      <RetrievalView tweets={tweets} numRetrievedTweets={numRetrievedTweets} />
+      <DocumentView
+        tweetList={
+          Object.keys(selectedUser).length === 0 ? tweetList : filteredTweetList
+        }
+        selectedTweet={selectedTweet}
+      />
+      <ListView userList={userList} selectedUser={selectedUser} />
     </ExplorerWrapper>
   );
 };

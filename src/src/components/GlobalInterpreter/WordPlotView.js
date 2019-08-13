@@ -94,7 +94,7 @@ const WordPlotView = props => {
     <WordPlotViewWrapper>
       <WordPlotWrapper>
         {filterWordsByFeature('valence')}
-        {filterWordsByFeature('arousal')}
+        {filterWordsByFeature('dominance')}
         {filterWordsByFeature('dominance')}
         {filterWordsByFeature('harm')}
         {filterWordsByFeature('fairness')}

@@ -26,13 +26,13 @@ const GlobalInterpreterContainer = () => {
     },
     {
       word: 'act',
-      fromFeature: 'arousal',
+      fromFeature: 'dominance',
       importance: '0.7',
       numTweetsGroupRatio: { con: 0.7, lib: 0.3 }
     },
     {
       word: 'dominant',
-      fromFeature: 'arousal',
+      fromFeature: 'dominance',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.94, lib: 0.06 }
     },

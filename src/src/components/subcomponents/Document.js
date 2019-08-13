@@ -66,7 +66,7 @@ const ScoreView = props => {
 
   useEffect(() => {
     const { tweet } = props;
-    const features = ['valence', 'arousal', 'harm', 'fairness'],
+    const features = ['valence', 'dominance', 'harm', 'fairness'],
       numFeatures = features.length,
       tweetScores = _.pick(tweet, features);
 
@@ -123,8 +123,8 @@ const Document = props => {
   console.log('tweet in doc: ', tweet);
   return (
     <DocumentWrapper
-      className={'doc_' + tweet.group}
-      style={isSelected ? { backgroundColor: '#dad9d9' } : {}}
+      className={'doc_' + tweet.group + (isSelected ? ' doc_selected ' : '')}
+      // style={isSelected ? { backgroundColor: '#dad9d9' } : {}}
     >
       <div
         className={'doc_' + tweet.id}
@@ -167,7 +167,7 @@ const Document = props => {
                 .classed('doc_selected', false)
                 .style('background-color', 'white');
 
-              // Adjust the effect
+              // Adjust the effect to the selected tweet
               d3.select(e.target)
                 .classed('doc_glyph_selected', true)
                 .style('border-width', '2px')

@@ -2,7 +2,7 @@ import { combineReducers, applyMiddleware } from 'redux';
 import ReduxThunk from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import counter from './counter';
-import browser from './browser';
+import explorer from './explorer';
 import tweet from './tweet';
 import user from './user';
 import cluster from './cluster';
@@ -26,7 +26,7 @@ const rootReducer = (state = {}, action) => {
     tweet: tweet(state.tweet, action),
     user: user(state.user, action),
     cluster: cluster(state.cluster, action),
-    browser: browser(state.browser, { ...action, actionFetchData }),
+    explorer: explorer(state.explorer, { ...action, actionFetchData }),
     globalInterpreter: globalInterpreter(state.globalInterpreter, action),
     localInterpreter: localInterpreter(state.localInterpreter, action)
   };

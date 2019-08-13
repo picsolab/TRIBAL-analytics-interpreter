@@ -32,3 +32,17 @@ code {
 .g_feature_axis text {
   fill: black;
 }
+
+.doc_selected {
+  background-color: whitesmoke !important;
+  /* color: white !important; */
+}
+
+.user_glyph_selected {
+  stroke: 2 !important;
+  opacity: 1 !important;
+}
+
+.feature_sort_by {
+  fill: green !important;
+}

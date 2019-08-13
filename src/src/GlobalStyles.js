@@ -12,8 +12,8 @@ export const globalColors = {
       con: '#8eabd0'
     }
   },
-  feature: 'mediumpurple',
-  userFeature: 'lightpink'
+  feature: 'mediumaquamarine',
+  userFeature: 'peachpuff'
 };
 
 export const SectionWrapper = styled.div`
@@ -61,7 +61,7 @@ export const ComponentSubTitle = styled(SubTitle)`
 `;
 
 export const ListViewStyle = styled.div`
-  height: 100%;
+  height: 80%;
   padding: 3px 7px;
   background-color: whitesmoke;
 `;

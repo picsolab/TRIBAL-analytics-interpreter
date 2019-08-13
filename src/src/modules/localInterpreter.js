@@ -19,7 +19,7 @@ const initialState = {
     numRetweeted: 4074205,
     botScore: 'N/A',
     valence: 0.215672608,
-    arousal: 0.801444548,
+    dominance: 0.801444548,
     harm: 0.988902207,
     fairness: 0.415014834
   }

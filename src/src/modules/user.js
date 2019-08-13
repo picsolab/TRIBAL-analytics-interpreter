@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // Action type
 const FETCH_USERS = 'FETCH_USERS';
+const SELECT_USER = 'SELECT_USER';
 
 export const fetchUsers = () => {
   return async dispatch => {
@@ -23,7 +24,8 @@ export const fetchUsers = () => {
 // initial value for state
 const initialState = {
   users: [],
-  userList: []
+  userList: [],
+  selectedUser: {}
 };
 
 // Reducers
@@ -35,6 +37,11 @@ const user = (state = initialState, action) => {
         ...state,
         users: action.payload,
         userList: action.payload.slice(0, 20)
+      };
+    case SELECT_USER:
+      return {
+        ...state,
+        selectedUser: action.payload
       };
     default:
       return state;

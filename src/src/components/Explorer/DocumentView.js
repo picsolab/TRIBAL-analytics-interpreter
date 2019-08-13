@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
 import styled from 'styled-components';
 import { Button, InfiniteScroll } from 'grommet';
 import {
+  globalColors,
   SectionWrapper,
   ComponentSubTitle,
   SubsectionTitle,
@@ -28,6 +30,7 @@ const DocumentListWrapper = styled(ListViewStyle).attrs({
 `;
 
 const ScoreView = ({ tweetList }) => {
+  const dispatch = useDispatch();
   const ref = useRef(null);
   const layout = {
     width: 40,
@@ -40,8 +43,9 @@ const ScoreView = ({ tweetList }) => {
   };
 
   useEffect(() => {
-    const features = ['valence', 'arousal', 'harm', 'fairness'],
+    const features = ['valence', 'dominance', 'harm', 'fairness'],
       numFeatures = features.length;
+
     const avgScores = features.map(feature => {
       return _.mean(tweetList.map(d => d[feature]));
     });
@@ -85,12 +89,30 @@ const ScoreView = ({ tweetList }) => {
           ? layout.svg.height - layout.marginBottom - yHarmScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d);
       })
-      .style('fill', 'mediumpurple');
+      .style('fill', globalColors.feature)
+      .style('cursor', 'pointer')
+      .on('click', function(d, i) {
+        const sortBy =
+          i === 0
+            ? 'valence'
+            : i === 1
+            ? 'dominance'
+            : i === 2
+            ? 'harm'
+            : 'fairness';
+
+        d3.selectAll('.feature_sort_by').classed('feature_sort_by', false);
+        d3.select(this).classed('feature_sort_by', true);
+        dispatch({
+          type: 'SORT_TWEETS_BY_FEATURE',
+          payload: sortBy
+        });
+      });
 
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(['V', 'A', 'H', 'F'])
+      .data(['V', 'D', 'H', 'F'])
       .enter()
       .append('text')
       .text(d => d)
@@ -100,27 +122,40 @@ const ScoreView = ({ tweetList }) => {
   }, [tweetList, ref.current]);
 
   return (
-    <div
-      style={{ width: layout.width, height: layout.height, marginLeft: 'auto' }}
-    >
-      <svg width="100%" height="100%" ref={ref} />
+    <div>
+      <div
+        style={{
+          width: layout.width,
+          height: layout.height,
+          marginLeft: 'auto'
+        }}
+      >
+        <svg width="100%" height="100%" ref={ref} />
+      </div>
     </div>
   );
 };
 
-const DocumentView = ({ tweetList, selectedTweet }) => {
+const DocumentView = ({ tweetList, filteredTweetList, selectedTweet }) => {
+  if (!tweetList || tweetList.length === 0) return <div />;
+
   return (
     <DocumentViewWrapper>
       <SubsectionTitle>Document</SubsectionTitle>
+      <ScoreView tweetList={tweetList} />
+      <div style={{ fontWeight: 600, fontSize: '0.7rem' }}>Selected</div>
+      <Document tweet={selectedTweet} isSelected={true} />
+      {/* <div style={{ borderBottom: '1px solid gray', height: '1px' }}>
+        &nbsp;
+      </div> */}
       <DocumentListWrapper>
-        <ScoreView tweetList={tweetList} />
-        <div style={{ fontWeight: 600, fontSize: '0.7rem' }}>Selected</div>
-        <Document tweet={selectedTweet} isSelected={true} />
-        <div style={{ borderBottom: '1px solid gray', height: '1px' }}>
-          &nbsp;
-        </div>
         <InfiniteScroll items={tweetList} step={10}>
-          {item => <Document tweet={item} />}
+          {item => (
+            <Document
+              tweet={item}
+              isSelected={item.tweetId === selectedTweet.tweetId ? true : false}
+            />
+          )}
         </InfiniteScroll>
       </DocumentListWrapper>
     </DocumentViewWrapper>

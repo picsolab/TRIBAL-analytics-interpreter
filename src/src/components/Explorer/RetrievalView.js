@@ -1,15 +1,16 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
 import { Button } from 'grommet';
+import { Input } from 'antd';
 import CustomizedInputBase from '../subcomponents/SearchBar';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
 
-import FeatureView from './FeatureView';
-import ListView from './ListView';
+import { searchTweets } from '../../modules/explorer';
 
 const RetrievalViewWrapper = styled(SectionWrapper).attrs({
   className: 'RetrievalView'
@@ -56,13 +57,36 @@ const SearchComponentWrapper = styled.div.attrs({
 //   );
 // };
 
-const RetrievalView = ({ onIncrease, onDecrease, number }) => {
+const RetrievalView = ({ numRetrievedTweets }) => {
+  const dispatch = useDispatch();
+  const { Search } = Input;
   return (
     <RetrievalViewWrapper>
       <div style={{ display: 'flex' }}>
         <SectionTitle>Retrieval</SectionTitle>
       </div>
-      <SearchBarWrapper>
+      <Search
+        style={{ margin: '10px 0' }}
+        placeholder="Search tweets"
+        onSearch={value => {
+          dispatch(
+            searchTweets({
+              searchKeyword: value
+            })
+          );
+        }}
+        enterButton
+      />
+      <div
+        style={{
+          marginLeft: 'auto',
+          width: '150px',
+          color: 'gray'
+        }}
+      >
+        {numRetrievedTweets} tweets retrieved
+      </div>
+      {/* <SearchBarWrapper>
         <div className={index.subTitle}>Filter</div>
         <SearchComponentWrapper>
           <ComponentSubTitle>Word</ComponentSubTitle>
@@ -80,7 +104,7 @@ const RetrievalView = ({ onIncrease, onDecrease, number }) => {
           <ComponentSubTitle>Word</ComponentSubTitle>
           <CustomizedInputBase />
         </SearchComponentWrapper>
-      </SearchBarWrapper>
+      </SearchBarWrapper> */}
       {/* <h1>{number}</h1>
       <div>
         <LocalButton

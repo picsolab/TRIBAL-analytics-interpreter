@@ -32,13 +32,13 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
 const initialState = {
   features: [
     { key: 'valence', abbr: 'V' },
-    { key: 'arousal', abbr: 'A' },
+    { key: 'dominance', abbr: 'D' },
     { key: 'harm', abbr: 'H' },
     { key: 'fairness', abbr: 'F' }
   ],
   selectedFeatures: [
     { key: 'valence', abbr: 'V' },
-    { key: 'arousal', abbr: 'A' },
+    { key: 'dominance', abbr: 'D' },
     { key: 'harm', abbr: 'H' },
     { key: 'fairness', abbr: 'F' }
   ],

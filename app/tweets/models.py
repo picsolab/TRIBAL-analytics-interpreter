@@ -12,7 +12,7 @@ class Tweet(models.Model):
     content = models.TextField(max_length=200, null=True)
     screen_name = models.CharField(max_length=100, null=True)
     valence = models.FloatField(null=True)
-    arousal = models.FloatField(null=True)
+    dominance = models.FloatField(null=True)
     harm = models.FloatField(null=True)
     fairness = models.FloatField(null=True)
 

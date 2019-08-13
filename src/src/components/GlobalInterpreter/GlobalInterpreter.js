@@ -72,7 +72,7 @@ const FeatureIndicator = styled.div.attrs({
   font-weight: 600;
   padding: 4px;
   border-radius: 3px;
-  line-height: 1.5;
+  line-height: 0.5;
 `;
 
 const TargetIndicator = styled.div.attrs({
@@ -84,7 +84,7 @@ const TargetIndicator = styled.div.attrs({
   font-weight: 600;
   padding: 4px;
   border-radius: 3px;
-  line-height: 1.5;
+  line-height: 0.5;
 `;
 
 const QuestionDiv = styled.div.attrs({
@@ -94,7 +94,7 @@ const QuestionDiv = styled.div.attrs({
   background-color: gray;
   color: white;
   font-weight: 600;
-  padding: 4px;
+  padding: 0 4px;
   border-radius: 3px;
 `;
 

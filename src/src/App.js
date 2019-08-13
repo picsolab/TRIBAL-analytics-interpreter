@@ -8,6 +8,8 @@ import styled from 'styled-components';
 
 import { fetchTweets, runDT } from './modules/tweet';
 import { fetchUsers } from './modules/user';
+
+import { Button } from 'antd';
 import { SectionTitle, SectionWrapper } from './GlobalStyles';
 
 import ExplorerContainer from './containers/ExplorerContainer';
@@ -68,8 +70,17 @@ function App() {
 
   return (
     <Container className={Container}>
-      <Header className={Header}>
+      <Header className={Header} style={{ display: 'flex' }}>
         <Title className=".App-link">TRIBAL</Title>
+        <Button
+          href="https://docs.google.com/document/d/13oREBJCSthiAUS7uHgkxLXqRIYekNfBvzN_Snt9lIKY/edit?usp=sharing"
+          target="_blank"
+          type="primary"
+          size={'small'}
+          style={{ marginLeft: 'auto' }}
+        >
+          Feedbacks
+        </Button>
       </Header>
       <ExplorerContainer />
       <GroupViewerContainer />
