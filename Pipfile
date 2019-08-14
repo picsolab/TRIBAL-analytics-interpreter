@@ -40,9 +40,7 @@ django-cors-headers = "*"
 pandas = "*"
 numpy = "*"
 sklearn = "*"
-matplotlib = "*"
-pycairo = "*"
-sys = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"
