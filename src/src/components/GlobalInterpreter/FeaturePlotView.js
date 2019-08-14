@@ -140,6 +140,7 @@ const FeaturePlotView = React.memo(
 
     // prettier-ignore
     const tweetsCorrectPred = tweets.filter(d => d.group === d.pred),
+    tweetsWrongPred = tweets.filter(d => (d.group !== d.pred)),
     tweetsConWrongPred = tweets.filter(d => (d.group !== d.pred) && (d.group === '0')),
     tweetsLibWrongPred = tweets.filter(d => (d.group !== d.pred) && (d.group === '1'));
 
@@ -186,7 +187,200 @@ const FeaturePlotView = React.memo(
       d3.selectAll('.g_feature_plot').remove();
       d3.selectAll('.g_cluster_plot').remove();
       d3.selectAll('.g_output_prob_plot').remove();
-      d3.selectAll('.g_pdp_plot').remove();
+      d3.selectAll('.g_pdp').remove();
+
+      //* Render output prob plot
+      const gOutputProbPlot = svg
+        .append('g')
+        .attr('class', 'g_output_prob_plot')
+        .attr(
+          'transform',
+          'translate(' +
+            (layout.featurePlot.width +
+              layout.outputProbPlot.leftMargin +
+              layout.outputProbPlot.maxRadius * 2) +
+            ',0)'
+        );
+
+      // Calculate the histogram data
+      const dataBinCorrectPredTweets = d3
+          .histogram()
+          .domain([0, 1])
+          .value(d => d.prob)
+          .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred),
+        dataBinConWrongPredTweets = d3
+          .histogram()
+          .domain([0, 1])
+          .value(d => d.prob)
+          .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPred),
+        dataBinLibWrongPredTweets = d3
+          .histogram()
+          .domain([0, 1])
+          .value(d => d.prob)
+          .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
+
+      const maxFreq = _.max(dataBinCorrectPredTweets.map(d => d.length)),
+        maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
+        maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
+
+      const xOutputProbCorrectHistScale = d3
+        .scaleLinear()
+        .domain([0, maxFreq])
+        .range([0, layout.outputProbPlot.width / 2]);
+
+      const xOutputProbWrongHistScale = d3
+        .scaleLinear()
+        .domain([0, _.max([maxFreqConWrong, maxFreqLibWrong])])
+        .range([0, layout.outputProbPlot.width / 2]);
+
+      const yOutputProbScale = d3
+        .scaleLinear()
+        .domain([1, 0])
+        .range([layout.margin.top, layout.outputProbPlot.height]);
+
+      const yOutputProbHistBinScale = d3
+        .scaleBand()
+        .domain(dataBinCorrectPredTweets.map(d => d.x0).reverse()) // From 1 to 0
+        .range([layout.margin.top, layout.outputProbPlot.height]);
+
+      const yOutputProbSetting = d3
+        .axisLeft(yOutputProbScale)
+        .tickValues([0, 0.5, 1]);
+
+      const yOutputProbAxis = gOutputProbPlot
+        .append('g')
+        .call(yOutputProbSetting)
+        .attr('class', 'g_output_prob_axis')
+        .attr(
+          'transform',
+          'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
+        );
+
+      const outputProbTitle = gOutputProbPlot
+          .append('text')
+          .text('Output')
+          .attr('x', 10)
+          .attr('y', 10),
+        textWrong = gOutputProbPlot
+          .append('text')
+          .text('Wrong')
+          .attr('x', -5)
+          .attr('y', 23)
+          .style('font-size', '0.8rem'),
+        textCorrect = gOutputProbPlot
+          .append('text')
+          .text('Correct')
+          .attr('x', 40)
+          .attr('y', 23)
+          .style('font-size', '0.8rem');
+
+      const tweetHistForCorrectPred = gOutputProbPlot
+        .append('g')
+        .attr('class', 'g_output_prob_hist_for_correct_pred')
+        .attr('transform', d => {
+          return 'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')';
+        })
+        .selectAll('.rect_output_prob_hist_for_correct_pred')
+        .data(dataBinCorrectPredTweets)
+        .enter()
+        .append('rect')
+        .attr('class', 'rect_output_prob_hist_for_correct_pred')
+        .attr('x', 3)
+        .attr('y', d => {
+          console.log('y=x0: ', d.x0);
+          console.log(yOutputProbHistBinScale(d.x0));
+          return yOutputProbHistBinScale(d.x0);
+        })
+        .attr('width', d => xOutputProbCorrectHistScale(d.length))
+        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+        .style('fill', d =>
+          d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
+        )
+        .style('opacity', 0.5);
+
+      const tweetLibHistForWrongPred = gOutputProbPlot
+        .append('g')
+        .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
+        .attr('transform', d => {
+          return 'translate(' + 0 + ',' + 0 + ')';
+        })
+        .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+        .data(dataBinLibWrongPredTweets)
+        .enter()
+        .append('rect')
+        .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred')
+        .attr(
+          'x',
+          d =>
+            layout.outputProbPlot.width / 2 -
+            3 -
+            xOutputProbWrongHistScale(d.length)
+        )
+        .attr('y', d => yOutputProbHistBinScale(d.x0))
+        .attr('width', d => xOutputProbWrongHistScale(d.length))
+        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+        .style('fill', d => globalColors.group.wrong.lib)
+        .style('opacity', 0.5);
+
+      const tweetConHistForWrongPred = gOutputProbPlot
+        .append('g')
+        .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
+        .attr('transform', d => {
+          return 'translate(' + 0 + ',' + 0 + ')';
+        })
+        .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+        .data(dataBinConWrongPredTweets)
+        .enter()
+        .append('rect')
+        .attr('class', 'rect_output_prob_hist_for_con_wrong_pred')
+        .attr(
+          'x',
+          d =>
+            layout.outputProbPlot.width / 2 -
+            3 -
+            xOutputProbWrongHistScale(d.length)
+        )
+        .attr('y', d => yOutputProbHistBinScale(d.x0))
+        .attr('width', d => xOutputProbWrongHistScale(d.length))
+        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+        .style('fill', d => globalColors.group.wrong.con)
+        .style('opacity', 0.5);
+
+      //* Render featureToOutput lines
+      const gFeatureToOutputLines = svg
+        .append('g')
+        .attr('class', 'g_feature_to_output_paths')
+        .attr('transform', 'translate(' + layout.featurePlot.width + ',0)');
+
+      const xFeatureToOutputScale = d3
+        .scaleOrdinal()
+        .domain([0, 1])
+        .range([
+          0,
+          layout.featureToOutputLines.width + layout.outputProbPlot.leftMargin
+        ]);
+
+      const featureToOutputLines = gFeatureToOutputLines
+        .selectAll('.line_feature_to_output')
+        .data(tweets)
+        .enter()
+        .append('line')
+        .attr(
+          'class',
+          d => 'line_feature_to_output line_feature_to_output_' + d.clusterId
+        )
+        .attr('x1', xFeatureToOutputScale(0))
+        .attr('y1', d => yScoreScale(d.fairness))
+        .attr('x2', d => xFeatureToOutputScale(1))
+        .attr('y2', d => yOutputProbScale(d.prob))
+        .style('stroke', d =>
+          d.group === d.pred
+            ? groupColorScale(d.group)
+            : groupWrongColorScale(d.group)
+        )
+        // .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
+        .style('stroke-width', 0.3)
+        .style('opacity', d => 0.3);
 
       //* Render the feature plot
       const gFeaturePlot = svg.append('g').attr('class', 'g_feature_plot');
@@ -231,7 +425,7 @@ const FeaturePlotView = React.memo(
         // .attr('preserveAspectRatio', 'xMinYMin')
         .attr('width', container.node().offsetWidth * 0.5)
         .attr('height', container.node().offsetHeight)
-        .style('top', -container.node().offsetHeight + 'px')
+        .style('top', -container.node().offsetHeight + 5 + 'px')
         .style('z-index', -1);
 
       const ctx = canvas.node().getContext('2d');
@@ -255,7 +449,19 @@ const FeaturePlotView = React.memo(
               d.key === 'harm'
                 ? yPDHarmFeatureValueScale(e.featureValue)
                 : yPDFeatureValueScale(e.featureValue)
-            );
+            )
+            .curve(d3.curveCatmullRom);
+
+          const drawPDPArea = d3
+            .area()
+            .x0(0)
+            .x1(e => xPDProbScale(e.pdpValue))
+            .y(e =>
+              d.key === 'harm'
+                ? yPDHarmFeatureValueScale(e.featureValue)
+                : yPDFeatureValueScale(e.featureValue)
+            )
+            .curve(d3.curveCatmullRom);
 
           if (i === 2) {
             yAxisSetting = d3
@@ -272,17 +478,32 @@ const FeaturePlotView = React.memo(
           }
 
           console.log('in axes: ', pdpValues[d.key], d);
+
+          // Add a path (to draw a separate line), and also area (to fill the area)
+          // path
           d3.select('.g_feature_axis_' + d.key)
             .append('path')
             .datum(pdpValues[d.key])
             .attr('class', 'path_pdp')
             .attr('d', drawPDPLine)
-            .style('stroke', 'black')
-            .style('stroke-width', 3)
+            .style('stroke', 'rgb(190, 255, 231)')
+            .style('stroke-width', 4)
             .style('fill', 'none')
-            .style('stroke-dasharray', '8,3')
+            // .style('stroke-dasharray', '8,3')
             .style('shape-rendering', 'crispedges')
             .style('opacity', 1);
+
+          // area
+          d3.select('.g_feature_axis_' + d.key)
+            .append('path')
+            .datum(pdpValues[d.key])
+            .attr('class', 'area_pdp')
+            .attr('d', drawPDPArea)
+            .style('stroke', 'none')
+            .style('fill', 'gray')
+            .style('stroke-dasharray', '8,3')
+            .style('shape-rendering', 'crispedges')
+            .style('fill-opacity', 0.3);
         })
         .append('text')
         .attr('class', 'title')
@@ -421,199 +642,6 @@ const FeaturePlotView = React.memo(
         render(selected);
       } // end of brush()
 
-      //* Render featureToOutput lines
-      const gFeatureToOutputLines = svg
-        .append('g')
-        .attr('class', 'g_feature_to_output_paths')
-        .attr('transform', 'translate(' + layout.featurePlot.width + ',0)');
-
-      const xFeatureToOutputScale = d3
-        .scaleOrdinal()
-        .domain([0, 1])
-        .range([
-          0,
-          layout.featureToOutputLines.width + layout.outputProbPlot.leftMargin
-        ]);
-
-      const yOutputProbScale = d3
-        .scaleLinear()
-        .domain([1, 0])
-        .range([layout.margin.top, layout.outputProbPlot.height]);
-
-      const featureToOutputLines = gFeatureToOutputLines
-        .selectAll('.line_feature_to_output')
-        .data(tweets)
-        .enter()
-        .append('line')
-        .attr(
-          'class',
-          d => 'line_feature_to_output line_feature_to_output_' + d.clusterId
-        )
-        .attr('x1', xFeatureToOutputScale(0))
-        .attr('y1', d => yScoreScale(d.fairness))
-        .attr('x2', d => xFeatureToOutputScale(1))
-        .attr('y2', d => yOutputProbScale(d.prob))
-        .style('stroke', d =>
-          d.group === d.pred
-            ? groupColorScale(d.group)
-            : groupWrongColorScale(d.group)
-        )
-        // .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
-        .style('stroke-width', 0.3)
-        .style('opacity', 0.3);
-
-      //* Render output prob plot
-      const gOutputProbPlot = svg
-        .append('g')
-        .attr('class', 'g_output_prob_plot')
-        .attr(
-          'transform',
-          'translate(' +
-            (layout.featurePlot.width +
-              layout.outputProbPlot.leftMargin +
-              layout.outputProbPlot.maxRadius * 2) +
-            ',0)'
-        );
-
-      // Calculate the histogram data
-      const dataBinCorrectPredTweets = d3
-          .histogram()
-          .domain([0, 1])
-          .value(d => d.prob)
-          .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred),
-        dataBinConWrongPredTweets = d3
-          .histogram()
-          .domain([0, 1])
-          .value(d => d.prob)
-          .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPred),
-        dataBinLibWrongPredTweets = d3
-          .histogram()
-          .domain([0, 1])
-          .value(d => d.prob)
-          .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
-
-      const maxFreq = _.max(dataBinCorrectPredTweets.map(d => d.length)),
-        maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
-        maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
-
-      const xOutputProbHistScale = d3
-        .scaleLinear()
-        .domain([0, maxFreq])
-        .range([0, layout.outputProbPlot.width / 2]);
-
-      const xOutputProbWrongHistScale = d3
-        .scaleLinear()
-        .domain([0, _.max([maxFreqConWrong, maxFreqLibWrong])])
-        .range([0, layout.outputProbPlot.width / 2]);
-
-      const yOutputProbHistBinScale = d3
-        .scaleBand()
-        .domain(dataBinCorrectPredTweets.map(d => d.x0).reverse()) // From 1 to 0
-        .range([layout.margin.top, layout.outputProbPlot.height]);
-
-      const yOutputProbSetting = d3
-        .axisLeft(yOutputProbScale)
-        .tickValues([0, 0.5, 1]);
-
-      const yOutputProbAxis = gOutputProbPlot
-        .append('g')
-        .call(yOutputProbSetting)
-        .attr('class', 'g_output_prob_axis')
-        .attr(
-          'transform',
-          'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
-        );
-
-      const outputProbTitle = gOutputProbPlot
-          .append('text')
-          .text('Output')
-          .attr('x', 10)
-          .attr('y', 10),
-        textWrong = gOutputProbPlot
-          .append('text')
-          .text('Wrong')
-          .attr('x', -5)
-          .attr('y', 23)
-          .style('font-size', '0.8rem'),
-        textCorrect = gOutputProbPlot
-          .append('text')
-          .text('Correct')
-          .attr('x', 40)
-          .attr('y', 23)
-          .style('font-size', '0.8rem');
-
-      const tweetHistForCorrectPred = gOutputProbPlot
-        .append('g')
-        .attr('class', 'g_output_prob_hist_for_correct_pred')
-        .attr('transform', d => {
-          return 'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')';
-        })
-        .selectAll('.rect_output_prob_hist_for_correct_pred')
-        .data(dataBinCorrectPredTweets)
-        .enter()
-        .append('rect')
-        .attr('class', 'rect_output_prob_hist_for_correct_pred')
-        .attr('x', 3)
-        .attr('y', d => {
-          console.log('y=x0: ', d.x0);
-          console.log(yOutputProbHistBinScale(d.x0));
-          return yOutputProbHistBinScale(d.x0);
-        })
-        .attr('width', d => xOutputProbHistScale(d.length))
-        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-        .style('fill', d =>
-          d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
-        )
-        .style('opacity', 0.5);
-
-      const tweetLibHistForWrongPred = gOutputProbPlot
-        .append('g')
-        .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
-        .attr('transform', d => {
-          return 'translate(' + 0 + ',' + 0 + ')';
-        })
-        .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
-        .data(dataBinLibWrongPredTweets)
-        .enter()
-        .append('rect')
-        .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred')
-        .attr(
-          'x',
-          d =>
-            layout.outputProbPlot.width / 2 -
-            3 -
-            xOutputProbWrongHistScale(d.length)
-        )
-        .attr('y', d => yOutputProbHistBinScale(d.x0))
-        .attr('width', d => xOutputProbWrongHistScale(d.length))
-        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-        .style('fill', d => globalColors.group.wrong.lib)
-        .style('opacity', 0.5);
-
-      const tweetConHistForWrongPred = gOutputProbPlot
-        .append('g')
-        .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
-        .attr('transform', d => {
-          return 'translate(' + 0 + ',' + 0 + ')';
-        })
-        .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
-        .data(dataBinConWrongPredTweets)
-        .enter()
-        .append('rect')
-        .attr('class', 'rect_output_prob_hist_for_con_wrong_pred')
-        .attr(
-          'x',
-          d =>
-            layout.outputProbPlot.width / 2 -
-            3 -
-            xOutputProbWrongHistScale(d.length)
-        )
-        .attr('y', d => yOutputProbHistBinScale(d.x0))
-        .attr('width', d => xOutputProbWrongHistScale(d.length))
-        .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-        .style('fill', d => globalColors.group.wrong.con)
-        .style('opacity', 0.5);
-
       //* Render clusters
       const gClusterPlot = svg
         .append('g')
@@ -698,6 +726,12 @@ const FeaturePlotView = React.memo(
               d3.selectAll('.line_feature_to_output')
                 .style('opacity', 0.3);
 
+                d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
+                d3.selectAll('.g_output_prob_hist_for_wrong_pred').remove();
+                d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
+                d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
+                d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
+
               // To put back the output prob plot
               const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
                 e => e.clusterId === clusterId
@@ -708,6 +742,12 @@ const FeaturePlotView = React.memo(
                 .domain([0, 1])
                 .value(d => d.prob)
                 .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred);
+
+              const dataBinWrongPredTweetsForCluster = d3
+                .histogram()
+                .domain([0, 1])
+                .value(d => d.prob)
+                .thresholds(d3.range(0, 1, 0.05))(tweetsWrongPred);
 
               gOutputProbPlot
                 .append('g')
@@ -728,15 +768,71 @@ const FeaturePlotView = React.memo(
                   console.log(yOutputProbHistBinScale(d.x0));
                   return yOutputProbHistBinScale(d.x0);
                 })
-                .attr('width', d => xOutputProbHistScale(d.length))
+                .attr('width', d => xOutputProbCorrectHistScale(d.length))
                 .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
                 .style('fill', d =>
                   d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
                 )
                 .style('opacity', 0.3);
+
+              const tweetLibHistForWrongPred = gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
+                .attr('transform', d => {
+                  return 'translate(' + 0 + ',' + 0 + ')';
+                })
+                .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+                .data(dataBinLibWrongPredTweets)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred')
+                .attr(
+                  'x',
+                  d =>
+                    layout.outputProbPlot.width / 2 -
+                    3 -
+                    xOutputProbWrongHistScale(d.length)
+                )
+                .attr('y', d => yOutputProbHistBinScale(d.x0))
+                .attr('width', d => xOutputProbWrongHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d => globalColors.group.wrong.lib)
+                .style('opacity', 0.5);
+        
+              const tweetConHistForWrongPred = gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
+                .attr('transform', d => {
+                  return 'translate(' + 0 + ',' + 0 + ')';
+                })
+                .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+                .data(dataBinConWrongPredTweets)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_con_wrong_pred')
+                .attr(
+                  'x',
+                  d =>
+                    layout.outputProbPlot.width / 2 -
+                    3 -
+                    xOutputProbWrongHistScale(d.length)
+                )
+                .attr('y', d => yOutputProbHistBinScale(d.x0))
+                .attr('width', d => xOutputProbWrongHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d => globalColors.group.wrong.con)
+                .style('opacity', 0.5);
           } else {
               // Remove previous elements
               gFeaturePlot.selectAll('.path_tweet').remove();
+
+              d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
+              d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred').remove();
+              d3.selectAll('.g_output_prob_con_hist_for_con_wrong_pred').remove();
+
+              d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
+              d3.selectAll('.g_output_prob_hist_for_con_wrong_pred_for_cluster').remove();
+              d3.selectAll('.g_output_prob_hist_for_lib_wrong_pred_for_cluster').remove();
 
               d3.selectAll('.cluster_selected')
                 .style('stroke', 'gray')
@@ -759,7 +855,6 @@ const FeaturePlotView = React.memo(
 
               const clusterId = d.clusterId,
                 tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
-              d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
 
               d3.select('.cluster_output_prob_rect_' + i)
                 .style('stroke', 'black')
@@ -807,6 +902,12 @@ const FeaturePlotView = React.memo(
               const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
                 e => e.clusterId === clusterId
               );
+              const tweetsConWrongPredForCluster = tweetsWrongPred.filter(
+                e => (e.clusterId === clusterId && e.group === '0')
+              );
+              const tweetsLibWrongPredForCluster = tweetsWrongPred.filter(
+                e => (e.clusterId === clusterId && e.group === '0')
+              );
 
               const dataBinCorrectPredTweetsForCluster = d3
                 .histogram()
@@ -814,35 +915,94 @@ const FeaturePlotView = React.memo(
                 .value(d => d.prob)
                 .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPredForCluster);
 
+              const dataBinConWrongPredTweetsForCluster = d3
+                .histogram()
+                .domain([0, 1])
+                .value(d => d.prob)
+                .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPredForCluster);
+
+              const dataBinLibWrongPredTweetsForCluster = d3
+                .histogram()
+                .domain([0, 1])
+                .value(d => d.prob)
+                .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPredForCluster);
+
               gOutputProbPlot
                 .append('g')
-                .attr('class', 'g_output_prob_hist_for_correct_pred')
+                .attr('class', 'g_output_prob_hist_for_correct_pred_for_cluster')
                 .attr('transform', d => {
                   return (
                     'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
                   );
                 })
-                .selectAll('.rect_output_prob_hist_for_correct_pred')
+                .selectAll('.g_output_prob_hist_for_correct_pred_for_cluster')
                 .data(dataBinCorrectPredTweetsForCluster)
                 .enter()
                 .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_correct_pred')
+                .attr('class', 'g_output_prob_hist_for_correct_pred_for_cluster')
                 .attr('x', 3)
                 .attr('y', d => {
                   console.log('y=x0: ', d.x0);
                   console.log(yOutputProbHistBinScale(d.x0));
                   return yOutputProbHistBinScale(d.x0);
                 })
-                .attr('width', d => xOutputProbHistScale(d.length))
+                .attr('width', d => xOutputProbCorrectHistScale(d.length))
                 .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
                 .style('fill', d =>
                   d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
                 )
                 .style('opacity', 0.3);
+
+              const tweetLibHistForWrongPredForCluster = gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred_for_cluster')
+                .attr('transform', d => {
+                  return 'translate(' + 0 + ',' + 0 + ')';
+                })
+                .selectAll('.rect_output_prob_hist_for_lib_wrong_pred_for_cluster')
+                .data(dataBinConWrongPredTweetsForCluster)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_lib_wrong_for_cluster')
+                .attr(
+                  'x',
+                  d =>
+                    layout.outputProbPlot.width / 2 -
+                    3 -
+                    xOutputProbWrongHistScale(d.length)
+                )
+                .attr('y', d => yOutputProbHistBinScale(d.x0))
+                .attr('width', d => xOutputProbWrongHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d => globalColors.group.wrong.lib)
+                .style('opacity', 0.5);
+        
+              const tweetConHistForWrongPredForCluster = gOutputProbPlot
+                .append('g')
+                .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred_for_cluster')
+                .attr('transform', d => {
+                  return 'translate(' + 0 + ',' + 0 + ')';
+                })
+                .selectAll('.rect_output_prob_hist_for_con_wrong_pred_for_cluster')
+                .data(dataBinLibWrongPredTweetsForCluster)
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_output_prob_hist_for_con_wrong_pred_for_cluster')
+                .attr(
+                  'x',
+                  d =>
+                    layout.outputProbPlot.width / 2 -
+                    3 -
+                    xOutputProbWrongHistScale(d.length)
+                )
+                .attr('y', d => yOutputProbHistBinScale(d.x0))
+                .attr('width', d => xOutputProbWrongHistScale(d.length))
+                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+                .style('fill', d => globalColors.group.wrong.con)
+                .style('opacity', 0.5);
+        
             }
       });
-
-      function drawPath() {}
 
       const clusterTitle = gClusterPlot
         .append('text')

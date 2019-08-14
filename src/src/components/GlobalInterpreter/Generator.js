@@ -91,6 +91,7 @@ const Generator = props => {
 
   const featureDivs = features.map(featureObj => (
     <div>
+      <div />
       <Grommet theme={deepMerge(grommet, customCheckBoxTheme)}>
         <CheckBox
           checked={
@@ -143,7 +144,9 @@ const Generator = props => {
         {featureDivs}
         {/* </FormField> */}
         <SubsectionTitle>Select a method</SubsectionTitle>
-        <div>Decision Tree</div>
+        <div style={{ backgroundColor: 'rgb(190, 255, 231)', fontWeight: 600 }}>
+          Decision Tree
+        </div>
         <Button1
           style={{ marginTop: '10px' }}
           size="xsmall"
