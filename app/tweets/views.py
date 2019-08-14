@@ -8,7 +8,7 @@ from . import models
 
 import pandas as pd
 import numpy as np
-import json, math, pickle, matplotlib
+import json, math, pickle
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split
