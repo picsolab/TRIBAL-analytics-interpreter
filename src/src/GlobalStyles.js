@@ -61,7 +61,7 @@ export const ComponentSubTitle = styled(SubTitle)`
 `;
 
 export const ListViewStyle = styled.div`
-  height: 80%;
+  height: 70%;
   padding: 3px 7px;
   background-color: whitesmoke;
 `;

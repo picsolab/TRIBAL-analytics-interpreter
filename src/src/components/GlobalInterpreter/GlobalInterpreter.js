@@ -35,8 +35,8 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   grid-template-columns: 15% 85%;
   grid-template-rows: 50px 50px 20px 300px 150px;
   grid-template-areas:
-    't t'
-    'md md'
+    'ge t'
+    'ge md'
     'ge ab'
     'ge f'
     'ge w';
@@ -217,6 +217,8 @@ const GlobalInterpreter = props => {
     clusterIdsForTweets,
     words,
     pdpValues,
+    pdpValuesForCon,
+    pdpValuesForLib,
     isLoaded
   } = props;
   const numFeatures = 6,
@@ -302,6 +304,8 @@ const GlobalInterpreter = props => {
         clusters={clusters}
         // clusterIdsForTweets={clusterIdsForTweets}
         pdpValues={pdpValues}
+        pdpValuesForCon={pdpValuesForCon}
+        pdpValuesForLib={pdpValuesForLib}
         isLoaded={isLoaded}
       />
       <WordPlotView

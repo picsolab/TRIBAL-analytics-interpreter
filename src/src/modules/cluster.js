@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import axios from 'axios';
 
 // Action type
@@ -74,9 +75,14 @@ const cluster = (state = initialState, action) => {
       };
     case RUN_CL_N_CAL_PD:
       console.log('in the case of RUN_CL_N_CAL_PD: ', action.payload);
+      const orderedCluster = _.orderBy(
+        JSON.parse(action.payload.clusters),
+        ['groupRatio'],
+        ['desc']
+      );
       return {
         ...state,
-        clusters: JSON.parse(action.payload.clusters).map(d => ({
+        clusters: orderedCluster.map(d => ({
           ...d,
           groupRatio: { lib: d.groupRatio, con: 1 - d.groupRatio }
         })),

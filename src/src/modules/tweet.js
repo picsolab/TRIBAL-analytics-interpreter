@@ -9,6 +9,7 @@ const SELECT_TWEET = 'SELECT_TWEET';
 const SEARCH_TWEETS = 'SEARCH_TWEETS';
 const SORT_TWEETS_BY_FEATURE = 'SORT_TWEETS_BY_FEATURE';
 const FILTER_TWEETLIST_BY_USER = 'FILTER_TWEETLIST_BY_USER';
+const LIST_TWEETS_IN_CL = 'LIST_TWEETS_IN_CL';
 const RUN_DT = 'RUN_DT';
 const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
 const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
@@ -143,6 +144,11 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         filteredTweetList: filteredTweetList
+      };
+    case LIST_TWEETS_IN_CL:
+      return {
+        ...state,
+        tweetList: action.payload
       };
     case RUN_DT:
       console.log('action.payload in RUN_DT: ', action.payload);

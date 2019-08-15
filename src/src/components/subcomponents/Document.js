@@ -42,7 +42,7 @@ const ContentDiv = styled.div.attrs({
 `;
 
 const DocumentWrapper = styled.div.attrs({
-  className: 'doc'
+  className: 'doc_wrapper'
 })`
   border: 1px solid black;
   padding: 3px;

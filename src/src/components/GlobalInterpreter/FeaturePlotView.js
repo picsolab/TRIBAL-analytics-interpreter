@@ -1,10 +1,5 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useHover,
-  useCallback
-} from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
@@ -53,7 +48,7 @@ const layout = {
   outputProbPlot: {
     width: 70,
     height: 240,
-    leftMargin: 40,
+    leftMargin: 80,
     minRadius: 4,
     maxRadius: 10
   },
@@ -132,7 +127,17 @@ const groupRatioScale = d3
   .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
 
 const FeaturePlotView = React.memo(
-  ({ tweets, clusters, words, selectedFeatures, isLoaded, pdpValues }) => {
+  ({
+    tweets,
+    clusters,
+    words,
+    selectedFeatures,
+    isLoaded,
+    pdpValues,
+    pdpValuesForCon,
+    pdpValuesForLib
+  }) => {
+    const dispatch = useDispatch();
     const ref = useRef(null),
       ref2 = useRef(null);
 
@@ -286,11 +291,7 @@ const FeaturePlotView = React.memo(
         .append('rect')
         .attr('class', 'rect_output_prob_hist_for_correct_pred')
         .attr('x', 3)
-        .attr('y', d => {
-          console.log('y=x0: ', d.x0);
-          console.log(yOutputProbHistBinScale(d.x0));
-          return yOutputProbHistBinScale(d.x0);
-        })
+        .attr('y', d => yOutputProbHistBinScale(d.x0))
         .attr('width', d => xOutputProbCorrectHistScale(d.length))
         .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
         .style('fill', d =>
@@ -357,7 +358,9 @@ const FeaturePlotView = React.memo(
         .domain([0, 1])
         .range([
           0,
-          layout.featureToOutputLines.width + layout.outputProbPlot.leftMargin
+          layout.featureToOutputLines.width +
+            layout.outputProbPlot.leftMargin -
+            20
         ]);
 
       const featureToOutputLines = gFeatureToOutputLines
@@ -393,7 +396,7 @@ const FeaturePlotView = React.memo(
       const axes = axesData
         .append('g')
         .attr('class', function(d) {
-          return 'g_feature_axis_' + d.key;
+          return 'axis g_feature_axis_' + d.key;
         })
         .attr('transform', function(d, i) {
           return 'translate(' + xFeatureScale(d.key) + ')';
@@ -440,8 +443,8 @@ const FeaturePlotView = React.memo(
       axes
         .append('g')
         .each(function(d, i) {
-          // d = a selectedFeature { key: 'valence', abbr: 'V' }
           var yAxisSetting;
+
           const drawPDPLine = d3
             .line()
             .x(e => xPDProbScale(e.pdpValue))
@@ -463,47 +466,154 @@ const FeaturePlotView = React.memo(
             )
             .curve(d3.curveCatmullRom);
 
+          // For harm and fairness, add ordinal scale + bar chart
           if (i === 2) {
             yAxisSetting = d3
               .axisLeft(yHarmScale)
               .tickValues([0, 1, 2, 3])
               .tickSize(1);
             d3.select(this).call(yAxisSetting);
+
+            // For all
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp')
+              .data(pdpValues[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp')
+              .attr('x', 2)
+              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue) - 5)
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 10)
+              .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+              // .style('stroke-width', 4)
+              .style('fill', 'rgb(190, 255, 231)')
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.3);
+
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp_for_con')
+              .data(pdpValuesForCon[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp_for_con')
+              .attr('x', 2)
+              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue) - 5)
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 5)
+              .style('stroke', d3.rgb(globalColors.group.con).darker())
+              // .style('stroke-width', 4)
+              .style('fill', globalColors.group.con)
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.5);
+
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp_for_lib')
+              .data(pdpValuesForLib[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp_for_lib')
+              .attr('x', 2)
+              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue))
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 5)
+              .style('stroke', d3.rgb(globalColors.group.lib).darker())
+              // .style('stroke-width', 4)
+              .style('fill', globalColors.group.lib)
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.5);
+            // For valence and dominance, add linear scale + line chart
           } else {
             yAxisSetting = d3
               .axisLeft(yScoreScale)
               .tickValues(d3.range(0, 1.1, 0.2))
               .tickSize(1);
             d3.select(this).call(yAxisSetting);
+
+            //// Add a path (to draw a separate line), and also area (to fill the area)
+            /// For all
+            // path
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValues[d.key])
+              .attr('class', 'path_pdp')
+              .attr('d', drawPDPLine)
+              .style('stroke', 'rgb(190, 255, 231)')
+              .style('stroke-width', 4)
+              .style('fill', 'none')
+              // .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('opacity', 1);
+
+            // area
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValues[d.key])
+              .attr('class', 'area_pdp')
+              .attr('d', drawPDPArea)
+              .style('stroke', 'none')
+              .style('fill', 'gray')
+              .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.3);
+
+            /// For con
+            // path
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValuesForCon[d.key])
+              .attr('class', 'path_pdp_for_con')
+              .attr('d', drawPDPLine)
+              .style('stroke', globalColors.group.con)
+              .style('stroke-width', 2)
+              .style('fill', 'none')
+              // .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('opacity', 1);
+
+            // area
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValuesForCon[d.key])
+              .attr('class', 'area_pdp_for_con')
+              .attr('d', drawPDPArea)
+              .style('stroke', 'none')
+              .style('fill', globalColors.group.con)
+              .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.3);
+
+            /// For lib
+            // path
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValuesForLib[d.key])
+              .attr('class', 'path_pdp_for_lib')
+              .attr('d', drawPDPLine)
+              .style('stroke', globalColors.group.lib)
+              .style('stroke-width', 2)
+              .style('fill', 'none')
+              // .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('opacity', 1);
+
+            // area
+            d3.select('.g_feature_axis_' + d.key)
+              .append('path')
+              .datum(pdpValuesForLib[d.key])
+              .attr('class', 'area_pdp_for_lib')
+              .attr('d', drawPDPArea)
+              .style('stroke', 'none')
+              .style('fill', globalColors.group.lib)
+              .style('stroke-dasharray', '8,3')
+              .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.3);
           }
 
           console.log('in axes: ', pdpValues[d.key], d);
-
-          // Add a path (to draw a separate line), and also area (to fill the area)
-          // path
-          d3.select('.g_feature_axis_' + d.key)
-            .append('path')
-            .datum(pdpValues[d.key])
-            .attr('class', 'path_pdp')
-            .attr('d', drawPDPLine)
-            .style('stroke', 'rgb(190, 255, 231)')
-            .style('stroke-width', 4)
-            .style('fill', 'none')
-            // .style('stroke-dasharray', '8,3')
-            .style('shape-rendering', 'crispedges')
-            .style('opacity', 1);
-
-          // area
-          d3.select('.g_feature_axis_' + d.key)
-            .append('path')
-            .datum(pdpValues[d.key])
-            .attr('class', 'area_pdp')
-            .attr('d', drawPDPArea)
-            .style('stroke', 'none')
-            .style('fill', 'gray')
-            .style('stroke-dasharray', '8,3')
-            .style('shape-rendering', 'crispedges')
-            .style('fill-opacity', 0.3);
         })
         .append('text')
         .attr('class', 'title')
@@ -513,16 +623,16 @@ const FeaturePlotView = React.memo(
       axes
         .append('g')
         .attr('class', 'brush')
-        // .each(function(d) {
-        //   d3.select(this).call(
-        //     (d.brush = d3
-        //       .brushY()
-        //       .extent([[-10, 0], [10, layout.height]])
-        //       .on('start', brushstart)
-        //       .on('brush', brush)
-        //       .on('end', brush))
-        //   );
-        // })
+        .each(function(d) {
+          d3.select(this).call(
+            (d.brush = d3
+              .brushY()
+              .extent([[-10, 0], [10, layout.height]])
+              .on('start', brushstart)
+              .on('brush', brush)
+              .on('end', brush))
+          );
+        })
         .selectAll('rect')
         .attr('x', -8)
         .attr('width', 16);
@@ -597,12 +707,25 @@ const FeaturePlotView = React.memo(
             });
           });
 
+        function within(value, extent, dim) {
+          return (
+            extent[0] <= yScoreScale(value) && yScoreScale(value) <= extent[1]
+          );
+        }
+
         const selected = tweets.filter(function(d) {
           if (
             actives.every(function(active) {
               const dim = active.dimension;
               // test if point is within extents for each active brush
-              return dim.type.within(d[dim.key], active.extent, dim);
+              console.log(
+                'brushh: ',
+                d,
+                dim,
+                xFeatureScale(d[dim.key]),
+                active.extent
+              );
+              return within(d[dim.key], active.extent, dim);
             })
           ) {
             return true;
@@ -709,6 +832,12 @@ const FeaturePlotView = React.memo(
           const selectedCluster = d3.select(this),
                 clusterId = d.clusterId;
           if (selectedCluster.classed('cluster_selected') === true) {
+              // Put back the tweetList with entire tweets
+              dispatch({
+                type: 'LIST_TWEETS_IN_CL',
+                payload: tweets
+              });
+
               // Return back all elements to the normal
               gFeaturePlot.selectAll('.path_tweet').remove();
               d3.select('canvas').style('opacity', 1);
@@ -823,6 +952,15 @@ const FeaturePlotView = React.memo(
                 .style('fill', d => globalColors.group.wrong.con)
                 .style('opacity', 0.5);
           } else {
+            const clusterId = d.clusterId,
+              tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+
+              // List tweets within this cluster in tweetList
+              dispatch({
+                type: 'LIST_TWEETS_IN_CL',
+                payload: tweetsInCluster
+              });
+
               // Remove previous elements
               gFeaturePlot.selectAll('.path_tweet').remove();
 
@@ -852,9 +990,6 @@ const FeaturePlotView = React.memo(
               selectedCluster
                 .style('stroke-width', '3px')
                 .style('stroke', 'black');
-
-              const clusterId = d.clusterId,
-                tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
 
               d3.select('.cluster_output_prob_rect_' + i)
                 .style('stroke', 'black')

@@ -26,8 +26,8 @@ const Container = styled.div`
   grid-template-columns: 25% 15% 60%;
   grid-template-areas:
     'h h h'
-    'e gr g'
-    'e i l';
+    'e g g'
+    'e gr l';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -46,7 +46,7 @@ const Header = styled.div`
 const Title = styled.div`
   font-size: 2rem;
   font-weight: 600;
-  color: indigo;
+  color: black;
 `;
 
 const Mockup = styled.div`

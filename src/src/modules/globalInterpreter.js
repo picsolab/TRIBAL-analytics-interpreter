@@ -59,6 +59,8 @@ const initialState = {
     // And all the predictions and clusters???
   ],
   pdpValues: [],
+  pdpValuesForCon: [],
+  pdpValuesForLib: [],
   globalMode: 0 // 1: true-true, 2: true-pred, 3: pred-pred, 4:
 };
 
@@ -89,17 +91,17 @@ const globalInterpreter = (state = initialState, action) => {
         ...state,
         isValenceChecked: action.payload
       };
-    case CAL_PD:
-      console.log('calculatePartialDependence state: ', state);
-      console.log(
-        'calculatePartialDependence payload: ',
-        JSON.parse(action.payload.tweets)
-      );
-      console.log('pdpvalues0: ', action.payload.pdpValues);
-      return {
-        ...state,
-        pdpValues: action.payload.pdpValues
-      };
+    // case CAL_PD:
+    //   console.log('calculatePartialDependence state: ', state);
+    //   console.log(
+    //     'calculatePartialDependence payload: ',
+    //     JSON.parse(action.payload.tweets)
+    //   );
+    //   console.log('pdpvalues0: ', action.payload.pdpValues);
+    //   return {
+    //     ...state,
+    //     pdpValues: action.payload.pdpValues
+    //   };
     // case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
     //   console.log('RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ', action.payload);
     //   return {
@@ -109,18 +111,33 @@ const globalInterpreter = (state = initialState, action) => {
     case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
       console.log(
         'in the case of RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ',
-        action.payload.pdpValues
+        action.payload
       );
-      var pdpValues_obj = {};
+      var pdpValuesObj = {};
+      var pdpValuesForConObj = {};
+      var pdpValuesForLibObj = {};
       Object.keys(action.payload.pdpValues).forEach(feature => {
-        pdpValues_obj[feature] = JSON.parse(action.payload.pdpValues[feature]);
+        pdpValuesObj[feature] = JSON.parse(action.payload.pdpValues[feature]);
+        pdpValuesForConObj[feature] = JSON.parse(
+          action.payload.pdpValuesForCon[feature]
+        );
+        pdpValuesForLibObj[feature] = JSON.parse(
+          action.payload.pdpValuesForLib[feature]
+        );
       });
+      console.log(
+        'RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ',
+        pdpValuesObj,
+        pdpValuesForConObj,
+        pdpValuesForLibObj
+      );
       return {
         ...state,
-        pdpValues: pdpValues_obj
+        pdpValues: pdpValuesObj,
+        pdpValuesForCon: pdpValuesForConObj,
+        pdpValuesForLib: pdpValuesForLibObj
       };
     default:
-      console.log('dddddddd: ', state);
       return state;
   }
 };

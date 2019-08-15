@@ -24,7 +24,7 @@ const DocumentViewWrapper = styled(SectionWrapper).attrs({
 `;
 
 const DocumentListWrapper = styled(ListViewStyle).attrs({
-  className: 'document_list'
+  className: 'doc_list'
 })`
   overflow-y: scroll;
 `;

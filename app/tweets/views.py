@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core import serializers
 from django.contrib.postgres.search import SearchQuery, SearchVector
+from django.db.models import Q
 
 from rest_framework import status
 from . import models
@@ -34,6 +35,70 @@ def load_model(model_id):
         f.close()
 
     return model
+
+def get_rules(dtc, df):
+    rules_list = []
+    values_path = []
+    values = dtc.tree_.value
+
+    def RevTraverseTree(tree, node, rules, pathValues):
+        '''
+        Traverase an skl decision tree from a node (presumably a leaf node)
+        up to the top, building the decision rules. The rules should be
+        input as an empty list, which will be modified in place. The result
+        is a nested list of tuples: (feature, direction (left=-1), threshold).  
+        The "tree" is a nested list of simplified tree attributes:
+        [split feature, split threshold, left node, right node]
+        '''
+        # now find the node as either a left or right child of something
+        # first try to find it as a left node            
+
+        try:
+            prevnode = tree[2].index(node)           
+            leftright = '<='
+            pathValues.append(values[prevnode])
+        except ValueError:
+            # failed, so find it as a right node - if this also causes an exception, something's really f'd up
+            prevnode = tree[3].index(node)
+            leftright = '>'
+            pathValues.append(values[prevnode])
+
+        # now let's get the rule that caused prevnode to -> node
+        p1 = df.columns[tree[0][prevnode]]    
+        p2 = tree[1][prevnode]    
+        rules.append(str(p1) + ' ' + leftright + ' ' + str(p2))
+
+        # if we've not yet reached the top, go up the tree one more step
+        if prevnode != 0:
+            RevTraverseTree(tree, prevnode, rules, pathValues)
+
+    # get the nodes which are leaves
+    leaves = dtc.tree_.children_left == -1
+    leaves = np.arange(0,dtc.tree_.node_count)[leaves]
+
+    # build a simpler tree as a nested list: [split feature, split threshold, left node, right node]
+    thistree = [dtc.tree_.feature.tolist()]
+    thistree.append(dtc.tree_.threshold.tolist())
+    thistree.append(dtc.tree_.children_left.tolist())
+    thistree.append(dtc.tree_.children_right.tolist())
+
+    # get the decision rules for each leaf node & apply them
+    for (ind,nod) in enumerate(leaves):
+
+        # get the decision rules
+        rules = []
+        pathValues = []
+        RevTraverseTree(thistree, nod, rules, pathValues)
+
+        pathValues.insert(0, values[nod])      
+        pathValues = list(reversed(pathValues))
+
+        rules = list(reversed(rules))
+
+        rules_list.append(rules)
+        values_path.append(pathValues)
+
+    return (rules_list, values_path, leaves)
 
 # For the initial run
 class LoadData(APIView):
@@ -72,9 +137,13 @@ class SearchTweets(APIView):
     
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
-        search_keyword = request_json['searchKeyword']
+        keywords = request_json['searchKeyword'].split(' ')
         
-        retrieved_tweet_objects = models.Tweet.objects.filter(content__contains=search_keyword)
+        content_q = Q()
+        for keyword in keywords:
+            content_q |= Q(content__contains=keyword)
+
+        retrieved_tweet_objects = models.Tweet.objects.filter(content_q)
         tweet_objects_json = eval(serializers.serialize('json', retrieved_tweet_objects))
 
         tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
@@ -121,8 +190,6 @@ class RunDecisionTree(APIView):
         df_tweets['pred'] = y_pred_string
         df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
 
-        # Tree
-        print(tree)
         # load graph with graph_tool and explore structure as you please
 
         save_model(clf, 'dt_0')
@@ -238,15 +305,27 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         # Calculate partial dependence
         lb = preprocessing.LabelBinarizer()
         X = df_tweets[features]
+        X_con = df_tweets.loc[df_tweets['group'] == '0', features]
+        X_lib = df_tweets.loc[df_tweets['group'] == '1', features]
         y = lb.fit_transform(df_tweets['group'].astype(str))
         y = np.ravel(y)
 
         model = load_model(model_id)
         pdp_values_dict = {}
+        pdp_values_for_con_dict = {}
+        pdp_values_for_lib_dict = {}
         for feature_idx, feature in enumerate(features):
             pdp_values, feature_values = partial_dependence(model, X, [feature_idx], percentiles=(0, 1))   # 0 is the selected feature index
+            pdp_values_for_con, feature_values_for_con = partial_dependence(model, X_con, [feature_idx], percentiles=(0, 1))
+            pdp_values_for_lib, feature_values_for_lib = partial_dependence(model, X_lib, [feature_idx], percentiles=(0, 1))
+            
             pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_json(orient='records')
+            pdp_values_for_con_json = pd.DataFrame({ 'pdpValue': pdp_values_for_con[0], 'featureValue': feature_values_for_con[0] }).to_json(orient='records')
+            pdp_values_for_lib_json = pd.DataFrame({ 'pdpValue': pdp_values_for_lib[0], 'featureValue': feature_values_for_lib[0] }).to_json(orient='records')
+            
             pdp_values_dict[feature] = pdp_values_json
+            pdp_values_for_con_dict[feature] = pdp_values_for_con_json
+            pdp_values_for_lib_dict[feature] = pdp_values_for_lib_json
 
         # Results
         cluster_ids = cls_labels
@@ -262,7 +341,9 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         return Response({
             'clusters': df_clusters.to_json(orient='records'),
             'clusterIdsForTweets': cluster_ids,
-            'pdpValues': pdp_values_dict
+            'pdpValues': pdp_values_dict,
+            'pdpValuesForCon': pdp_values_for_con_dict,
+            'pdpValuesForLib': pdp_values_for_lib_dict
         })
 
 
@@ -271,4 +352,6 @@ class FindContrastiveExample(APIView):
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         tweet = request_json['selectedTweet']
-        model = request_json['currentModel']
+        model_id = request_json['currentModel']
+
+        

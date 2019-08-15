@@ -13,7 +13,7 @@ import DocumentView from './DocumentView';
 import ListView from './ListView';
 
 const ExplorerWrapper = styled.div.attrs({
-  className: 'Explorer'
+  className: 'explorer_wrapper'
 })`
   grid-area: e;
   display: grid;
@@ -23,6 +23,7 @@ const ExplorerWrapper = styled.div.attrs({
     'rt rt'
     'd l'
     'd l';
+  background-color: whitesmoke;
 `;
 
 const Explorer = ({

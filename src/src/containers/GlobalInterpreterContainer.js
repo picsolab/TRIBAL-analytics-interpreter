@@ -13,7 +13,9 @@ const GlobalInterpreterContainer = () => {
       features,
       selectedFeatures,
       globalMode,
-      pdpValues
+      pdpValues,
+      pdpValuesForCon,
+      pdpValuesForLib
     } = useSelector(state => state.globalInterpreter, []);
 
   console.log('in global container: ', pdpValues);
@@ -71,6 +73,8 @@ const GlobalInterpreterContainer = () => {
       features={features}
       selectedFeatures={selectedFeatures}
       pdpValues={pdpValues}
+      pdpValuesForCon={pdpValuesForCon}
+      pdpValuesForLib={pdpValuesForLib}
       isLoaded={isLoaded}
     />
   );
