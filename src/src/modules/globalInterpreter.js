@@ -37,10 +37,10 @@ const initialState = {
     { key: 'fairness', abbr: 'F' }
   ],
   selectedFeatures: [
-    { key: 'valence', abbr: 'V' },
+    { key: 'fairness', abbr: 'F' },
     { key: 'dominance', abbr: 'D' },
     { key: 'harm', abbr: 'H' },
-    { key: 'fairness', abbr: 'F' }
+    { key: 'valence', abbr: 'V' }
   ],
   areFeaturesChecked: { valence: false },
   currentModel: 'dt_0',
@@ -66,8 +66,6 @@ const initialState = {
 
 // Reducers
 const globalInterpreter = (state = initialState, action) => {
-  console.log('state: ', state);
-  console.log('action: ', action);
   switch (action.type) {
     // case RUN_DT:
     //   console.log('in the case of RUN_DT');
@@ -76,7 +74,6 @@ const globalInterpreter = (state = initialState, action) => {
     //     data: action.payload
     //   };
     case CHANGE_GLOBAL_MODE:
-      console.log('in CHANGE_GLOBAL_MODE', action.payload);
       return {
         ...state,
         globalMode: action.payload
@@ -109,10 +106,6 @@ const globalInterpreter = (state = initialState, action) => {
     //     pdpValues: action.payload.pdpValues
     //   };
     case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
-      console.log(
-        'in the case of RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ',
-        action.payload
-      );
       var pdpValuesObj = {};
       var pdpValuesForConObj = {};
       var pdpValuesForLibObj = {};
@@ -125,12 +118,6 @@ const globalInterpreter = (state = initialState, action) => {
           action.payload.pdpValuesForLib[feature]
         );
       });
-      console.log(
-        'RUN_CL_N_CAL_PD_FOR_PDP_VALUES: ',
-        pdpValuesObj,
-        pdpValuesForConObj,
-        pdpValuesForLibObj
-      );
       return {
         ...state,
         pdpValues: pdpValuesObj,

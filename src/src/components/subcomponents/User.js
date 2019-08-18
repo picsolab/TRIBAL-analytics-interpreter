@@ -186,7 +186,6 @@ const User = ({
         <UserGlyph
           group={user.group}
           onClick={e => {
-            console.log('isSelected in user onClick: ', isSelected);
             if (isSelected) {
               d3.select(e.target).classed('user_glyph_selected', false);
 

@@ -37,4 +37,9 @@ urlpatterns = [
         view=views.RunClusteringAndPartialDependenceForClusters.as_view(),
         name='run_clustering_and_partial_dependence_for_clusters'
     ),
+    url(
+        regex=r'^findContrastiveExamples/$',
+        view=views.FindContrastiveExamples.as_view(),
+        name='find_contrastive_examples'
+    )
 ]

@@ -18,7 +18,6 @@ const GlobalInterpreterContainer = () => {
       pdpValuesForLib
     } = useSelector(state => state.globalInterpreter, []);
 
-  console.log('in global container: ', pdpValues);
   const words = [
     {
       word: 'hate',
@@ -58,7 +57,6 @@ const GlobalInterpreterContainer = () => {
     }
   ];
 
-  console.log(!tweets || tweets.length === 0);
   if (!tweets || tweets.length === 0) return <div />;
 
   return (

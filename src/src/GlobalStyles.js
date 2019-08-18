@@ -13,7 +13,7 @@ export const globalColors = {
     }
   },
   feature: 'mediumaquamarine',
-  userFeature: 'peachpuff'
+  userFeature: 'LIGHTSEAGREEN'
 };
 
 export const SectionWrapper = styled.div`

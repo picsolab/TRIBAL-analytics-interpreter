@@ -36,7 +36,6 @@ const Explorer = ({
   selectedTweet
 }) => {
   // const dispatch = useDispatch();
-  console.log('tweets in explorer: ', tweets, users, selectedTweet);
   const numRetrievedTweets = tweetList.length;
 
   return (

@@ -65,7 +65,6 @@ const tabCustomTheme = deepMerge(grommet, {
       color: 'gray'
     },
     color: 'gray',
-    margin: 0,
     pad: {
       bottom: undefined,
       horizontal: 'xsmall'

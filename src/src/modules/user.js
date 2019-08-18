@@ -32,7 +32,6 @@ const initialState = {
 const user = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_USERS:
-      console.log('action.payload in FETCH_USERS: ', action.payload);
       return {
         ...state,
         users: action.payload,

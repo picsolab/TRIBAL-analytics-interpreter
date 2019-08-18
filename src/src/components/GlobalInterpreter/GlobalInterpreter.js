@@ -9,6 +9,7 @@ import { deepMerge } from 'grommet/utils';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
 import {
+  globalColors,
   SectionWrapper,
   SectionTitle,
   SubsectionTitle,
@@ -32,7 +33,7 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
 })`
   grid-area: g;
   display: grid;
-  grid-template-columns: 15% 85%;
+  grid-template-columns: 20% 80%;
   grid-template-rows: 50px 50px 20px 300px 150px;
   grid-template-areas:
     'ge t'
@@ -57,13 +58,33 @@ const ModeDropdown = styled(Select).attrs({
   className: 'mode_dropdown'
 })`
   width: 80%;
-  height: 30px;
+  height: 35px;
   background-color: white;
   border: 1px solid whitesmoke;
   border-radius: 10px;
 `;
 
-const FeatureIndicator = styled.div.attrs({
+const IndicatorTitle = styled.div.attrs({
+  className: 'data_indicator_title'
+})`
+  height: 15px;
+  background-color: mediumaquamarine;
+  color: black;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 3px;
+  line-height: 0.7;
+  font-size: 0.6rem;
+  margin: 2px 0;
+`;
+
+const QuestionIndicatorTitle = styled(IndicatorTitle).attrs({
+  className: 'data_indicator_title'
+})`
+  width: 55px;
+`;
+
+const FeatureIndicator = styled.span.attrs({
   className: 'data_indicator'
 })`
   height: 15px;
@@ -75,7 +96,7 @@ const FeatureIndicator = styled.div.attrs({
   line-height: 0.5;
 `;
 
-const TargetIndicator = styled.div.attrs({
+const TargetIndicator = styled.span.attrs({
   className: 'target_indicator'
 })`
   height: 15px;
@@ -87,14 +108,15 @@ const TargetIndicator = styled.div.attrs({
   line-height: 0.5;
 `;
 
-const QuestionDiv = styled.div.attrs({
+const QuestionDiv = styled.span.attrs({
   className: 'question_wrapper'
 })`
   height: 20px;
-  background-color: gray;
-  color: white;
+  background-color: rgb(190, 255, 231);
+  color: black;
   font-weight: 600;
-  padding: 0 4px;
+  padding: 4px 6px;
+  margin-bottom: 2px;
   border-radius: 3px;
 `;
 
@@ -119,7 +141,7 @@ const globalModes = [
     feature: 'Predicted',
     target: 'Predicted',
     question:
-      'how well can construct values be predicted by (shallow) machine?',
+      'How well can construct values be predicted by (shallow) machine?',
     display: ''
   },
   {
@@ -127,7 +149,7 @@ const globalModes = [
     feature: 'Predicted',
     target: 'Predicted',
     question:
-      'how well can groups be predicted by DL machine with low-level and theory-informed features?',
+      'How well can groups be predicted by DL machine with low-level and theory-informed features?',
     display: ''
   }
 ];
@@ -183,7 +205,7 @@ const customDropdownTheme = {
 const globalModesWithDisplay = globalModes.map(d => ({
   ...d,
   display: (
-    <div style={{ padding: '5px' }}>
+    <div style={{ padding: '5px', margin: '5px' }}>
       <div
         style={{
           display: 'flex',
@@ -192,13 +214,22 @@ const globalModesWithDisplay = globalModes.map(d => ({
           fontSize: '0.7rem'
         }}
       >
-        <FeatureIndicator>{d.feature}</FeatureIndicator>
+        <div>
+          <IndicatorTitle>Features</IndicatorTitle>
+          <FeatureIndicator>{d.feature}</FeatureIndicator>
+        </div>
         &nbsp;
         <span>{'-'}</span>
         &nbsp;
-        <TargetIndicator>{d.target}</TargetIndicator>
+        <div>
+          <IndicatorTitle>target</IndicatorTitle>
+          <TargetIndicator>{d.target}</TargetIndicator>
+        </div>
         &nbsp;&nbsp;&nbsp;
-        <QuestionDiv>{d.question}</QuestionDiv>
+        <div>
+          <QuestionIndicatorTitle>Question</QuestionIndicatorTitle>
+          <QuestionDiv>{d.question}</QuestionDiv>
+        </div>
       </div>
     </div>
   )
@@ -234,16 +265,7 @@ const GlobalInterpreter = props => {
     );
   }, []);
 
-  console.log('in GlobalInterpreterWrapper: before', isLoaded);
-  console.log('in GlobalInterpreterWrapper: before', pdpValues);
-  console.log('in GlobalInterpreterWrapper: before', clusterIdsForTweets);
-
   if (!clusters || clusters.length === 0 || isLoaded === false) return <div />;
-
-  console.log('in GlobalInterpreterWrapper: ', isLoaded);
-  console.log('in GlobalInterpreterWrapper: ', tweets);
-  console.log('in GlobalInterpreterWrapper: ', clusters);
-  console.log('in GlobalInterpreterWrapper: ', pdpValues);
 
   return (
     <GlobalInterpreterWrapper>
@@ -259,7 +281,6 @@ const GlobalInterpreter = props => {
             multiple={false}
             value={globalModesWithDisplay[globalMode].display}
             onChange={(e, i) => {
-              console.log('onChange in value: ', e, e.option);
               const selectedGlobalMode = e.selected;
               dispatch({
                 type: 'CHANGE_GLOBAL_MODE',
@@ -279,7 +300,7 @@ const GlobalInterpreter = props => {
               }
             }}
             options={globalModesWithDisplay.map(d => d.display)}
-            size={'xsmall'}
+            size={'small'}
           />
         </Grommet>
         {/* <QuestionDiv>
@@ -298,6 +319,7 @@ const GlobalInterpreter = props => {
         globalMode={globalMode}
       />
       <FeaturePlotView
+        globalMode={globalMode}
         numFeatures={numFeatures}
         tweets={tweets}
         selectedFeatures={selectedFeatures}

@@ -39,6 +39,8 @@ const layout = {
 const GroupViewerWrapper = styled(SectionWrapper)`
   grid-area: gr;
   background-color: whitesmoke;
+  padding: 10px;
+  margin: 0 10px;
 `;
 
 const SearchIndicator = styled.div.attrs({
@@ -77,9 +79,6 @@ const FeatureGroupPlot = ({ tweetList, features }) => {
     d3.select('.g_feature_con_plot').remove();
     d3.select('.g_feature_diff_plot').remove();
 
-    console.log('featureAvgs: ', tweetList);
-    console.log('featureAvgs: ', featureAvgs.map(d => d.avgCon));
-
     const gFeatureGroupPlot = svg
       .append('g')
       .attr('class', 'g_feature_group_plot');
@@ -115,11 +114,8 @@ const FeatureGroupPlot = ({ tweetList, features }) => {
 
     const xAvgFeatureScale = d3
       .scaleLinear()
-      .domain([1, 0])
-      .range([
-        layout.featureGroupPlot.groupPlot.leftMargin,
-        layout.featureGroupPlot.groupPlot.width
-      ]);
+      .domain([0, 1])
+      .range([0, layout.featureGroupPlot.groupPlot.width]);
 
     const xDiffFeatureScale = d3
       .scaleLinear()
@@ -174,13 +170,13 @@ const FeatureGroupPlot = ({ tweetList, features }) => {
       .enter()
       .append('rect')
       .attr('class', 'lib_feature_avg_bar')
-      .attr('x', d => xAvgFeatureScale(d.avgLib))
-      .attr('y', (d, i) => yFeatureScale(d.abbr))
       .attr(
-        'width',
+        'x',
         d =>
           layout.featureGroupPlot.groupPlot.width - xAvgFeatureScale(d.avgLib)
       )
+      .attr('y', (d, i) => yFeatureScale(d.abbr))
+      .attr('width', d => xAvgFeatureScale(d.avgLib))
       .attr('height', yFeatureScale.bandwidth() - 3)
       .style('fill', d => globalColors.group.lib)
       .style('fill-opacity', 0.5);

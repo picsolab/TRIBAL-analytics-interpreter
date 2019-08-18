@@ -3,10 +3,24 @@ import { useSelector, useDispatch } from 'react-redux';
 import LocalInterpreter from '../components/LocalInterpreter/LocalInterpreter';
 
 const LocalInterpreterContainer = () => {
-  const { instance, qType } = useSelector(state => state.localInterpreter, []);
+  const { tweets, selectedTweet } = useSelector(state => state.tweet, []);
+  const { currentModel } = useSelector(state => state.globalInterpreter, []);
+  const { qType, contrastiveEXs } = useSelector(
+    state => state.localInterpreter,
+    []
+  );
 
-  console.log('heello');
-  return <LocalInterpreter instance={instance} qType={qType} />;
+  if (!tweets || tweets.length === 0) return <div />;
+
+  return (
+    <LocalInterpreter
+      tweets={tweets}
+      selectedTweet={selectedTweet}
+      qType={qType}
+      contrastiveEXs={contrastiveEXs}
+      currentModel={currentModel}
+    />
+  );
 };
 
 export default LocalInterpreterContainer;

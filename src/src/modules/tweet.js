@@ -56,7 +56,6 @@ export const fetchTweets = () => {
 
 export const runDT = ({ tweets, selectedFeatures }) => {
   return async dispatch => {
-    console.log('in RUN_DT');
     await axios({
       method: 'post',
       url: '/tweets/runDecisionTree/',
@@ -79,7 +78,6 @@ export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
       runDT({ tweets: tweets, selectedFeatures: selectedFeatures })
     ).then(() => {
       // Assuming this is where the fetched user got stored
-      console.log('getState in runDTCL: ', getState());
       const fetchedTweets = getState().tweet.tweets;
       // And we can dispatch() another thunk now!
       return dispatch(
@@ -98,6 +96,7 @@ const initialState = {
   tweets: [],
   tweetsWithPredFeatures: [],
   tweetList: [],
+  tweetListStatus: '',
   filteredTweetList: [],
   selectedTweet: [],
   isLoaded: false
@@ -107,8 +106,6 @@ const initialState = {
 const tweet = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_TWEETS:
-      console.log('action.payload in FETCH_TWEETS: ', action.payload);
-      console.log('action.payload in FETCH_TWEETS: ', action.payload.tweets);
       return {
         ...state,
         tweets: action.payload.tweets,
@@ -117,13 +114,11 @@ const tweet = (state = initialState, action) => {
         selectedTweet: action.payload.tweets[0]
       };
     case SELECT_TWEET:
-      console.log('action.payload in SELECT_TWEET: ', action.payload);
       return {
         ...state,
         selectedTweet: action.payload
       };
     case SEARCH_TWEETS:
-      console.log('action.payload in SEARCH_TWEETS: ', action.payload);
       return {
         ...state,
         tweetList: action.payload
@@ -131,7 +126,6 @@ const tweet = (state = initialState, action) => {
     case SORT_TWEETS_BY_FEATURE:
       const sortBy = action.payload,
         sortedTweetList = _.orderBy(state.tweetList, [sortBy]);
-      console.log('sortedTweetList: ', sortedTweetList);
       return {
         ...state,
         tweetList: sortedTweetList
@@ -151,7 +145,6 @@ const tweet = (state = initialState, action) => {
         tweetList: action.payload
       };
     case RUN_DT:
-      console.log('action.payload in RUN_DT: ', action.payload);
       return {
         ...state,
         currentModel: action.payload.modelId,
@@ -161,19 +154,16 @@ const tweet = (state = initialState, action) => {
     case CAL_PD_FOR_TWEETS:
       console.log('cal_pd_for_tweets');
     case RUN_CLUSTERING_FOR_TWEETS:
-      console.log('RUN_CLUSTERING_FOR_TWEETS: ', action.payload);
       return {
         ...state,
         tweets: JSON.parse(action.payload.tweets)
       };
     case RUN_CL_N_CAL_PD_FOR_TWEETS:
-      console.log('RUN_CL_N_CAL_PD_FOR_TWEETS: ', action.payload);
       const updatedTweets = state.tweets.map((d, i) => ({
         ...d,
         pdpValue: action.payload.pdpValues[i],
         clusterId: action.payload.clusterIdsForTweets[i]
       }));
-      console.log('RUN_CL_N_CAL_PD_FOR_TWEETS: ', updatedTweets);
       return {
         ...state,
         tweets: updatedTweets,

@@ -9,12 +9,16 @@ from . import models
 
 import pandas as pd
 import numpy as np
-import json, math, pickle
+import json, math, pickle, collections, pydot
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
 from sklearn import preprocessing
 from sklearn.inspection import partial_dependence, plot_partial_dependence
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics import accuracy_score
+
+from io import StringIO
 
 
 def save_model(model, model_id):
@@ -147,7 +151,6 @@ class SearchTweets(APIView):
         tweet_objects_json = eval(serializers.serialize('json', retrieved_tweet_objects))
 
         tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
-        print(tweets_json)
 
         return Response(tweets_json)
 
@@ -166,8 +169,6 @@ class RunDecisionTree(APIView):
         # tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
 
         df_tweets = pd.DataFrame(tweets)
-        print('tweets: ', df_tweets.head())
-        print('features: ', features)
 
         lb = preprocessing.LabelBinarizer()
 
@@ -176,19 +177,20 @@ class RunDecisionTree(APIView):
         y = np.ravel(y)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-        clf = DecisionTreeClassifier(max_depth=6, random_state=1)
+        clf = DecisionTreeClassifier(max_depth=6, random_state=20)
         tree = clf.fit(X_train, y_train)
-        # out = export_graphviz(clf)
-        # print('value from export_graphviz: ', out.getvalue())
-        # print('depth: ', clf.get_depth())
 
         y_pred_binary = clf.predict(X)
         y_pred_prob = clf.predict_proba(X)
         y_pred_string = lb.inverse_transform(y_pred_binary)
-        print('y_pred_string: ', y_pred_string)
-        print('y_pred_prob: ', y_pred_prob)
         df_tweets['pred'] = y_pred_string
         df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
+
+        y_pred_for_test = clf.predict(X_test)
+        print('accuracy: ', accuracy_score(y_test, y_pred_for_test))
+        scores = cross_validate(clf, X, y, cv=10)['test_score']
+        print('accuracy: ', scores)
+        print('accuracy: ', scores.mean())
 
         # load graph with graph_tool and explore structure as you please
 
@@ -203,7 +205,7 @@ class RunDecisionTree(APIView):
 class RunClustering(APIView):
 
     def get(self, request, format=None):
-        selected_features = ['valence', 'arousal', 'dominance', 'harm', 'fairness']
+        selected_features = ['valence', 'dominance', 'harm', 'fairness']
         tweet_objects = models.Tweet.objects.all()
         # serializer return string, so convert it to list with eval()
         tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
@@ -218,9 +220,6 @@ class RunClustering(APIView):
         df_tweets_by_cluster = df_tweets.groupby(['clusterId'])
         num_tweets_per_group = df_tweets_by_cluster.size()
 
-        # tweet_ids_per_cluster_list = [ str(list(tweet_ids_per_cluster)) for tweet_ids_per_cluster in df_tweets_by_cluster.groups.values() ]
-        # print('group list: ', tweet_ids_per_cluster_list)
-
         df_group_ratio = df_tweets_by_cluster.agg({
             'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
         }).rename(columns={'grp': 'group_lib_ratio'})
@@ -233,7 +232,6 @@ class RunClustering(APIView):
             # 'tweetIds': tweet_ids_per_cluster_list
         })
 
-        print('run clustering: ', df_clusters.to_json(orient='records'))
         cluster_ids = cls_labels
 
         return Response({
@@ -281,8 +279,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         feature_objs = request_json['features']
         features = [feature['key'] for feature in feature_objs]
         tweets = request_json['tweets']
-
-        print(features)
 
         # tweet_objects = models.Tweet.objects.all()
         # tweet_objects_json = eval(serializers.serialize('json', tweet_objects)) # serializer return string, so convert it to list with eval()
@@ -336,8 +332,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             'groupRatio': df_group_ratio['group_lib_ratio']
         })
 
-        print('run clustering: ', df_clusters.to_json(orient='records'))
-
         return Response({
             'clusters': df_clusters.to_json(orient='records'),
             'clusterIdsForTweets': cluster_ids,
@@ -347,11 +341,164 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         })
 
 
-class FindContrastiveExample(APIView):
+class FindContrastiveExamples(APIView):
 
     def post(self, request, format=None):
+        features = ['valence', 'dominance', 'harm', 'fairness']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
-        tweet = request_json['selectedTweet']
+        selected_tweet = request_json['selectedTweet']
+        tweets = request_json['tweets']
         model_id = request_json['currentModel']
 
+        # Load the model and parse it as decision tree
+        df_tweets = pd.DataFrame(tweets)
+        print(tweets[0])
+        lb = preprocessing.LabelBinarizer()
+        X = df_tweets[features]
+        y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
+        y = np.ravel(y)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
         
+        clf = load_model(model_id)
+        clf.fit(X_train, y_train)
+        y_pred_binary = clf.predict(X) # restore prediction results
+        y_pred_prob = clf.predict_proba(X)
+        y_pred_string = lb.inverse_transform(y_pred_binary)
+        df_tweets['pred'] = y_pred_string
+        df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
+
+        dot_data = StringIO()
+        out = export_graphviz(clf, out_file=dot_data)
+        graph = pydot.graph_from_dot_data(dot_data.getvalue())
+
+        # Construct entries and leaves information
+        rules_list, values_path, leaves_index = get_rules(clf, X)
+        entries = collections.defaultdict(list) # entries are tweets
+        dec_paths = clf.decision_path(X)
+
+        for d, dec in enumerate(dec_paths):
+            for i in range(clf.tree_.node_count):
+                if dec.toarray()[0][i]  == 1:
+                    entries[i].append(d)
+                    
+        leaves_class = []
+        num_cons = []
+        num_libs = []
+        entry_idx = []
+        for idx, leaf_idx in enumerate(leaves_index):
+            num_con, num_lib = values_path[idx][-1][0]
+            leaf_class = 0 if (num_con < num_lib) else 1
+            leaves_class.append(leaf_class)
+            num_cons.append(num_con)
+            num_libs.append(num_lib)
+            entry_idx.append(entries[leaf_idx])
+
+        df_leaves = pd.DataFrame({ 
+            'idx': leaves_index,
+            'rule': rules_list,  
+            'entriesIdx': entry_idx, 
+            'numLibTweets': num_libs, 
+            'numConTweets': num_libs,
+            'class': leaves_class
+        })
+        entry_leaf_idx = {} 
+        for entries, leaf in zip(entry_idx, leaves_index):
+            for entry in entries:
+                entry_leaf_idx[entry] = leaf
+
+        # Start to retrieve the example, given the selected tweet
+        #-- Detect where the selected tweet belongs (by index and what node the index resides in)
+        selected_tweet_idx = selected_tweet['tweetId']
+        print('selected_tweet_idx: ', selected_tweet_idx)
+        selected_tweet = X.loc[selected_tweet_idx]
+        leaf_idx = entry_leaf_idx[selected_tweet_idx]
+        print('leaf_idx: ', leaf_idx)
+        #-- Identify the predicted class
+        leaf = df_leaves.loc[df_leaves['idx'] == leaf_idx]
+        #-- Find a neighbor leaf that is predicted as the opposite but also the closest to the leaf
+        entries_w_opp_class = df_leaves.loc[df_leaves['class'] != int(leaf['class'])]
+        leaf_idx_diff = abs(entries_w_opp_class['idx'] - int(leaf['idx']))
+        cont_leaf_idx = leaf_idx_diff.idxmin()
+        cont_leaf = entries_w_opp_class.loc[cont_leaf_idx]
+        print('cont_leaf rule: ')
+        print(cont_leaf.entriesIdx)
+        print(cont_leaf.rule)
+
+        df_tweets_in_cont_leaf = df_tweets.loc[cont_leaf['entriesIdx']]
+        print('df_tweets_in_cont_leaf: ')
+        print(df_tweets_in_cont_leaf)
+        df_correct_pred_tweets_in_cont_leaf = df_tweets_in_cont_leaf.loc[ df_tweets_in_cont_leaf['group'] == df_tweets_in_cont_leaf['pred'] ]
+
+        cont_leaf_rules = cont_leaf['rule']
+        selected_leaf_rules = leaf['rule'].values[0]
+
+        #-- Identify rule difference  e.g., "Selected tweet has higher fairness than tweet 176"
+        num_rules_cont_leaf = len(cont_leaf_rules)
+        num_rules_selected_leaf = len(selected_leaf_rules)
+
+        
+        if num_rules_cont_leaf > num_rules_selected_leaf:
+            diff_rules_idx = range(num_rules_selected_leaf-1, num_rules_cont_leaf, 1)
+            rules_from_longer_leaf = cont_leaf_rules
+            cont_rule_subject = 'selectedTweet'
+        else:
+            diff_rules_idx = range(num_rules_cont_leaf-1, num_rules_selected_leaf, 1)
+            rules_from_longer_leaf = selected_leaf_rules
+            cont_rule_subject = 'contTweet'
+
+        cont_rules_dict = {}
+        for i, rule_idx in enumerate(diff_rules_idx): # compare two leaves and see the difference in rules
+            [ feature, inequality, threshold ] = rules_from_longer_leaf[rule_idx].split(' ')
+            print('rules_from_longer_leaf: ', feature, inequality, threshold)
+            if feature not in cont_rules_dict.keys(): # if there is no currently overlapped feature rule in cont_rules_dict
+                cont_rules_dict[feature] = { 
+                    'subject': cont_rule_subject,
+                    'inequality': inequality, 
+                    'threshold': threshold
+                }
+            else: # if overlapped feature rule exists
+                existing_inequality = cont_rules_dict[feature]['inequality']
+                existing_threshold = cont_rules_dict[feature]['threshold']
+                
+                if cont_rules_dict[feature]['inequality'] == existing_inequality:
+                    if inequality == '>':
+                        updated_threshold = max(threshold, existing_threshold)
+                    else:
+                        updated_threshold = min(threshold, existing_threshold)
+                    cont_rules_dict[feature] = { 
+                        'subject': cont_rule_subject,
+                        'inequality': inequality, 
+                        'threshold': threshold
+                    }
+                else:
+                    print('unexpected.')
+        
+        # Identify feature-level contrastive example
+        cont_examples_list = []
+        for cont_feature, cont_rule in cont_rules_dict.items():
+            cont_example_dict = {}
+            # Find the examples where rest of features are similar to the selected tweet
+            print(cont_feature, cont_rule)
+            print('df_correct_pred_tweets_in_cont_leaf: ', df_correct_pred_tweets_in_cont_leaf)
+            rest_features = [ feature for feature in features if feature != cont_feature ]
+            X_in_cont_leaf = df_correct_pred_tweets_in_cont_leaf[rest_features]
+
+            print('X_in_cont_leaf: ')
+            print(selected_tweet[rest_features])
+            print('X_in_cont_leaf: ')
+            print(X_in_cont_leaf)
+            dist_list = []
+            dists = euclidean_distances([selected_tweet[rest_features]], X_in_cont_leaf)
+            print(dists[0])
+
+            optimal_tweet_idx = np.argmin(dists[0])
+            print(optimal_tweet_idx)
+            print(df_correct_pred_tweets_in_cont_leaf.index)
+
+            cont_examples_dict = df_correct_pred_tweets_in_cont_leaf.iloc[optimal_tweet_idx].to_dict()
+            cont_examples_dict['contFeature'] = cont_feature
+            cont_examples_list.append(cont_examples_dict)
+            
+        print(cont_examples_list)
+
+        return Response(cont_examples_list)

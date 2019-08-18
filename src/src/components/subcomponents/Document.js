@@ -51,10 +51,12 @@ const DocumentWrapper = styled.div.attrs({
   background-color: white;
 `;
 
-const ScoreView = props => {
+const ScoreView = ({ tweet }) => {
   const ref = useRef(null);
+  const features = ['valence', 'dominance', 'harm', 'fairness'],
+    numFeatures = features.length,
+    tweetScores = Object.values(_.pick(tweet, features));
 
-  const { tweets } = props;
   const layout = {
     width: 40,
     height: 30,
@@ -64,33 +66,31 @@ const ScoreView = props => {
     }
   };
 
+  var xFeatureScale = d3.scaleBand().range([0, layout.svg.width]);
+
+  var yScoreScale = d3
+    .scaleLinear()
+    .domain([1, 0])
+    .range([layout.svg.height, 0]);
+
+  const yHarmScale = d3
+    .scaleOrdinal()
+    .domain([0, 1, 2, 3])
+    .range([layout.svg.width, 0]);
+
   useEffect(() => {
-    const { tweet } = props;
-    const features = ['valence', 'dominance', 'harm', 'fairness'],
-      numFeatures = features.length,
-      tweetScores = _.pick(tweet, features);
-
-    const xFeatureScale = d3
-      .scaleBand()
-      .domain(d3.range(numFeatures))
-      .range([0, layout.svg.width]);
-
-    const yScoreScale = d3
-      .scaleLinear()
-      .domain([0, 1])
-      .range([layout.svg.height, 0]);
-
-    const yHarmScale = d3
-      .scaleOrdinal()
-      .domain([0, 1, 2, 3])
-      .range([layout.svg.width, 0]);
-
-    const featureRecData = d3
-      .select(ref.current)
+    const svg = d3.select(ref.current);
+    const featureRecData = svg
+      // .append('g')
+      // .attr('class', 'g_score')
       .selectAll('.feature_rect')
-      .data(Object.values(tweetScores));
+      .data(tweetScores);
+    console.log('updated scoreview data: ', Object.values(tweetScores));
+    console.log('before exit and remove: ', featureRecData);
 
-    const featureRect = featureRecData
+    xFeatureScale.domain(d3.range(numFeatures));
+
+    featureRecData
       .enter()
       .append('rect')
       .attr('class', 'feature_rect')
@@ -103,7 +103,19 @@ const ScoreView = props => {
           : layout.svg.height - yScoreScale(d)
       )
       .style('fill', globalColors.feature);
-  }, [props.tweet, ref.current]);
+
+    featureRecData
+      .attr('width', layout.svg.width / numFeatures - 3)
+      .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
+      .attr('x', (d, i) => xFeatureScale(i))
+      .attr('y', (d, i) =>
+        i === 2
+          ? layout.svg.height - yHarmScale(d)
+          : layout.svg.height - yScoreScale(d)
+      );
+    featureRecData.exit().remove();
+    console.log('after exit and remove: ', featureRecData);
+  }, [tweet, ref.current]);
 
   return (
     <div
@@ -119,8 +131,6 @@ const Document = props => {
   const dispatch = useDispatch();
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
-
-  console.log('tweet in doc: ', tweet);
   return (
     <DocumentWrapper
       className={'doc_' + tweet.group + (isSelected ? ' doc_selected ' : '')}
@@ -139,22 +149,17 @@ const Document = props => {
           group={tweet.group}
           style={isSelected ? { opacity: 1 } : {}}
           onClick={e => {
-            console.log('onclick in scoreview: ', e.target.style);
-            console.log('onclick in scoreview: ', e.target.className);
-
             const classList = e.target.className.split(' ');
             const isSelected =
               classList.filter(d => d === 'selected').length !== 0;
 
             if (isSelected) {
               // to unselect
-              console.log('isSelected');
               d3.select(e.target)
                 .style('border-width', '0px')
                 .style('opacity', 0.5);
             } else {
               // to encode the selection
-              console.log('isNotSelected');
 
               // Cancel all effects
               d3.selectAll('.doc_glyph')

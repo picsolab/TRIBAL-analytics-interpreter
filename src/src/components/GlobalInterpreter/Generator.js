@@ -85,8 +85,6 @@ const Generator = props => {
     selectedFeatures
   } = props;
 
-  console.log('selectedFeatures: ', currentlySelectedFeatures);
-
   // to be a props... updated by the layout below, then update states then come back as props
 
   const featureDivs = features.map(featureObj => (
@@ -101,12 +99,9 @@ const Generator = props => {
           }
           label={featureObj.key}
           onChange={e => {
-            console.log(e.target.checked, featureObj.key);
             e.target.checked
               ? currentlySelectedFeatures.push(featureObj.key)
               : _.remove(currentlySelectedFeatures, e => e === featureObj.key);
-
-            console.log('in onChange: ', currentlySelectedFeatures);
             forceUpdate();
           }}
         />

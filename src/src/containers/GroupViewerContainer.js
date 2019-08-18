@@ -7,8 +7,6 @@ const GroupViewerContainer = () => {
     { users } = useSelector(reducer => reducer.user, []),
     { features } = useSelector(reducer => reducer.globalInterpreter, []);
 
-  console.log('in GroupViewerContainer: ', tweets);
-
   return (
     <GroupViewer tweetList={tweetList} users={users} features={features} />
   );

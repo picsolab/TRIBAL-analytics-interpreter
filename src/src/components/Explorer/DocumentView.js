@@ -50,14 +50,6 @@ const ScoreView = ({ tweetList }) => {
       return _.mean(tweetList.map(d => d[feature]));
     });
 
-    // const avgScores = {
-    //   valence: 0.5,
-    //   arousal: 0.5,
-    //   fairness: 0.3,
-    //   harm: 0.8
-    // };
-    console.log('avgScores: ', avgScores);
-
     const xFeatureScale = d3
       .scaleBand()
       .domain(d3.range(numFeatures))
@@ -84,7 +76,6 @@ const ScoreView = ({ tweetList }) => {
       .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => {
-        console.log('in y: ', d, i, yHarmScale(d), yScoreScale(d));
         return i === 2
           ? layout.svg.height - layout.marginBottom - yHarmScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d);

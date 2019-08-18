@@ -171,8 +171,6 @@ const UserListView = ({ userList, selectedUser }) => {
     _.mean(numTweetsData)
   ];
 
-  console.log('avgUserScores: ', avgUserScores);
-
   // Calculate the global scale of user scores
   const yNumFollowersScale = d3
     .scaleLinear()
@@ -216,17 +214,6 @@ const UserListView = ({ userList, selectedUser }) => {
         yNumRetweetedScale={yNumRetweetedScale}
         yNumTweetsScale={yNumTweetsScale}
       />
-      {/* {userList.map(function(user) {
-        console.log('check yscale: ', yNumFollowersScale);
-        return (
-          <User
-            user={user}
-            yNumFollowersScale={yNumFollowersScale}
-            yNumFreindsScale={yNumFreindsScale}
-            yNumRetweetedScale={yNumRetweetedScale}
-          />
-        );
-      })} */}
       <InfiniteScroll items={userList} step={10}>
         {item => (
           <User

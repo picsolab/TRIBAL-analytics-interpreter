@@ -85,7 +85,6 @@ const WordPlotView = props => {
   };
 
   useEffect(() => {
-    console.log('globalMode in WordPlotView useEffect: ', globalMode);
     //* For the word group view
     const svg = d3.select(ref.current);
   });
