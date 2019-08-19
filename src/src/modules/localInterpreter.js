@@ -2,10 +2,13 @@ import axios from 'axios';
 
 // Action type
 const CHANGE_QTYPE = 'CHANGE_QTYPE';
+const SELECT_SECOND_TWEET = 'SELECT_SECOND_TWEET';
 const FIND_CONTRA_EX = 'FIND_CONTRA_EX';
 
 export const findContrastiveExamples = ({
+  qType,
   selectedTweet,
+  secondSelectedTweet,
   tweets,
   features,
   currentModel
@@ -16,7 +19,9 @@ export const findContrastiveExamples = ({
       method: 'post',
       url: '/tweets/findContrastiveExamples/',
       data: JSON.stringify({
+        qType: qType,
         selectedTweet: selectedTweet,
+        secondSelectedTweet: secondSelectedTweet,
         modelId: currentModel,
         features: features,
         tweets: tweets,
@@ -48,7 +53,9 @@ const initialState = {
     harm: 0.988902207,
     fairness: 0.415014834
   },
-  contrastiveEXs: []
+  contrastiveRules: [],
+  contrastiveEXs: [],
+  diffRule: ''
 };
 
 // Reducers
@@ -60,10 +67,20 @@ const localInterpreter = (state = initialState, action) => {
         qType: action.payload
       };
     case FIND_CONTRA_EX:
-      return {
-        ...state,
-        contrastiveEXs: action.payload
-      };
+      const qType = action.payload.qType;
+      const updatedState =
+        qType === 'p-mode'
+          ? {
+              ...state,
+              contrastiveRules: action.payload.contRules,
+              contrastiveEXs: action.payload.contExamples
+            }
+          : {
+              // for 'o-mode'
+              ...state,
+              diffRule: action.payload.diffRule
+            };
+      return updatedState;
     default:
       return state;
   }

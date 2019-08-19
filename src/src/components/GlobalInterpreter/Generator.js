@@ -142,6 +142,7 @@ const Generator = props => {
         <div style={{ backgroundColor: 'rgb(190, 255, 231)', fontWeight: 600 }}>
           Decision Tree
         </div>
+        <div>Logistic Regression</div>
         <Button1
           style={{ marginTop: '10px' }}
           size="xsmall"

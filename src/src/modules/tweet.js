@@ -6,6 +6,7 @@ import axios from 'axios';
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
 const SELECT_TWEET = 'SELECT_TWEET';
+const SELECT_SECOND_TWEET = 'SELECT_SECOND_TWEET';
 const SEARCH_TWEETS = 'SEARCH_TWEETS';
 const SORT_TWEETS_BY_FEATURE = 'SORT_TWEETS_BY_FEATURE';
 const FILTER_TWEETLIST_BY_USER = 'FILTER_TWEETLIST_BY_USER';
@@ -23,12 +24,29 @@ export const fetchTweets = () => {
         tweetId: d.tweet_id,
         group: d.grp,
         content: d.content,
+        screenName: d.screen_name,
         valence: d.valence,
+        valenceSeq: d.valence_seq,
+        valenceSeqRank: d.valence_seq_rank,
+        valencePred: d.valence_pred,
+        valenceGrpPred: d.valence_grp_pred,
         dominance: d.dominance,
+        dominanceSeq: d.dominance_seq,
+        dominanceSeqRank: d.dominance_seq_rank,
+        dominancePred: d.dominance_pred,
+        dominanceGrpPred: d.dominance_grp_pred,
         harm: d.harm,
+        harmSeq: d.harm_seq,
+        harmSeqRank: d.harm_seq_rank,
+        harmPred: d.harm_pred,
+        harmGrpPred: d.harm_grp_pred,
+        harmProb: d.harm_prob,
         fairness: d.fairness,
-        userId: d.user_id,
-        screenName: d.screen_name
+        fairnessSeq: d.fairness_seq,
+        fairnessSeqRank: d.fairness_seq_rank,
+        fairnessPred: d.fairness_pred,
+        fairnessGrpPred: d.fairness_grp_pred,
+        fairnessProb: d.fairness_prob
       }));
 
       const tweetsWithPredFeatures = res.data.map(d => ({
@@ -99,6 +117,7 @@ const initialState = {
   tweetListStatus: '',
   filteredTweetList: [],
   selectedTweet: [],
+  secondSelectedTweet: [],
   isLoaded: false
 };
 
@@ -117,6 +136,11 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         selectedTweet: action.payload
+      };
+    case SELECT_SECOND_TWEET:
+      return {
+        ...state,
+        secondSelectedTweet: action.payload
       };
     case SEARCH_TWEETS:
       return {

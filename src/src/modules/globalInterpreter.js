@@ -37,10 +37,35 @@ const initialState = {
     { key: 'fairness', abbr: 'F' }
   ],
   selectedFeatures: [
-    { key: 'fairness', abbr: 'F' },
-    { key: 'dominance', abbr: 'D' },
-    { key: 'harm', abbr: 'H' },
-    { key: 'valence', abbr: 'V' }
+    {
+      key: 'fairness',
+      abbr: 'F',
+      type: 'categorical',
+      values: [
+        { num: 0, real: 'none' },
+        { num: 1, real: 'pos' },
+        { num: 2, real: 'neg' },
+        { num: 3, real: 'both' }
+      ]
+    },
+    { key: 'dominance', abbr: 'D', type: 'continuous', threshold: 0.5 },
+    {
+      key: 'harm',
+      abbr: 'H',
+      type: 'categorical',
+      values: [
+        { num: 0, real: 'none' },
+        { num: 1, real: 'pos' },
+        { num: 2, real: 'neg' },
+        { num: 3, real: 'both' }
+      ]
+    },
+    {
+      key: 'valence',
+      abbr: 'V',
+      type: 'continuous',
+      threshold: 0.5
+    }
   ],
   areFeaturesChecked: { valence: false },
   currentModel: 'dt_0',

@@ -2,11 +2,14 @@ import React, { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
+import d3tooltip from 'd3-tooltip';
 
 import styled, { css } from 'styled-components';
 import { Grommet, Button, Tabs, Tab, Box } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { globalColors } from '../../GlobalStyles';
+
+const tooltip = d3tooltip(d3);
 
 const GroupDiv = styled.div.attrs({
   className: 'doc_glyph'
@@ -59,10 +62,11 @@ const ScoreView = ({ tweet }) => {
 
   const layout = {
     width: 40,
-    height: 30,
+    height: 35,
+    marginBottom: 10,
     svg: {
       width: 40,
-      height: 25
+      height: 35
     }
   };
 
@@ -71,7 +75,7 @@ const ScoreView = ({ tweet }) => {
   var yScoreScale = d3
     .scaleLinear()
     .domain([1, 0])
-    .range([layout.svg.height, 0]);
+    .range([layout.svg.height - layout.marginBottom, 0]);
 
   const yHarmScale = d3
     .scaleOrdinal()
@@ -85,8 +89,6 @@ const ScoreView = ({ tweet }) => {
       // .attr('class', 'g_score')
       .selectAll('.feature_rect')
       .data(tweetScores);
-    console.log('updated scoreview data: ', Object.values(tweetScores));
-    console.log('before exit and remove: ', featureRecData);
 
     xFeatureScale.domain(d3.range(numFeatures));
 
@@ -99,10 +101,22 @@ const ScoreView = ({ tweet }) => {
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
         i === 2
-          ? layout.svg.height - yHarmScale(d)
-          : layout.svg.height - yScoreScale(d)
+          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          : layout.svg.height - layout.marginBottom - yScoreScale(d)
       )
-      .style('fill', globalColors.feature);
+      .style('fill', globalColors.feature)
+      .on('mouseover', (d, i) => {
+        const titleHtml = '<div style="font-weight: 600">Features</div>';
+        const scoreHtml = features.map(
+          feature => '<div>- ' + feature + ': ' + tweet[feature] + '</div>'
+        );
+
+        tooltip.html(titleHtml + scoreHtml.join(''));
+        tooltip.show();
+      })
+      .on('mouseout', (d, i) => {
+        tooltip.hide();
+      });
 
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
@@ -110,11 +124,21 @@ const ScoreView = ({ tweet }) => {
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
         i === 2
-          ? layout.svg.height - yHarmScale(d)
-          : layout.svg.height - yScoreScale(d)
+          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          : layout.svg.height - layout.marginBottom - yScoreScale(d)
       );
     featureRecData.exit().remove();
-    console.log('after exit and remove: ', featureRecData);
+
+    const featureTitle = d3
+      .select(ref.current)
+      .selectAll('text')
+      .data(['V', 'D', 'H', 'F'])
+      .enter()
+      .append('text')
+      .text(d => d)
+      .attr('x', (d, i) => xFeatureScale(i))
+      .attr('y', (d, i) => layout.svg.height)
+      .style('font-size', '0.6rem');
   }, [tweet, ref.current]);
 
   return (

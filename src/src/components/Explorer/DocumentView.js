@@ -57,7 +57,7 @@ const ScoreView = ({ tweetList }) => {
 
     const yScoreScale = d3
       .scaleLinear()
-      .domain([0, 1])
+      .domain([1, 0])
       .range([layout.svg.height - layout.marginBottom, 0]);
 
     const yHarmScale = d3

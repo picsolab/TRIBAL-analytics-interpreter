@@ -34,12 +34,12 @@ function d3_functor(v) {
 
 const layout = {
   margin: { top: 30, right: 110, bottom: 20, left: 30 },
-  width: 640,
+  width: 800,
   height: 240,
   leftMargin: 50,
   innerHeight: 340 - 2,
   featurePlot: {
-    width: 350
+    width: 450
   },
   featureToOutputLines: {
     width: 40,
@@ -455,7 +455,7 @@ const FeaturePlotView = React.memo(
         // .attr('preserveAspectRatio', 'xMinYMin')
         .attr('width', container.node().offsetWidth * 0.5)
         .attr('height', container.node().offsetHeight)
-        .style('top', -container.node().offsetHeight + 5 + 'px')
+        .style('top', -(container.node().offsetHeight + 50) + 5 + 'px')
         .style('z-index', -1);
 
       const ctx = canvas.node().getContext('2d');
@@ -856,6 +856,7 @@ const FeaturePlotView = React.memo(
       .on('click', function(d, i) {
           const selectedCluster = d3.select(this),
                 clusterId = d.clusterId;
+          console.log('clicked cluster: ', clusterId);
           if (selectedCluster.classed('cluster_selected') === true) {
               // Put back the tweetList with entire tweets
               dispatch({
@@ -1219,7 +1220,8 @@ const FeaturePlotView = React.memo(
         .append('rect')
         .attr(
           'class',
-          (d, i) => 'cluster_output_prob_rect cluster_output_prob_rect_' + i
+          (d, i) =>
+            'cluster_output_prob_rect cluster_output_prob_rect_' + d.clusterId
         )
         .attr('x', 0)
         .attr('y', d => yClusterCoordPDPScale(d.clusterId))

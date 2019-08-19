@@ -22,12 +22,12 @@ const Container = styled.div`
   width: 85%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 600px 500px;
-  grid-template-columns: 25% 15.3% 59.75%;
+  grid-template-rows: 50px 700px 450px;
+  grid-template-columns: 15.3% 44.75% 15% 25%;
   grid-template-areas:
-    'h h h'
-    'e g g'
-    'e gr l';
+    'h h h h'
+    'g g g e'
+    'm l gr e';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -84,7 +84,7 @@ function App() {
       </Header>
       <ExplorerContainer />
       <GroupViewerContainer />
-      <InstanceViewerContainer />
+      {/* <InstanceViewerContainer /> */}
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />
       <Mockup3 />

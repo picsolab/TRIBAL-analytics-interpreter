@@ -450,13 +450,13 @@ const GroupViewer = ({ tweetList, selectedTweet, features }) => {
       <SearchIndicator>From retrieved tweets</SearchIndicator>
       <SubsectionTitle>Features</SubsectionTitle>
       <FeatureGroupPlot tweetList={tweetList} features={features} />
-      <SubsectionTitle>Words</SubsectionTitle>
-      <WordGroupPlot tweetList={tweetList} features={features} />
-      <SubsectionTitle>Models</SubsectionTitle>
-      <div>
+      {/* <SubsectionTitle>Words</SubsectionTitle>
+      <WordGroupPlot tweetList={tweetList} features={features} /> */}
+      {/* <SubsectionTitle>Models</SubsectionTitle> */}
+      {/* <div>
         VDHF &nbsp;&nbsp;&nbsp; 75.8% &nbsp;&nbsp;&nbsp; 82.6%
         &nbsp;&nbsp;&nbsp; 69.8%
-      </div>
+      </div> */}
     </GroupViewerWrapper>
   );
 };

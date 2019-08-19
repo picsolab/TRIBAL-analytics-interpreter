@@ -247,12 +247,12 @@ const ListView = ({ userList, selectedUser }) => {
           <UserListView userList={userList} selectedUser={selectedUser} />
         </UserListWrapper>
       </div>
-      <div style={{ height: '50%' }}>
+      {/* <div style={{ height: '50%' }}>
         <SubsectionTitle>Word</SubsectionTitle>
         <WordListWrapper>
           <UserListView userList={userList} />
         </WordListWrapper>
-      </div>
+      </div> */}
     </ListViewWrapper>
   );
 };

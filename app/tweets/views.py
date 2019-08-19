@@ -189,8 +189,6 @@ class RunDecisionTree(APIView):
         y_pred_for_test = clf.predict(X_test)
         print('accuracy: ', accuracy_score(y_test, y_pred_for_test))
         scores = cross_validate(clf, X, y, cv=10)['test_score']
-        print('accuracy: ', scores)
-        print('accuracy: ', scores.mean())
 
         # load graph with graph_tool and explore structure as you please
 
@@ -346,13 +344,14 @@ class FindContrastiveExamples(APIView):
     def post(self, request, format=None):
         features = ['valence', 'dominance', 'harm', 'fairness']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        q_type = request_json['qType']
         selected_tweet = request_json['selectedTweet']
+        second_selected_tweet = request_json['secondSelectedTweet']
         tweets = request_json['tweets']
         model_id = request_json['currentModel']
 
         # Load the model and parse it as decision tree
         df_tweets = pd.DataFrame(tweets)
-        print(tweets[0])
         lb = preprocessing.LabelBinarizer()
         X = df_tweets[features]
         y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
@@ -387,7 +386,7 @@ class FindContrastiveExamples(APIView):
         entry_idx = []
         for idx, leaf_idx in enumerate(leaves_index):
             num_con, num_lib = values_path[idx][-1][0]
-            leaf_class = 0 if (num_con < num_lib) else 1
+            leaf_class = 1 if (num_con < num_lib) else 0
             leaves_class.append(leaf_class)
             num_cons.append(num_con)
             num_libs.append(num_lib)
@@ -398,107 +397,166 @@ class FindContrastiveExamples(APIView):
             'rule': rules_list,  
             'entriesIdx': entry_idx, 
             'numLibTweets': num_libs, 
-            'numConTweets': num_libs,
+            'numConTweets': num_cons,
             'class': leaves_class
         })
         entry_leaf_idx = {} 
         for entries, leaf in zip(entry_idx, leaves_index):
             for entry in entries:
                 entry_leaf_idx[entry] = leaf
-
+        df_leaves.to_csv('df_leaves.csv')
         # Start to retrieve the example, given the selected tweet
         #-- Detect where the selected tweet belongs (by index and what node the index resides in)
-        selected_tweet_idx = selected_tweet['tweetId']
-        print('selected_tweet_idx: ', selected_tweet_idx)
-        selected_tweet = X.loc[selected_tweet_idx]
-        leaf_idx = entry_leaf_idx[selected_tweet_idx]
-        print('leaf_idx: ', leaf_idx)
-        #-- Identify the predicted class
-        leaf = df_leaves.loc[df_leaves['idx'] == leaf_idx]
-        #-- Find a neighbor leaf that is predicted as the opposite but also the closest to the leaf
-        entries_w_opp_class = df_leaves.loc[df_leaves['class'] != int(leaf['class'])]
-        leaf_idx_diff = abs(entries_w_opp_class['idx'] - int(leaf['idx']))
-        cont_leaf_idx = leaf_idx_diff.idxmin()
-        cont_leaf = entries_w_opp_class.loc[cont_leaf_idx]
-        print('cont_leaf rule: ')
-        print(cont_leaf.entriesIdx)
-        print(cont_leaf.rule)
-
-        df_tweets_in_cont_leaf = df_tweets.loc[cont_leaf['entriesIdx']]
-        print('df_tweets_in_cont_leaf: ')
-        print(df_tweets_in_cont_leaf)
-        df_correct_pred_tweets_in_cont_leaf = df_tweets_in_cont_leaf.loc[ df_tweets_in_cont_leaf['group'] == df_tweets_in_cont_leaf['pred'] ]
-
-        cont_leaf_rules = cont_leaf['rule']
-        selected_leaf_rules = leaf['rule'].values[0]
-
-        #-- Identify rule difference  e.g., "Selected tweet has higher fairness than tweet 176"
-        num_rules_cont_leaf = len(cont_leaf_rules)
-        num_rules_selected_leaf = len(selected_leaf_rules)
-
         
-        if num_rules_cont_leaf > num_rules_selected_leaf:
-            diff_rules_idx = range(num_rules_selected_leaf-1, num_rules_cont_leaf, 1)
-            rules_from_longer_leaf = cont_leaf_rules
-            cont_rule_subject = 'selectedTweet'
-        else:
-            diff_rules_idx = range(num_rules_cont_leaf-1, num_rules_selected_leaf, 1)
-            rules_from_longer_leaf = selected_leaf_rules
-            cont_rule_subject = 'contTweet'
 
-        cont_rules_dict = {}
-        for i, rule_idx in enumerate(diff_rules_idx): # compare two leaves and see the difference in rules
-            [ feature, inequality, threshold ] = rules_from_longer_leaf[rule_idx].split(' ')
-            print('rules_from_longer_leaf: ', feature, inequality, threshold)
-            if feature not in cont_rules_dict.keys(): # if there is no currently overlapped feature rule in cont_rules_dict
-                cont_rules_dict[feature] = { 
-                    'subject': cont_rule_subject,
-                    'inequality': inequality, 
-                    'threshold': threshold
-                }
-            else: # if overlapped feature rule exists
-                existing_inequality = cont_rules_dict[feature]['inequality']
-                existing_threshold = cont_rules_dict[feature]['threshold']
-                
-                if cont_rules_dict[feature]['inequality'] == existing_inequality:
-                    if inequality == '>':
-                        updated_threshold = max(threshold, existing_threshold)
-                    else:
-                        updated_threshold = min(threshold, existing_threshold)
+        if q_type == 'p-mode':
+            selected_tweet_idx = selected_tweet['tweetId']
+            selected_tweet = X.loc[selected_tweet_idx]
+            leaf_idx = entry_leaf_idx[selected_tweet_idx]
+            #-- Identify the predicted class
+            leaf = df_leaves.loc[df_leaves['idx'] == leaf_idx]
+            #-- Find a neighbor leaf that is predicted as the opposite but also the closest to the leaf
+            
+            leaf_class = leaf['class']
+            entries_w_opp_class = df_leaves.loc[df_leaves['class'].astype('int64') != int(leaf['class'])]
+            leaf_idx_diff = abs(entries_w_opp_class['idx'] - int(leaf['idx']))
+            cont_leaf_idx = leaf_idx_diff.idxmin()
+            cont_leaf = entries_w_opp_class.loc[cont_leaf_idx]
+
+            df_tweets_in_cont_leaf = df_tweets.loc[cont_leaf['entriesIdx']]
+            df_tweets_in_cont_leaf.to_csv('df_tweets_in_cont_leaf.csv')
+            df_correct_pred_tweets_in_cont_leaf = df_tweets_in_cont_leaf.loc[ df_tweets_in_cont_leaf['group'].astype('int64') == df_tweets_in_cont_leaf['pred'].astype('int64') ]
+            df_correct_pred_tweets_in_cont_leaf.to_csv('df_correct_pred_tweets_in_cont_leaf.csv')
+
+            cont_leaf_rules = cont_leaf['rule']
+            selected_leaf_rules = leaf['rule'].values[0]
+
+            #-- Identify rule difference  e.g., "Selected tweet has higher fairness than tweet 176"
+            num_rules_cont_leaf = len(cont_leaf_rules)
+            num_rules_selected_leaf = len(selected_leaf_rules)
+            
+            if num_rules_cont_leaf > num_rules_selected_leaf:
+                diff_rules_idx = range(num_rules_selected_leaf-1, num_rules_cont_leaf, 1)
+                rules_from_longer_leaf = cont_leaf_rules
+                cont_rule_subject = 'selectedTweet'
+            else:
+                diff_rules_idx = range(num_rules_cont_leaf-1, num_rules_selected_leaf, 1)
+                rules_from_longer_leaf = selected_leaf_rules
+                cont_rule_subject = 'contTweet'
+
+            cont_rules_dict = {}
+            for i, rule_idx in enumerate(diff_rules_idx): # compare two leaves and see the difference in rules
+                [ feature, inequality, threshold ] = rules_from_longer_leaf[rule_idx].split(' ')
+                if feature not in cont_rules_dict.keys(): # if there is no currently overlapped feature rule in cont_rules_dict
                     cont_rules_dict[feature] = { 
                         'subject': cont_rule_subject,
                         'inequality': inequality, 
                         'threshold': threshold
                     }
-                else:
-                    print('unexpected.')
-        
-        # Identify feature-level contrastive example
-        cont_examples_list = []
-        for cont_feature, cont_rule in cont_rules_dict.items():
-            cont_example_dict = {}
-            # Find the examples where rest of features are similar to the selected tweet
-            print(cont_feature, cont_rule)
-            print('df_correct_pred_tweets_in_cont_leaf: ', df_correct_pred_tweets_in_cont_leaf)
-            rest_features = [ feature for feature in features if feature != cont_feature ]
-            X_in_cont_leaf = df_correct_pred_tweets_in_cont_leaf[rest_features]
-
-            print('X_in_cont_leaf: ')
-            print(selected_tweet[rest_features])
-            print('X_in_cont_leaf: ')
-            print(X_in_cont_leaf)
-            dist_list = []
-            dists = euclidean_distances([selected_tweet[rest_features]], X_in_cont_leaf)
-            print(dists[0])
-
-            optimal_tweet_idx = np.argmin(dists[0])
-            print(optimal_tweet_idx)
-            print(df_correct_pred_tweets_in_cont_leaf.index)
-
-            cont_examples_dict = df_correct_pred_tweets_in_cont_leaf.iloc[optimal_tweet_idx].to_dict()
-            cont_examples_dict['contFeature'] = cont_feature
-            cont_examples_list.append(cont_examples_dict)
+                else: # if overlapped feature rule exists
+                    existing_inequality = cont_rules_dict[feature]['inequality']
+                    existing_threshold = cont_rules_dict[feature]['threshold']
+                    
+                    if cont_rules_dict[feature]['inequality'] == existing_inequality:
+                        if inequality == '>':
+                            updated_threshold = max(threshold, existing_threshold)
+                        else:
+                            updated_threshold = min(threshold, existing_threshold)
+                        cont_rules_dict[feature] = { 
+                            'subject': cont_rule_subject,
+                            'inequality': inequality, 
+                            'threshold': threshold
+                        }
+                    else:
+                        print('unexpected.')
             
-        print(cont_examples_list)
+            # Identify feature-level contrastive example
+            cont_examples_list = []
+            for cont_feature, cont_rule in cont_rules_dict.items():
+                # Find the examples where rest of features are similar to the selected tweet
+                rest_features = [ feature for feature in features if feature != cont_feature ]
+                df_correct_pred_opp_class_tweets_in_cont_leaf = df_correct_pred_tweets_in_cont_leaf.loc[ 
+                    df_correct_pred_tweets_in_cont_leaf['group'].astype('int64') != int(leaf_class) ]
+                X_in_cont_leaf = df_correct_pred_opp_class_tweets_in_cont_leaf[rest_features]
 
-        return Response(cont_examples_list)
+                dist_list = []
+                dists = euclidean_distances([selected_tweet[rest_features]], X_in_cont_leaf)
+
+                optimal_tweet_idx = np.argmin(dists[0])
+
+                cont_example_dict = df_correct_pred_tweets_in_cont_leaf.iloc[optimal_tweet_idx].to_dict()
+                cont_example_dict['contFeature'] = cont_feature
+                cont_examples_list.append(cont_example_dict)
+                
+            print(cont_examples_list)
+        elif q_type == 'o-mode':
+            # detect where the selected tweet belongs (by index and what node the index resides in)
+            print('tweets: ', selected_tweet['tweetId'], second_selected_tweet['tweetId'])
+            first_tweet_idx = selected_tweet['tweetId']
+            second_tweet_idx = second_selected_tweet['tweetId']
+            first_tweet = X.loc[first_tweet_idx]
+            second_tweet = X.loc[second_tweet_idx]
+            print(first_tweet)
+            print(second_tweet)
+
+            first_leaf = df_leaves.loc[ df_leaves['idx'] == entry_leaf_idx[first_tweet_idx] ] # identify the predicted class
+            second_leaf = df_leaves.loc[ df_leaves['idx'] == entry_leaf_idx[second_tweet_idx] ]
+
+            first_leaf_rules = first_leaf['rule'].values[0]
+            second_leaf_rules = second_leaf['rule'].values[0]
+
+            print(first_leaf_rules)
+            print(second_leaf_rules)
+                
+            num_rules_second_leaf = len(first_leaf_rules)
+            num_rules_first_leaf = len(second_leaf_rules)
+
+            if num_rules_first_leaf < num_rules_second_leaf:
+                num_longer_rules = num_rules_second_leaf
+                num_shorter_rules = num_rules_first_leaf
+                longer_leaf_rules = num_rules_second_leaf
+                longer_leaf = 'second'
+            else:
+                num_longer_rules = num_rules_first_leaf
+                num_shorter_rules = num_rules_second_leaf
+                longer_leaf_rules = num_rules_first_leaf
+                longer_leaf_rules = num_rules_first_leaf
+                longer_leaf = 'first'
+
+            diff_rule = {}
+            for rule_idx in range(num_longer_rules):
+                print('rule_idx: ', rule_idx)
+                print('first_leaf_rules[rule_idx]: ', first_leaf_rules[rule_idx])
+                print('second_leaf_rules[rule_idx]: ', second_leaf_rules[rule_idx])
+                if rule_idx >= num_shorter_rules: # When the length is different and overlapped rules are the same
+                    [ feature, inequality, threshold ] = longer_leaf_rules[rule_idx].split(' ')
+                    if longer_leaf == 'first':
+                        subject = 'first'
+                    else:
+                        subject = 'second'
+                    diff_rule = {
+                        'subject': subject,
+                        'feature': feature,
+                        'inequality': inequality,
+                        'threshold': threshold
+                    }
+                    break
+                else:
+                    if first_leaf_rules[rule_idx] != second_leaf_rules[rule_idx]:
+                        print('here')
+                        [ feature, inequality, threshold ] = first_leaf_rules[rule_idx].split(' ')
+                        diff_rule = first_leaf_rules[rule_idx]
+                        diff_rule = {
+                            'subject': 'first',
+                            'feature': feature,
+                            'inequality': inequality,
+                            'threshold': threshold
+                        }
+                        break
+
+            print(diff_rule)
+            
+        if q_type == 'p-mode':
+            return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
+        elif q_type == 'o-mode':
+            return Response({ 'qType': q_type, 'diffRule': diff_rule })

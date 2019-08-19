@@ -218,11 +218,11 @@ const User = ({
         <div style={{ width: '80%', fontSize: '0.75rem' }}>
           {user.screenName}
         </div>
-        <div style={{ display: 'flex' }}>
+        {/* <div style={{ display: 'flex' }}>
           {[1, 0, 1].map(group => (
             <DocDiv group={group} />
           ))}
-        </div>
+        </div> */}
         <UserScoreView
           user={user}
           yNumFollowersScale={yNumFollowersScale}

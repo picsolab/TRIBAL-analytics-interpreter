@@ -1,12 +1,21 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
+import _ from 'lodash';
 
 import styled from 'styled-components';
-import { Button, Select } from 'grommet';
+import { Spin, Icon } from 'antd';
+import { Grommet, Button, Select } from 'grommet';
+import { grommet } from 'grommet/themes';
+import { deepMerge } from 'grommet/utils';
 import index from '../../index.css';
 import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionWrapper, SectionTitle, SubTitle } from '../../GlobalStyles';
+import {
+  SectionWrapper,
+  SectionTitle,
+  SubTitle,
+  globalColors
+} from '../../GlobalStyles';
 
 import Document from '../subcomponents/Document';
 
@@ -39,11 +48,13 @@ const IndicatorWrapper = styled.div.attrs({
 const QuestionWrapper = styled.div.attrs({
   className: 'question_wrapper'
 })`
-  width: 60%;
-  height: 40px;
+  display: flex;
+  flex-flow: wrap;
+  align-items: center;
+  width: 90%;
   line-height: 3;
   margin: 5px 0;
-  padding-left: 15px;
+  padding: 5px 15px;
   color: white;
   font-weight: 600;
   background-color: gray;
@@ -54,8 +65,8 @@ const ContrastiveExplanationWrapper = styled.div.attrs({
   className: 'contrastive_instances_wrapper'
 })`
   display: flex;
-  width: 60%;
-  margin: 15px 0;
+  width: 90%;
+  margin: 15px 30px;
   padding: 5px 0;
   border-top: 3px solid gainsboro;
   border-bottom: 3px solid gainsboro;
@@ -71,6 +82,10 @@ const BetweenInstances = styled.div.attrs({
   className: 'between_instances'
 })`
   width: 50px;
+  align-self: center;
+
+  text-align: center;
+  font-weight: 600;
 `;
 
 const ContrastiveInstanceWrapper = styled.div.attrs({
@@ -79,10 +94,20 @@ const ContrastiveInstanceWrapper = styled.div.attrs({
   width: 45%;
 `;
 
+const TeamIndicator = styled.div.attrs({
+  className: 'team_indicator'
+})`
+  height: 30px;
+  padding: 0 5px;
+  background-color: crimson;
+  line-height: 2;
+  border-radius: 5px;
+`;
+
 const AnswerWrapper = styled.div.attrs({
   className: 'answer_wrapper'
 })`
-  width: 60%;
+  width: 90%;
   height: 40px;
   line-height: 3;
   margin: 5px 0;
@@ -92,10 +117,122 @@ const AnswerWrapper = styled.div.attrs({
   border-radius: 5px;
 `;
 
-const QAView = ({ selectedTweet, qType, contrastiveEXs }) => {
-  const answerStr = contrastiveEXs.map(
-    d => d.subject + d.inequality + d.threshold
+const customDropdownTheme = {
+  global: {
+    background: 'white',
+    font: {
+      size: '10px'
+    },
+    extend: `
+      width: 70%;
+      background: 'white';
+    `
+  },
+  select: {
+    background: 'white',
+    control: {
+      extend: 'padding: 3px 6px;',
+      open: {
+        background: '#ece0fa',
+        border: '1px solid #7D4CDB'
+      }
+    },
+    container: {
+      extend: `
+      width: 100%;
+    `,
+      option: {
+        text: {
+          font: {
+            size: '10px'
+          }
+        },
+        extent: `
+          font-size: 0.4rem
+        `,
+        fontSize: '0.4rem'
+      }
+    }
+  },
+  options: {
+    text: {
+      fontSize: '10px',
+      margin: 0,
+      padding: 0
+    }
+  }
+};
+
+const QAView = ({
+  selectedTweet,
+  secondSelectedTweet,
+  qType,
+  contrastiveRules,
+  contrastiveEXs,
+  tweets,
+  currentModel,
+  diffRule,
+  features
+}) => {
+  const dispatch = useDispatch();
+  console.log('selectedTweet: ', selectedTweet);
+  console.log('secondSelectedTweet: ', secondSelectedTweet);
+  /*
+    contrastiveRule = { FEATURE-1: { 
+      subject: 'contTweet' OR 'selectedTweet',
+      inequality: '<' OR '>=',
+      threshold: E.G., 0.5 
+      },
+      FEATURE-2: ...
+    } 
+  */
+
+  const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map(
+    (feature, idx) => {
+      const subject = contrastiveRules[feature].subject;
+      const inequality = contrastiveRules[feature].inequality;
+      const andStr =
+        idx !== Object.keys(contrastiveRules).length - 1 ? ' and' : '';
+
+      var inequalityStr;
+      if (subject === 'selectedTweet') {
+        if (inequality === '>') inequalityStr = 'higher';
+        else inequalityStr = 'lower';
+      } else if (subject === 'contTweet') {
+        if (inequality === '>') inequalityStr = 'lower';
+        else inequalityStr = 'higher';
+      }
+
+      return inequalityStr + ' ' + feature + andStr;
+    }
   );
+
+  const pTypeAnswerStr = 'tweet 176 has ' + pTypeAnswerForFeatures.join(' ');
+
+  const { subject, feature, inequality, threshold } = diffRule;
+  const firstSubjectStr =
+    subject == 'first'
+      ? 'tweet ' + selectedTweet.tweetId
+      : 'tweet ' + secondSelectedTweet.tweetId;
+  const secondSubjectStr =
+    subject == 'first'
+      ? 'tweet ' + secondSelectedTweet.tweetId
+      : 'tweet ' + selectedTweet.tweetId;
+  const inequalityStr = inequality === '>' ? 'higher' : 'lower';
+  const oTypeAnswerStr =
+    firstSubjectStr +
+    ' has ' +
+    inequalityStr +
+    ' ' +
+    feature +
+    ' while ' +
+    secondSubjectStr +
+    ' does not';
+
+  const idArray = _.range(0, 3097, 1),
+    idWithTweetArray = idArray.map(id => (
+      <div style={{ fontSize: '0.8rem' }}>{'tweet ' + id}</div>
+    ));
 
   if (qType === 'p-mode')
     return (
@@ -103,31 +240,85 @@ const QAView = ({ selectedTweet, qType, contrastiveEXs }) => {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <IndicatorWrapper>Q:</IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <QuestionWrapper>
-            'Why '
-            <Select
-              multiple={true}
-              value={selectedTweet.tweetId}
-              // onChange={}
-              options={[0, 1, 2, 3, 4, 5]}
-              size={'xsmall'}
-            />
-            ' classified as liberal than conservative?'
+            Why &nbsp;
+            <Grommet theme={customDropdownTheme}>
+              <Select
+                style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                multiple={true}
+                value={'tweet ' + selectedTweet.tweetId}
+                onChange={e => {
+                  const selectedIdForFirstTweet = e.selected[0],
+                    tweetForFirstTweet = tweets.filter(
+                      d => selectedIdForFirstTweet === d.tweetId
+                    )[0];
+
+                  console.log('selectedIdForFirstTweet: ', tweetForFirstTweet);
+                  dispatch({
+                    type: 'SELECT_TWEET',
+                    payload: tweetForFirstTweet
+                  });
+                  dispatch(
+                    findContrastiveExamples({
+                      qType: qType,
+                      tweets: tweets,
+                      selectedTweet: tweetForFirstTweet,
+                      secondSelectedTweet: secondSelectedTweet,
+                      currentModel: currentModel
+                    })
+                  );
+                }}
+                options={idWithTweetArray}
+                size={'small'}
+              />
+            </Grommet>
+            &nbsp;
+            {'classified as'}
+            &nbsp;
+            <TeamIndicator
+              style={{
+                backgroundColor:
+                  selectedTweet.group === '1'
+                    ? globalColors.group.lib
+                    : globalColors.group.con
+              }}
+            >
+              {selectedTweet.group === '1' ? 'blue team' : 'red team'}
+            </TeamIndicator>
+            &nbsp;
+            {' than '}
+            &nbsp;
+            <TeamIndicator
+              style={{
+                backgroundColor:
+                  selectedTweet.group === '1'
+                    ? globalColors.group.con
+                    : globalColors.group.lib
+              }}
+            >
+              {selectedTweet.group === '1' ? 'red team' : 'blue team'}
+            </TeamIndicator>{' '}
+            &nbsp; ?
           </QuestionWrapper>
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <IndicatorWrapper>A: </IndicatorWrapper>&nbsp;&nbsp;&nbsp;
-          <AnswerWrapper>Because + {answerStr[0]}</AnswerWrapper>
+          <AnswerWrapper>Because {pTypeAnswerStr}</AnswerWrapper>
         </div>
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
-            <div>Selected</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Selected</div>
             <Document tweet={selectedTweet} />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
           <ContrastiveInstanceWrapper>
-            <div>{contrastiveEXs[0].contFeature + '-contrastive'}</div>
-            <div>{contrastiveEXs[0].contFeature + '-contrastive'}</div>
-            <Document tweet={contrastiveEXs[0]} />
+            {contrastiveEXs.map(contEX => (
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                  {contrastiveEXs[0].contFeature + '-contrastive example'}
+                </div>
+                <Document tweet={contrastiveEXs[0]} />
+              </div>
+            ))}
           </ContrastiveInstanceWrapper>
         </ContrastiveExplanationWrapper>
       </div>
@@ -138,40 +329,135 @@ const QAView = ({ selectedTweet, qType, contrastiveEXs }) => {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <IndicatorWrapper>Q:</IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <QuestionWrapper>
-            'Why '
-            <Select
-              multiple={true}
-              value={selectedTweet.tweetId}
-              // onChange={}
-              options={[0, 1, 2, 3, 4, 5]}
-              size={'xsmall'}
-            />
-            ' classified
-            <Select
-              multiple={true}
-              value={selectedTweet.tweetId}
-              // onChange={}
-              options={[0, 1, 2, 3, 4, 5]}
-              size={'xsmall'}
-            />
-            as liberal than conservative?'
+            {/* first line of question */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              Why &nbsp;
+              <Grommet theme={customDropdownTheme}>
+                <Select
+                  style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                  multiple={true}
+                  value={'tweet ' + selectedTweet.tweetId}
+                  onChange={e => {
+                    const selectedIdForFirstTweet = e.selected[0],
+                      tweetForFirstTweet = tweets.filter(
+                        d => selectedIdForFirstTweet === d.tweetId
+                      )[0];
+
+                    console.log(
+                      'selectedIdForFirstTweet: ',
+                      tweetForFirstTweet
+                    );
+                    dispatch({
+                      type: 'SELECT_TWEET',
+                      payload: tweetForFirstTweet
+                    });
+                    dispatch(
+                      findContrastiveExamples({
+                        qType: qType,
+                        tweets: tweets,
+                        selectedTweet: tweetForFirstTweet,
+                        secondSelectedTweet: secondSelectedTweet,
+                        currentModel: currentModel
+                      })
+                    );
+                  }}
+                  options={idWithTweetArray}
+                  size={'small'}
+                />
+              </Grommet>
+              &nbsp;
+              {'classified as'}
+              &nbsp;
+              <TeamIndicator
+                style={{
+                  backgroundColor:
+                    selectedTweet.group === '1'
+                      ? globalColors.group.lib
+                      : globalColors.group.con
+                }}
+              >
+                {selectedTweet.group === '1' ? 'blue team' : 'red team'}
+              </TeamIndicator>
+            </div>
+            {/* second line of question */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              &nbsp;&nbsp;
+              {'while'}
+              &nbsp;&nbsp;
+              <Grommet theme={customDropdownTheme}>
+                <Select
+                  style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                  multiple={true}
+                  value={
+                    typeof secondSelectedTweet.tweetId != 'undefined'
+                      ? 'tweet ' + secondSelectedTweet.tweetId
+                      : ' '
+                  }
+                  onChange={e => {
+                    const selectedIdForSecondTweet = e.selected[0],
+                      tweetForSecondTweet = tweets.filter(
+                        d => selectedIdForSecondTweet === d.tweetId
+                      )[0];
+
+                    console.log(
+                      'selectedIdForSecondTweet: ',
+                      tweetForSecondTweet
+                    );
+                    dispatch({
+                      type: 'SELECT_SECOND_TWEET',
+                      payload: tweetForSecondTweet
+                    });
+                    dispatch(
+                      findContrastiveExamples({
+                        qType: qType,
+                        tweets: tweets,
+                        selectedTweet: selectedTweet,
+                        secondSelectedTweet: tweetForSecondTweet,
+                        currentModel: currentModel
+                      })
+                    );
+                  }}
+                  options={idWithTweetArray}
+                  size={'small'}
+                />
+              </Grommet>
+              &nbsp;&nbsp;
+              {'classified as'}
+              &nbsp;&nbsp;
+              <TeamIndicator
+                style={{
+                  backgroundColor:
+                    secondSelectedTweet.group === '1'
+                      ? globalColors.group.lib
+                      : secondSelectedTweet.group === '0'
+                      ? globalColors.group.con
+                      : 'gray'
+                }}
+              >
+                {secondSelectedTweet.group === '1'
+                  ? 'blue team'
+                  : secondSelectedTweet.group === '0'
+                  ? 'red team'
+                  : ' '}
+              </TeamIndicator>
+              &nbsp; ?
+            </div>
           </QuestionWrapper>
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <IndicatorWrapper>A: </IndicatorWrapper>&nbsp;&nbsp;&nbsp;
-          <AnswerWrapper>Because + {answerStr[0]}</AnswerWrapper>
+          <AnswerWrapper>Because {oTypeAnswerStr}</AnswerWrapper>
         </div>
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
-            <div>Selected</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>First</div>
             <Document tweet={selectedTweet} />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
-          <ContrastiveInstanceWrapper>
-            <div>{contrastiveEXs[0].contFeature + '-contrastive'}</div>
-            <div>{contrastiveEXs[0].contFeature + '-contrastive'}</div>
-            <Document tweet={contrastiveEXs[0]} />
-          </ContrastiveInstanceWrapper>
+          <SelectedInstanceWrapper>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Second</div>
+            <Document tweet={secondSelectedTweet} />
+          </SelectedInstanceWrapper>
         </ContrastiveExplanationWrapper>
       </div>
     );
@@ -179,31 +465,51 @@ const QAView = ({ selectedTweet, qType, contrastiveEXs }) => {
 
 const LocalInterpreter = ({
   selectedTweet,
+  secondSelectedTweet,
   tweets,
   qType,
+  contrastiveRules,
   contrastiveEXs,
-  currentModel
+  currentModel,
+  diffRule,
+  features
 }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    console.log('qType in localInterpreter: ', qType);
     dispatch(
       findContrastiveExamples({
+        qType: qType,
         tweets: tweets,
         selectedTweet: selectedTweet,
+        secondSelectedTweet: secondSelectedTweet,
         currentModel: currentModel
       })
     );
   }, [selectedTweet]);
 
-  if (!contrastiveEXs || contrastiveEXs.length === 0) return <div />;
+  const loadingIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
+
+  if (!contrastiveEXs || contrastiveEXs.length === 0)
+    return (
+      <LocalInterpreterWrapper>
+        <div>
+          <SectionTitle>Local Interpretability</SectionTitle>
+          <Spin indicator={loadingIcon} />
+        </div>
+      </LocalInterpreterWrapper>
+    );
 
   return (
     <LocalInterpreterWrapper>
       <div>
         <SectionTitle>Local Interpretability</SectionTitle>
       </div>
-      <span>Select a contrastive question type: </span>
+      <span style={{ fontWeight: 600 }}>
+        Select a contrastive question type:{' '}
+      </span>
+      &nbsp;
       <Select
         multiple={false}
         value={qType}
@@ -216,7 +522,13 @@ const LocalInterpreter = ({
       <QAView
         qType={qType}
         selectedTweet={selectedTweet}
+        secondSelectedTweet={secondSelectedTweet}
+        contrastiveRules={contrastiveRules}
         contrastiveEXs={contrastiveEXs}
+        diffRule={diffRule}
+        tweets={tweets}
+        currentModel={currentModel}
+        features={features}
       />
     </LocalInterpreterWrapper>
   );

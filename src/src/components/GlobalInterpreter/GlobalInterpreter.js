@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
+import { Spin, Icon } from 'antd';
 import { Grommet, Button, Select } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { deepMerge } from 'grommet/utils';
@@ -26,7 +27,7 @@ import { calculatePartialDependence } from '../../modules/globalInterpreter';
 import Generator from './Generator';
 import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
 import FeaturePlotView from './FeaturePlotView';
-import WordPlotView from './WordPlotView';
+import SeqPlotView from './SeqPlotView';
 
 const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   className: 'global_interpreter'
@@ -34,7 +35,7 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   grid-area: g;
   display: grid;
   grid-template-columns: 20% 80%;
-  grid-template-rows: 50px 50px 20px 300px 150px;
+  grid-template-rows: 50px 50px 20px 250px 300px;
   grid-template-areas:
     'ge t'
     'ge md'
@@ -265,7 +266,24 @@ const GlobalInterpreter = props => {
     );
   }, []);
 
-  if (!clusters || clusters.length === 0 || isLoaded === false) return <div />;
+  const loadingIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
+
+  if (!clusters || clusters.length === 0 || isLoaded === false)
+    return (
+      <GlobalInterpreterWrapper>
+        <div style={{ gridArea: 't' }}>
+          <SectionTitle>Global Interpretability</SectionTitle>
+          <Spin indicator={loadingIcon} />
+        </div>
+        <Generator
+          globalMode={globalMode}
+          tweets={tweets}
+          tweetsWithPredFeatures={tweetsWithPredFeatures}
+          features={features}
+          selectedFeatures={selectedFeatures}
+        />
+      </GlobalInterpreterWrapper>
+    );
 
   return (
     <GlobalInterpreterWrapper>
@@ -276,33 +294,33 @@ const GlobalInterpreter = props => {
         &nbsp;&nbsp;&nbsp;&nbsp;
         <SubsectionTitle>Mode: </SubsectionTitle>
         &nbsp;&nbsp;&nbsp;
-        <Grommet theme={deepMerge(grommet, customDropdownTheme)}>
-          <ModeDropdown
-            multiple={false}
-            value={globalModesWithDisplay[globalMode].display}
-            onChange={(e, i) => {
-              const selectedGlobalMode = e.selected;
-              dispatch({
-                type: 'CHANGE_GLOBAL_MODE',
-                payload: selectedGlobalMode
-              });
+        {/* <Grommet theme={deepMerge(grommet, customDropdownTheme)}> */}
+        <ModeDropdown
+          multiple={false}
+          value={globalModesWithDisplay[globalMode].display}
+          onChange={(e, i) => {
+            const selectedGlobalMode = e.selected;
+            dispatch({
+              type: 'CHANGE_GLOBAL_MODE',
+              payload: selectedGlobalMode
+            });
 
-              if (globalMode !== selectedGlobalMode) {
-                selectedGlobalMode === 2
-                  ? dispatch(
-                      runDTThenRunClandPD({
-                        tweets: tweets,
-                        selectedFeatures: selectedFeatures,
-                        modelId: currentModel
-                      })
-                    )
-                  : console.log('no');
-              }
-            }}
-            options={globalModesWithDisplay.map(d => d.display)}
-            size={'small'}
-          />
-        </Grommet>
+            if (globalMode !== selectedGlobalMode) {
+              selectedGlobalMode === 2
+                ? dispatch(
+                    runDTThenRunClandPD({
+                      tweets: tweets,
+                      selectedFeatures: selectedFeatures,
+                      modelId: currentModel
+                    })
+                  )
+                : console.log('no');
+            }
+          }}
+          options={globalModesWithDisplay.map(d => d.display)}
+          size={'small'}
+        />
+        {/* </Grommet> */}
         {/* <QuestionDiv>
           {'How well can (shallow) machine predict ideological groups?'}
         </QuestionDiv> */}
@@ -330,9 +348,10 @@ const GlobalInterpreter = props => {
         pdpValuesForLib={pdpValuesForLib}
         isLoaded={isLoaded}
       />
-      <WordPlotView
+      <SeqPlotView
         globalMode={globalMode}
         numFeatures={numFeatures}
+        wordsInTweets={tweets}
         words={words}
         selectedFeatures={selectedFeatures}
       />
