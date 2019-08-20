@@ -144,6 +144,8 @@ const FeaturePlotView = React.memo(
 
     const numFeatures = selectedFeatures.length;
 
+    console.log('after mode update: ', tweets);
+
     // prettier-ignore
     const tweetsCorrectPred = tweets.filter(d => d.group === d.pred),
     tweetsWrongPred = tweets.filter(d => (d.group !== d.pred)),
@@ -383,9 +385,11 @@ const FeaturePlotView = React.memo(
             20
         ]);
 
-      const featureToOutputLines = gFeatureToOutputLines
+      const featureToOutputLinesData = gFeatureToOutputLines
         .selectAll('.line_feature_to_output')
-        .data(tweets)
+        .data(tweets);
+
+      featureToOutputLinesData
         .enter()
         .append('line')
         .attr(
@@ -411,6 +415,8 @@ const FeaturePlotView = React.memo(
         // .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
         .style('stroke-width', 0.3)
         .style('opacity', d => 0.3);
+
+      featureToOutputLinesData.exit().remove();
 
       //* Render the feature plot
       const gFeaturePlot = svg.append('g').attr('class', 'g_feature_plot');
@@ -864,6 +870,14 @@ const FeaturePlotView = React.memo(
                 payload: tweets
               });
 
+              // dispatch({
+              //   type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+              //   payload: {
+              //     isClusterSelected: false,
+              //     tweetsInClusterForSeqPlot: []
+              //   }
+              // });
+
               // Return back all elements to the normal
               gFeaturePlot.selectAll('.path_tweet').remove();
               d3.select('canvas').style('opacity', 1);
@@ -975,14 +989,33 @@ const FeaturePlotView = React.memo(
                 .style('fill', d => globalColors.group.wrong.con)
                 .style('opacity', 0.5);
           } else {
-            const clusterId = d.clusterId,
-              tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+              const clusterId = d.clusterId,
+                tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+
+              const drawPDPArea = d3
+                .area()
+                .x0(0)
+                .x1(e => xPDProbScale(e.pdpValue))
+                .y(e =>
+                  d.key === 'care'
+                    ? yPDCareFeatureValueScale(e.featureValue)
+                    : yPDFeatureValueScale(e.featureValue)
+                )
+                .curve(d3.curveCatmullRom);
 
               // List tweets within this cluster in tweetList
               dispatch({
                 type: 'LIST_TWEETS_IN_CL',
                 payload: tweetsInCluster
               });
+
+              // dispatch({
+              //   type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+              //   payload: {
+              //     isClusterSelected: true,
+              //     tweetsInClusterForSeqPlot: tweetsInCluster
+              //   }
+              // });
 
               // Remove previous elements
               gFeaturePlot.selectAll('.path_tweet_for_cluster').remove();
@@ -994,6 +1027,15 @@ const FeaturePlotView = React.memo(
               d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
+
+              selectedFeatures.forEach(feature => {
+                const featureName = feature.key;
+
+                d3.selectAll('.area_pdp_for_lib')
+                .datum(pdpValuesForLib[featureName])
+                .attr('class', 'area_pdp_for_lib')
+                .attr('d', drawPDPArea);
+              });
 
               d3.selectAll('.cluster_selected')
                 .style('stroke', 'gray')
@@ -1162,78 +1204,84 @@ const FeaturePlotView = React.memo(
         .text('Cluster')
         .attr('y', 10);
 
-      //* Render Partial dependent plot (PDP)
-      const gPDP = svg
-        .append('g')
-        .attr('class', 'g_pdp')
-        .attr(
-          'transform',
-          'translate(' +
-            (layout.featurePlot.width +
-              layout.outputProbPlot.leftMargin +
-              layout.outputProbPlot.width +
-              layout.clusterPlot.width +
-              layout.clusterPlot.maxRadius * 2 +
-              layout.pdpPlot.leftMargin) +
-            ',0)'
-        );
-
-      const yClusterCoordPDPScale = d3
-        .scaleBand()
-        .domain(clusters.map(d => d.clusterId))
-        .range([layout.margin.top, layout.pdpPlot.height]);
-
-      const xPDPScale = d3
-        .scaleLinear()
-        .domain([0, 1])
-        .range([0, layout.pdpPlot.width]);
-
-      const colorPDPScale = d3
-        .scaleLinear()
-        .domain([0, 0.5, 1]) // 0 (prob of being con) --- >>> --- 1 (prob of being lib)
-        .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
-
-      const yPDPAxisSetting = d3.axisLeft(yClusterCoordPDPScale).tickSize(0),
-        yPDPAxis = gPDP
+      if (globalMode !== 0) {
+        //* Render Partial dependent plot (PDP)
+        const gPDP = svg
           .append('g')
-          .call(yPDPAxisSetting)
-          .attr('class', 'g_pdp_y_axis')
-          .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+          .attr('class', 'g_pdp')
+          .attr(
+            'transform',
+            'translate(' +
+              (layout.featurePlot.width +
+                layout.outputProbPlot.leftMargin +
+                layout.outputProbPlot.width +
+                layout.clusterPlot.width +
+                layout.clusterPlot.maxRadius * 2 +
+                layout.pdpPlot.leftMargin) +
+              ',0)'
+          );
 
-      const pdpBars = gPDP
-        .selectAll('.cluster_circle')
-        .data(
-          clusters.map(d => {
-            const clusterId = d.clusterId,
-              tweetPDPValuesInCluster = tweets
-                .filter(e => e.clusterId === clusterId)
-                .map(f => f.prob);
-            const avgPDPValuesForCluster = _.mean(tweetPDPValuesInCluster);
+        const yClusterCoordPDPScale = d3
+          .scaleBand()
+          .domain(clusters.map(d => d.clusterId))
+          .range([layout.margin.top, layout.pdpPlot.height]);
 
-            return {
-              clusterId: clusterId,
-              avgPDPValue: avgPDPValuesForCluster
-            };
-          })
-        )
-        .enter()
-        .append('rect')
-        .attr(
-          'class',
-          (d, i) =>
-            'cluster_output_prob_rect cluster_output_prob_rect_' + d.clusterId
-        )
-        .attr('x', 0)
-        .attr('y', d => yClusterCoordPDPScale(d.clusterId))
-        .attr('width', d => xPDPScale(d.avgPDPValue))
-        .attr('height', yClusterCoordPDPScale.bandwidth() - 3)
-        .style('fill', d => colorPDPScale(d.avgPDPValue))
-        .style('opacity', 0.5);
+        const xPDPScale = d3
+          .scaleLinear()
+          .domain([0, 1])
+          .range([0, layout.pdpPlot.width]);
 
-      const pdpTitle = gPDP
-        .append('text')
-        .text('Output Prob')
-        .attr('y', 10);
+        const colorPDPScale = d3
+          .scaleLinear()
+          .domain([0, 0.5, 1]) // 0 (prob of being con) --- >>> --- 1 (prob of being lib)
+          .range([
+            globalColors.group.con,
+            'whitesmoke',
+            globalColors.group.lib
+          ]);
+
+        const yPDPAxisSetting = d3.axisLeft(yClusterCoordPDPScale).tickSize(0),
+          yPDPAxis = gPDP
+            .append('g')
+            .call(yPDPAxisSetting)
+            .attr('class', 'g_pdp_y_axis')
+            .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+
+        const pdpBars = gPDP
+          .selectAll('.cluster_circle')
+          .data(
+            clusters.map(d => {
+              const clusterId = d.clusterId,
+                tweetPDPValuesInCluster = tweets
+                  .filter(e => e.clusterId === clusterId)
+                  .map(f => f.prob);
+              const avgPDPValuesForCluster = _.mean(tweetPDPValuesInCluster);
+
+              return {
+                clusterId: clusterId,
+                avgPDPValue: avgPDPValuesForCluster
+              };
+            })
+          )
+          .enter()
+          .append('rect')
+          .attr(
+            'class',
+            (d, i) =>
+              'cluster_output_prob_rect cluster_output_prob_rect_' + d.clusterId
+          )
+          .attr('x', 0)
+          .attr('y', d => yClusterCoordPDPScale(d.clusterId))
+          .attr('width', d => xPDPScale(d.avgPDPValue))
+          .attr('height', yClusterCoordPDPScale.bandwidth() - 3)
+          .style('fill', d => colorPDPScale(d.avgPDPValue))
+          .style('opacity', 0.5);
+
+        const pdpTitle = gPDP
+          .append('text')
+          .text('Output Prob')
+          .attr('y', 10);
+      }
     }, [
       tweets,
       clusters,

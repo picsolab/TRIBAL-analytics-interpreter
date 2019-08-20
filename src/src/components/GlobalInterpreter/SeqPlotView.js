@@ -92,7 +92,7 @@ const WordWrapper = styled.div.attrs({
   border-radius: 5px;
   background-color: gray;
   color: white;
-  text-align: center;
+  // text-align: center;
   display: inline-block;
   margin: 2px auto;
   line-height: 1.7;
@@ -136,6 +136,13 @@ const Word = ({ word }) => {
       {word.seq}
     </WordWrapper>
   );
+};
+
+const SeqListForCluster = ({
+  isClusterSelected,
+  tweetsInClusterForSeqPlot
+}) => {
+  return <div />;
 };
 
 const WordList = ({ feature, wordsInTweets }) => {
@@ -272,7 +279,9 @@ const SeqPlotView = ({
   wordsInTweets,
   words,
   selectedFeatures,
-  globalMode
+  globalMode,
+  isClusterSelected,
+  tweetsInClusterForSeqPlot
 }) => {
   const ref = useRef(null);
 
@@ -293,20 +302,15 @@ const SeqPlotView = ({
       ))}
       <WordGroupPlot>
         <svg
-          // width={layout.width + layout.margin.left + layout.margin.right}
-          // height={layout.height + layout.margin.top + layout.margin.bottom}
           width={layout.wordGroupPlot.width}
           height={layout.wordGroupPlot.height}
-          // viewBox={
-          //   '0 0 ' +
-          //   layout.wordGroupPlot.width +
-          //   ' ' +
-          //   layout.wordGroupPlot.height
-          // }
-          // preserveAspectRatio="xMinYMin"
           ref={ref}
         />
       </WordGroupPlot>
+      <SeqListForCluster
+        isClusterSelected={isClusterSelected}
+        tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
+      />
     </SeqPlotViewWrapper>
   );
 };

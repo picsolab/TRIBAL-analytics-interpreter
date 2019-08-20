@@ -207,7 +207,11 @@ const QAView = ({
     }
   );
 
-  const pTypeAnswerStr = 'tweet 176 has ' + pTypeAnswerForFeatures.join(' ');
+  const pTypeAnswerStr =
+    'tweet ' +
+    selectedTweet.tweetId +
+    ' has ' +
+    pTypeAnswerForFeatures.join(' ');
 
   const { subject, feature, inequality, threshold } = diffRule;
   const firstSubjectStr =

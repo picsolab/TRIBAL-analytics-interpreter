@@ -5,6 +5,8 @@ import axios from 'axios';
 
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
+const UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE =
+  'UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE';
 const SELECT_TWEET = 'SELECT_TWEET';
 const SELECT_SECOND_TWEET = 'SELECT_SECOND_TWEET';
 const SEARCH_TWEETS = 'SEARCH_TWEETS';
@@ -26,39 +28,46 @@ export const fetchTweets = () => {
         content: d.content,
         screenName: d.screen_name,
         valence: d.valence,
+        valenceGrpPred: d.valence_grp_pred,
         valenceSeq: d.valence_seq,
         valenceSeqRank: d.valence_seq_rank,
-        valencePred: d.valence_pred,
-        valenceGrpPred: d.valence_grp_pred,
         dominance: d.dominance,
+        dominanceGrpPred: d.dominance_grp_pred,
         dominanceSeq: d.dominance_seq,
         dominanceSeqRank: d.dominance_seq_rank,
-        dominancePred: d.dominance_pred,
-        dominanceGrpPred: d.dominance_grp_pred,
         care: d.care,
+        careGrpPred: d.care_grp_pred,
         careSeq: d.care_seq,
         careSeqRank: d.care_seq_rank,
-        carePred: d.care_pred,
-        careGrpPred: d.care_grp_pred,
-        careProb: d.care_prob,
         fairness: d.fairness,
-        fairnessSeq: d.fairness_seq,
-        fairnessSeqRank: d.fairness_seq_rank,
-        fairnessPred: d.fairness_pred,
         fairnessGrpPred: d.fairness_grp_pred,
-        fairnessProb: d.fairness_prob
+        fairnessSeq: d.fairness_seq,
+        fairnessSeqRank: d.fairness_seq_rank
       }));
 
       const tweetsWithPredFeatures = res.data.map(d => ({
         tweetId: d.tweet_id,
         group: d.grp,
         content: d.content,
-        valence: d.valence,
-        dominance: d.dominance,
-        care: d.care,
-        fairness: d.fairness,
-        userId: d.user_id,
-        screenName: d.screen_name
+        screenName: d.screen_name,
+        valence: d.valence_pred,
+        valenceGrpPred: d.valence_grp_pred,
+        valenceSeq: d.valence_seq,
+        valenceSeqRank: d.valence_seq_rank,
+        dominance: d.dominance_pred,
+        dominanceSeq: d.dominance_seq,
+        dominanceSeqRank: d.dominance_seq_rank,
+        dominanceGrpPred: d.dominance_grp_pred,
+        care: d.care_pred,
+        careProb: d.care_prob,
+        careGrpPred: d.care_grp_pred,
+        careSeq: d.care_seq,
+        careSeqRank: d.care_seq_rank,
+        fairness: d.fairness_pred,
+        fairnessProb: d.fairness_prob,
+        fairnessGrpPred: d.fairness_grp_pred,
+        fairnessSeq: d.fairness_seq,
+        fairnessSeqRank: d.fairness_seq_rank
       }));
 
       dispatch({
@@ -132,6 +141,30 @@ const tweet = (state = initialState, action) => {
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
         selectedTweet: action.payload.tweets[0]
       };
+    case UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE:
+      const updatedGlobalMode = action.payload;
+      switch (updatedGlobalMode) {
+        case 0: // true-true
+          return {
+            ...state,
+            tweets: state.tweets
+          };
+        case 1: // predicted-true
+          return {
+            ...state,
+            tweets: state.tweets
+          };
+        case 2: // predicted-predicted
+          return {
+            ...state,
+            tweets: state.tweetsWithPredFeatures
+          };
+        case 3: // predicted-predicted for DL
+          return {
+            ...state,
+            tweets: state.tweetsWithPredFeatures
+          };
+      }
     case SELECT_TWEET:
       return {
         ...state,

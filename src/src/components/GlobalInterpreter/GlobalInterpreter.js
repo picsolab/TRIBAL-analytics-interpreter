@@ -251,7 +251,9 @@ const GlobalInterpreter = props => {
     pdpValues,
     pdpValuesForCon,
     pdpValuesForLib,
-    isLoaded
+    isLoaded,
+    isClusterSelected,
+    tweetsInClusterForSeqPlot
   } = props;
   const numFeatures = 6,
     numAbstractFeatures = 1;
@@ -305,16 +307,28 @@ const GlobalInterpreter = props => {
               payload: selectedGlobalMode
             });
 
+            dispatch({
+              type: 'UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE',
+              payload: selectedGlobalMode
+            });
+
             if (globalMode !== selectedGlobalMode) {
-              selectedGlobalMode === 2
+              selectedGlobalMode === 2 || selectedGlobalMode === 3
                 ? dispatch(
+                    runDTThenRunClandPD({
+                      tweets: tweetsWithPredFeatures,
+                      selectedFeatures: selectedFeatures,
+                      modelId: currentModel
+                    })
+                  )
+                : // when selectedGlobalMode is 0 or 1
+                  dispatch(
                     runDTThenRunClandPD({
                       tweets: tweets,
                       selectedFeatures: selectedFeatures,
                       modelId: currentModel
                     })
-                  )
-                : console.log('no');
+                  );
             }
           }}
           options={globalModesWithDisplay.map(d => d.display)}
@@ -354,6 +368,8 @@ const GlobalInterpreter = props => {
         wordsInTweets={tweets}
         words={words}
         selectedFeatures={selectedFeatures}
+        isClusterSelected={isClusterSelected}
+        tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
       />
     </GlobalInterpreterWrapper>
   );

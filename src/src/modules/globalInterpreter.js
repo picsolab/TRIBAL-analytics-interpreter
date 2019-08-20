@@ -1,10 +1,12 @@
 import axios from 'axios';
+import { store } from '../index';
 
 const CAL_PD = 'CAL_PD';
 const RUN_CL_N_CAL_PD_FOR_PDP_VALUES = 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES';
 const CHANGE_GLOBAL_MODE = 'CHANGE_GLOBAL_MODE';
 const SET_SELECTED_FEATURES = 'SET_SELECTED_FEATURES';
 const IS_CHECKED = 'IS_CHECKED';
+const SHOW_SEQ_PLOT_FOR_CLUSTER = 'SHOW_SEQ_PLOT_FOR_CLUSTER';
 
 // Three modes:
 // (1) calculate pd per every feature
@@ -43,8 +45,8 @@ const initialState = {
       type: 'categorical',
       values: [
         { num: 0, real: 'none' },
-        { num: 1, real: 'pos' },
-        { num: 2, real: 'neg' },
+        { num: 1, real: 'virtue' },
+        { num: 2, real: 'vice' },
         { num: 3, real: 'both' }
       ]
     },
@@ -55,8 +57,8 @@ const initialState = {
       type: 'categorical',
       values: [
         { num: 0, real: 'none' },
-        { num: 1, real: 'pos' },
-        { num: 2, real: 'neg' },
+        { num: 1, real: 'virtue' },
+        { num: 2, real: 'vice' },
         { num: 3, real: 'both' }
       ]
     },
@@ -86,7 +88,9 @@ const initialState = {
   pdpValues: [],
   pdpValuesForCon: [],
   pdpValuesForLib: [],
-  globalMode: 0 // 1: true-true, 2: true-pred, 3: pred-pred, 4:
+  globalMode: 0, // 1: true-true, 2: true-pred, 3: pred-pred, 4:
+  isClusterSelected: false,
+  tweetsInClusterForSeqPlot: []
 };
 
 // Reducers
@@ -99,10 +103,29 @@ const globalInterpreter = (state = initialState, action) => {
     //     data: action.payload
     //   };
     case CHANGE_GLOBAL_MODE:
-      return {
-        ...state,
-        globalMode: action.payload
-      };
+      const updatedGlobalMode = action.payload;
+      switch (updatedGlobalMode) {
+        case 0: // true-true
+          return {
+            ...state,
+            globalMode: action.payload
+          };
+        case 1: // predicted-true
+          return {
+            ...state,
+            globalMode: action.payload
+          };
+        case 2: // predicted-predicted
+          return {
+            ...state,
+            globalMode: action.payload
+          };
+        case 3: // predicted-predicted for DL
+          return {
+            ...state,
+            globalMode: action.payload
+          };
+      }
     case SET_SELECTED_FEATURES:
       return {
         ...state,
@@ -148,6 +171,12 @@ const globalInterpreter = (state = initialState, action) => {
         pdpValues: pdpValuesObj,
         pdpValuesForCon: pdpValuesForConObj,
         pdpValuesForLib: pdpValuesForLibObj
+      };
+    case SHOW_SEQ_PLOT_FOR_CLUSTER:
+      return {
+        ...state,
+        isClusterSelected: action.payload.isClusterSelected,
+        tweetsInClusterForSeqPlot: action.payload.tweetsInClusterForSeqPlot
       };
     default:
       return state;
