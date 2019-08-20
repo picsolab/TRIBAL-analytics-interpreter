@@ -27,6 +27,8 @@ code {
 
 .axis text {
   font-weight: 600;
+  fill: mediumaquamarine;
+  font-size: 0.8rem;
 }
 
 .g_feature_group_axis path {

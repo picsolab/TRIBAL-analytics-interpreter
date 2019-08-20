@@ -56,7 +56,7 @@ const DocumentWrapper = styled.div.attrs({
 
 const ScoreView = ({ tweet }) => {
   const ref = useRef(null);
-  const features = ['valence', 'dominance', 'care', 'fairness'],
+  const features = ['valence', 'fairness', 'dominance', 'care'],
     numFeatures = features.length,
     tweetScores = Object.values(_.pick(tweet, features));
 

@@ -43,7 +43,7 @@ const ScoreView = ({ tweetList }) => {
   };
 
   useEffect(() => {
-    const features = ['valence', 'dominance', 'care', 'fairness'],
+    const features = ['valence', 'fairness', 'dominance', 'care'],
       numFeatures = features.length;
 
     const avgScores = features.map(feature => {

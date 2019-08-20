@@ -180,11 +180,10 @@ const FeaturePlotView = React.memo(
 
       const yFairnessScale = d3
         .scaleOrdinal()
-        .domain([1, 0, 2, 3])
+        .domain([1, 0, 2])
         .range([
           layout.height,
-          layout.height - ((layout.height - layout.margin.top) / 3) * 1,
-          layout.height - ((layout.height - layout.margin.top) / 3) * 2,
+          layout.height - (layout.height - layout.margin.top) / 2,
           layout.margin.top
         ]);
 
@@ -199,9 +198,23 @@ const FeaturePlotView = React.memo(
         .range([layout.height, layout.margin.top]);
 
       const yPDCareFeatureValueScale = d3
-        .scaleLinear()
-        .domain([0, 3])
-        .range([layout.height, layout.margin.top]);
+        .scaleOrdinal()
+        .domain([1, 0, 3, 2])
+        .range([
+          layout.height,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 1,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 2,
+          layout.margin.top
+        ]);
+
+      const yPDFairnessFeatureValueScale = d3
+        .scaleOrdinal()
+        .domain([1, 0, 2])
+        .range([
+          layout.height,
+          layout.height - (layout.height - layout.margin.top) / 2,
+          layout.margin.top
+        ]);
 
       const yAxis = d3.axisLeft();
 
@@ -522,6 +535,8 @@ const FeaturePlotView = React.memo(
             .y(e =>
               d.key === 'care'
                 ? yPDCareFeatureValueScale(e.featureValue)
+                : d.key === 'fairness'
+                ? yPDFairnessFeatureValueScale(e.featureValue)
                 : yPDFeatureValueScale(e.featureValue)
             )
             .curve(d3.curveCatmullRom);
@@ -533,6 +548,8 @@ const FeaturePlotView = React.memo(
             .y(e =>
               d.key === 'care'
                 ? yPDCareFeatureValueScale(e.featureValue)
+                : d.key === 'fairness'
+                ? yPDFairnessFeatureValueScale(e.featureValue)
                 : yPDFeatureValueScale(e.featureValue)
             )
             .curve(d3.curveCatmullRom);
@@ -542,6 +559,15 @@ const FeaturePlotView = React.memo(
             yAxisSetting = d3
               .axisLeft(yCareScale)
               .tickValues([0, 1, 2, 3])
+              .tickFormat(function(d, i) {
+                return d === 0
+                  ? 'None'
+                  : d === 1
+                  ? 'Virtue'
+                  : d === 2
+                  ? 'Vice'
+                  : 'Both';
+              })
               .tickSize(1);
             d3.select(this).call(yAxisSetting);
 
@@ -600,7 +626,16 @@ const FeaturePlotView = React.memo(
           } else if (d.key === 'fairness') {
             yAxisSetting = d3
               .axisLeft(yFairnessScale)
-              .tickValues([0, 1, 2, 3])
+              .tickValues([0, 1, 2])
+              .tickFormat(function(d, i) {
+                return d === 0
+                  ? 'None'
+                  : d === 1
+                  ? 'Virtue'
+                  : d === 2
+                  ? 'Vice'
+                  : 'Both';
+              })
               .tickSize(1);
             d3.select(this).call(yAxisSetting);
 
@@ -612,7 +647,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp')
               .attr('x', 2)
-              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+              .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 10)
               .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
@@ -629,7 +664,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp_for_con')
               .attr('x', 2)
-              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+              .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 5)
               .style('stroke', d3.rgb(globalColors.group.con).darker())
@@ -646,7 +681,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp_for_lib')
               .attr('x', 2)
-              .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+              .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 5)
               .style('stroke', d3.rgb(globalColors.group.lib).darker())
@@ -1097,16 +1132,16 @@ const FeaturePlotView = React.memo(
               const clusterId = d.clusterId,
                 tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
 
-              const drawPDPArea = d3
-                .area()
-                .x0(0)
-                .x1(e => xPDProbScale(e.pdpValue))
-                .y(e =>
-                  d.key === 'care'
-                    ? yPDCareFeatureValueScale(e.featureValue)
-                    : yPDFeatureValueScale(e.featureValue)
-                )
-                .curve(d3.curveCatmullRom);
+              // const drawPDPArea = d3
+              //   .area()
+              //   .x0(0)
+              //   .x1(e => xPDProbScale(e.pdpValue))
+              //   .y(e =>
+              //     d.key === 'care'
+              //       ? yPDCareFeatureValueScale(e.featureValue)
+              //       : yPDFeatureValueScale(e.featureValue)
+              //   )
+              //   .curve(d3.curveCatmullRom);
 
               // List tweets within this cluster in tweetList
               dispatch({
