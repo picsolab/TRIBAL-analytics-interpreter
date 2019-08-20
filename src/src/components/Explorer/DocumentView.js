@@ -62,8 +62,7 @@ const ScoreView = ({ tweetList }) => {
 
     const yCFScale = d3
       .scaleOrdinal()
-      .domain([0, 3])
-      .domain([0, 1, 2, 3])
+      .domain([3, 2, 1, 0])
       .range([
         layout.svg.width,
         layout.svg.width - layout.svg.width / 3,
@@ -71,25 +70,74 @@ const ScoreView = ({ tweetList }) => {
         0
       ]);
 
-    const featureRect = d3
+    const yCareScale = d3
+      .scaleOrdinal()
+      .domain([2, 3, 0, 1])
+      .range([
+        layout.height,
+        layout.height - ((layout.height - layout.marginBottom) / 3) * 1,
+        layout.height - ((layout.height - layout.marginBottom) / 3) * 2,
+        layout.marginBottom
+      ]);
+
+    const yFairnessScale = d3
+      .scaleOrdinal()
+      .domain([2, 0, 1])
+      .range([
+        layout.height,
+        layout.height - (layout.height - layout.marginBottom) / 2,
+        layout.marginBottom
+      ]);
+
+    // const featureRect = d3
+    //   .select(ref.current)
+    //   .selectAll('.feature_avg_rect')
+    //   .data(avgScores)
+    //   .enter()
+    //   .append('rect')
+    //   .attr('class', 'feature_avg_rect')
+    //   .attr('width', layout.svg.width / numFeatures - 3)
+    //   .attr('height', (d, i) =>
+    //     i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
+    //   )
+    //   .attr('x', (d, i) => xFeatureScale(i))
+    //   .attr('y', (d, i) => {
+    //     return i === 1
+    //       ? yFairnessScale(d)
+    //       : i === 3
+    //       ? yCareScale(d)
+    //       : yScoreScale(d);
+    //   })
+    //   .style('fill', globalColors.feature)
+    //   .style('cursor', 'pointer')
+    //   .on('click', function(d, i) {
+    //     const sortBy =
+    //       i === 0
+    //         ? 'valence'
+    //         : i === 1
+    //         ? 'fairness'
+    //         : i === 2
+    //         ? 'dominance'
+    //         : 'care';
+
+    //     d3.selectAll('.feature_sort_by').classed('feature_sort_by', false);
+    //     d3.select(this).classed('feature_sort_by', true);
+    //     dispatch({
+    //       type: 'SORT_TWEETS_BY_FEATURE',
+    //       payload: sortBy
+    //     });
+    //   });
+
+    const featureTitle = d3
       .select(ref.current)
-      .selectAll('.feature_avg_rect')
-      .data(avgScores)
+      .selectAll('text')
+      .data(['V', 'F', 'D', 'C'])
       .enter()
-      .append('rect')
-      .attr('class', 'feature_avg_rect')
-      .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) =>
-        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
-      )
+      .append('text')
+      .text(d => d)
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) => {
-        return i === 1 || i === 3
-          ? layout.svg.height - layout.marginBottom - yCFScale(d)
-          : layout.svg.height - layout.marginBottom - yScoreScale(d);
-      })
-      .style('fill', globalColors.feature)
-      .style('cursor', 'pointer')
+      .attr('y', (d, i) => layout.svg.height)
+      .style('font-size', '0.6rem')
       .on('click', function(d, i) {
         const sortBy =
           i === 0
@@ -107,17 +155,6 @@ const ScoreView = ({ tweetList }) => {
           payload: sortBy
         });
       });
-
-    const featureTitle = d3
-      .select(ref.current)
-      .selectAll('text')
-      .data(['V', 'F', 'D', 'C'])
-      .enter()
-      .append('text')
-      .text(d => d)
-      .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) => layout.svg.height)
-      .style('font-size', '0.6rem');
   }, [tweetList, ref.current]);
 
   return (

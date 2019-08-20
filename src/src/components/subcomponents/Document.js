@@ -79,12 +79,31 @@ const ScoreView = ({ tweet }) => {
 
   const yCFScale = d3
     .scaleLinear()
-    .domain([0, 1, 2, 3])
+    .domain([3, 2, 1, 0])
     .range([
       layout.svg.width,
       layout.svg.width - layout.svg.width / 3,
       layout.svg.width - (layout.svg.width / 3) * 2,
       0
+    ]);
+
+  const yCareScale = d3
+    .scaleOrdinal()
+    .domain([1, 0, 3, 2])
+    .range([
+      layout.height,
+      layout.height - ((layout.height - layout.marginBottom) / 3) * 1,
+      layout.height - ((layout.height - layout.marginBottom) / 3) * 2,
+      layout.marginBottom
+    ]);
+
+  const yFairnessScale = d3
+    .scaleOrdinal()
+    .domain([1, 0, 2])
+    .range([
+      layout.height,
+      layout.height - (layout.height - layout.marginBottom) / 2,
+      layout.marginBottom
     ]);
 
   const categoryMappingScale = d3
@@ -108,12 +127,14 @@ const ScoreView = ({ tweet }) => {
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) =>
-        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
+        i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
       )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
-        i === 1 || i === 3
-          ? layout.svg.height - layout.marginBottom - yCFScale(d)
+        i === 1
+          ? layout.svg.height - layout.marginBottom - yFairnessScale(d)
+          : i === 3
+          ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       )
       .style('fill', globalColors.feature)
@@ -141,12 +162,14 @@ const ScoreView = ({ tweet }) => {
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) =>
-        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
+        i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
       )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
-        i === 1 || i === 3
-          ? layout.svg.height - layout.marginBottom - yCFScale(d)
+        i === 1
+          ? layout.svg.height - layout.marginBottom - yFairnessScale(d)
+          : i === 3
+          ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       );
     featureRecData.exit().remove();
