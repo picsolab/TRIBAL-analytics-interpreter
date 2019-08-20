@@ -1133,14 +1133,14 @@ const FeaturePlotView = React.memo(
               d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
 
-              selectedFeatures.forEach(feature => {
-                const featureName = feature.key;
+              // selectedFeatures.forEach(feature => {
+              //   const featureName = feature.key;
 
-                d3.selectAll('.area_pdp_for_lib')
-                .datum(pdpValuesForLib[featureName])
-                .attr('class', 'area_pdp_for_lib')
-                .attr('d', drawPDPArea);
-              });
+              //   d3.selectAll('.area_pdp_for_lib')
+              //   .datum(pdpValuesForLib[featureName])
+              //   .attr('class', 'area_pdp_for_lib')
+              //   .attr('d', drawPDPArea);
+              // });
 
               d3.selectAll('.cluster_selected')
                 .style('stroke', 'gray')
