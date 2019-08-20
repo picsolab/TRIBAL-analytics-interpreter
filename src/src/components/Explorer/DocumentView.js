@@ -80,11 +80,11 @@ const ScoreView = ({ tweetList }) => {
       .attr('class', 'feature_avg_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) =>
-        i === 2 || i === 3 ? yCFScale(d) : yScoreScale(d)
+        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
       )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => {
-        return i === 2 || i === 3
+        return i === 1 || i === 3
           ? layout.svg.height - layout.marginBottom - yCFScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d);
       })
@@ -95,10 +95,10 @@ const ScoreView = ({ tweetList }) => {
           i === 0
             ? 'valence'
             : i === 1
-            ? 'dominance'
+            ? 'fairness'
             : i === 2
-            ? 'care'
-            : 'fairness';
+            ? 'dominance'
+            : 'care';
 
         d3.selectAll('.feature_sort_by').classed('feature_sort_by', false);
         d3.select(this).classed('feature_sort_by', true);

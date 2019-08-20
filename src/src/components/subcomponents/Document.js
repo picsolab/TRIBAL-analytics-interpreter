@@ -108,11 +108,11 @@ const ScoreView = ({ tweet }) => {
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) =>
-        i === 2 || i === 3 ? yCFScale(d) : yScoreScale(d)
+        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
       )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
-        i === 2 || i === 3
+        i === 1 || i === 3
           ? layout.svg.height - layout.marginBottom - yCFScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       )
@@ -140,10 +140,12 @@ const ScoreView = ({ tweet }) => {
 
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yCFScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) =>
+        i === 1 || i === 3 ? yCFScale(d) : yScoreScale(d)
+      )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
-        i === 2
+        i === 1 || i === 3
           ? layout.svg.height - layout.marginBottom - yCFScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       );
