@@ -87,7 +87,7 @@ const Generator = props => {
 
   // to be a props... updated by the layout below, then update states then come back as props
 
-  const featureDivs = features.map(featureObj => (
+  const featureDivs = selectedFeatures.map(featureObj => (
     <div>
       <div />
       <Grommet theme={deepMerge(grommet, customCheckBoxTheme)}>

@@ -168,6 +168,26 @@ const FeaturePlotView = React.memo(
         .domain([0, 3])
         .range([layout.height, layout.margin.top]);
 
+      const yCareScale = d3
+        .scaleOrdinal()
+        .domain([1, 0, 3, 2])
+        .range([
+          layout.height,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 1,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 2,
+          layout.margin.top
+        ]);
+
+      const yFairnessScale = d3
+        .scaleOrdinal()
+        .domain([1, 0, 2, 3])
+        .range([
+          layout.height,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 1,
+          layout.height - ((layout.height - layout.margin.top) / 3) * 2,
+          layout.margin.top
+        ]);
+
       const xPDProbScale = d3
         .scaleLinear()
         .domain([0, 1])
@@ -192,6 +212,7 @@ const FeaturePlotView = React.memo(
       d3.selectAll('.g_feature_plot').remove();
       d3.selectAll('.g_cluster_plot').remove();
       d3.selectAll('.g_output_prob_plot').remove();
+      d3.selectAll('.g_feature_to_output_paths').remove();
       d3.selectAll('.g_pdp').remove();
 
       //* Render output prob plot
@@ -399,8 +420,10 @@ const FeaturePlotView = React.memo(
         .attr('x1', xFeatureToOutputScale(0))
         .attr('y1', d => {
           const lastFeature = selectedFeatures[selectedFeatures.length - 1].key;
-          return lastFeature === 'care' || lastFeature === 'fairness'
-            ? yHFScale(d[lastFeature])
+          return lastFeature === 'care'
+            ? yCareScale(d[lastFeature])
+            : lastFeature === 'fairness'
+            ? yFairnessScale(d[lastFeature])
             : yVDScale(d[lastFeature]);
         })
         .attr('x2', d => xFeatureToOutputScale(1))
@@ -415,6 +438,21 @@ const FeaturePlotView = React.memo(
         // .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
         .style('stroke-width', 0.3)
         .style('opacity', d => 0.3);
+
+      featureToOutputLinesData
+        .attr('x1', xFeatureToOutputScale(0))
+        .attr('y1', d => {
+          const lastFeature = selectedFeatures[selectedFeatures.length - 1].key;
+          return lastFeature === 'care'
+            ? yCareScale(d[lastFeature])
+            : lastFeature === 'fairness'
+            ? yFairnessScale(d[lastFeature])
+            : yVDScale(d[lastFeature]);
+        })
+        .attr('x2', d => xFeatureToOutputScale(1))
+        .attr('y2', d =>
+          globalMode === 0 ? yGroupScale(d.group) : yOutputProbScale(d.prob)
+        );
 
       featureToOutputLinesData.exit().remove();
 
@@ -500,9 +538,68 @@ const FeaturePlotView = React.memo(
             .curve(d3.curveCatmullRom);
 
           // For harm and fairness, add ordinal scale + bar chart
-          if (d.key === 'care' || d.key === 'fairness') {
+          if (d.key === 'care') {
             yAxisSetting = d3
-              .axisLeft(yHFScale)
+              .axisLeft(yCareScale)
+              .tickValues([0, 1, 2, 3])
+              .tickSize(1);
+            d3.select(this).call(yAxisSetting);
+
+            // For all
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp')
+              .data(pdpValues[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp')
+              .attr('x', 2)
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 10)
+              .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+              // .style('stroke-width', 4)
+              .style('fill', 'rgb(190, 255, 231)')
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.3);
+
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp_for_con')
+              .data(pdpValuesForCon[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp_for_con')
+              .attr('x', 2)
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 5)
+              .style('stroke', d3.rgb(globalColors.group.con).darker())
+              // .style('stroke-width', 4)
+              .style('fill', globalColors.group.con)
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.5);
+
+            d3.select('.g_feature_axis_' + d.key)
+              .selectAll('.rect_pdp_for_lib')
+              .data(pdpValuesForLib[d.key])
+              .enter()
+              .append('rect')
+              .attr('class', 'rect_pdp_for_lib')
+              .attr('x', 2)
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+              .attr('width', e => xPDProbScale(e.pdpValue))
+              .attr('height', 5)
+              .style('stroke', d3.rgb(globalColors.group.lib).darker())
+              // .style('stroke-width', 4)
+              .style('fill', globalColors.group.lib)
+              // .style('stroke-dasharray', '8,3')
+              // .style('shape-rendering', 'crispedges')
+              .style('fill-opacity', 0.5);
+            // For valence and dominance, add linear scale + line chart
+          } else if (d.key === 'fairness') {
+            yAxisSetting = d3
+              .axisLeft(yFairnessScale)
               .tickValues([0, 1, 2, 3])
               .tickSize(1);
             d3.select(this).call(yAxisSetting);
@@ -678,8 +775,10 @@ const FeaturePlotView = React.memo(
           // check if data element has property and contains a value
           if (!(p.key in d) || d[p.key] === null) return null;
 
-          return p.key === 'care' || p.key === 'fairness'
-            ? [xFeatureScale(p.key), yHFScale(d[p.key])]
+          return p.key === 'care'
+            ? [xFeatureScale(p.key), yCareScale(d[p.key])]
+            : p.key === 'fairness'
+            ? [xFeatureScale(p.key), yFairnessScale(d[p.key])]
             : [xFeatureScale(p.key), yVDScale(d[p.key])];
         });
       }
@@ -744,7 +843,11 @@ const FeaturePlotView = React.memo(
           const selectedExtent =
             dim === 'valence' || dim === 'dominance'
               ? extent[0] <= yVDScale(value) && yVDScale(value) <= extent[1]
-              : extent[0] <= yHFScale(value) && yHFScale(value) <= extent[1];
+              : dim === 'fairness'
+              ? extent[0] <= yFairnessScale(value) &&
+                yFairnessScale(value) <= extent[1]
+              : extent[0] <= yCareScale(value) &&
+                yCareScale(value) <= extent[1];
 
           return selectedExtent;
         }
@@ -835,8 +938,10 @@ const FeaturePlotView = React.memo(
           return xFeatureScale(d[0]);
         })
         .y((d, i) =>
-          d[0] === 'care' || d[0] === 'fairness'
-            ? yHFScale(d[1])
+          d[0] === 'care'
+            ? yCareScale(d[1])
+            : d[0] === 'fairness'
+            ? yFairnessScale(d[1])
             : yVDScale(d[1])
         );
 
@@ -870,13 +975,13 @@ const FeaturePlotView = React.memo(
                 payload: tweets
               });
 
-              // dispatch({
-              //   type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
-              //   payload: {
-              //     isClusterSelected: false,
-              //     tweetsInClusterForSeqPlot: []
-              //   }
-              // });
+              dispatch({
+                type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+                payload: {
+                  isClusterSelected: false,
+                  tweetsInClusterForSeqPlot: []
+                }
+              });
 
               // Return back all elements to the normal
               gFeaturePlot.selectAll('.path_tweet').remove();
@@ -1009,13 +1114,13 @@ const FeaturePlotView = React.memo(
                 payload: tweetsInCluster
               });
 
-              // dispatch({
-              //   type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
-              //   payload: {
-              //     isClusterSelected: true,
-              //     tweetsInClusterForSeqPlot: tweetsInCluster
-              //   }
-              // });
+              dispatch({
+                type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+                payload: {
+                  isClusterSelected: true,
+                  tweetsInClusterForSeqPlot: tweetsInCluster
+                }
+              });
 
               // Remove previous elements
               gFeaturePlot.selectAll('.path_tweet_for_cluster').remove();

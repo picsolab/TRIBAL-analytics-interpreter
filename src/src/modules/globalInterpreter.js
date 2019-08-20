@@ -40,6 +40,12 @@ const initialState = {
   ],
   selectedFeatures: [
     {
+      key: 'valence',
+      abbr: 'V',
+      type: 'continuous',
+      threshold: 0.5
+    },
+    {
       key: 'fairness',
       abbr: 'F',
       type: 'categorical',
@@ -61,12 +67,6 @@ const initialState = {
         { num: 2, real: 'vice' },
         { num: 3, real: 'both' }
       ]
-    },
-    {
-      key: 'valence',
-      abbr: 'V',
-      type: 'continuous',
-      threshold: 0.5
     }
   ],
   areFeaturesChecked: { valence: false },
@@ -88,7 +88,7 @@ const initialState = {
   pdpValues: [],
   pdpValuesForCon: [],
   pdpValuesForLib: [],
-  globalMode: 0, // 1: true-true, 2: true-pred, 3: pred-pred, 4:
+  globalMode: 1, // 1: true-true, 2: true-pred, 3: pred-pred, 4:
   isClusterSelected: false,
   tweetsInClusterForSeqPlot: []
 };

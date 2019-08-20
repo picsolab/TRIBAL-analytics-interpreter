@@ -39,6 +39,7 @@ const numFeatures = 4;
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
 })`
+  width: 70%;
   grid-area: w;
   display: flex;
   margin-top: 10px;
@@ -94,7 +95,7 @@ const WordWrapper = styled.div.attrs({
   color: white;
   // text-align: center;
   display: inline-block;
-  margin: 2px auto;
+  margin: 2px 1px;
   line-height: 1.7;
   padding: 0 5px;
   opacity: 0.8;
@@ -124,8 +125,6 @@ const Word = ({ word }) => {
     <WordWrapper
       style={{ backgroundColor: seqDivColorScale(word.libRatio) }}
       onClick={function(e) {
-        console.log('onClick: ', e);
-        console.log(this);
         dispatch(
           searchTweets({
             searchKeyword: word.seq
@@ -142,7 +141,79 @@ const SeqListForCluster = ({
   isClusterSelected,
   tweetsInClusterForSeqPlot
 }) => {
-  return <div />;
+  const features = ['valence', 'fairness', 'dominance', 'care'];
+  if (isClusterSelected === false) return <div />;
+  else if (isClusterSelected === true) {
+    const corrTweetsInCluster = tweetsInClusterForSeqPlot.filter(
+      d => parseInt(d.group) == d.pred
+    );
+
+    const seqsInCluster = corrTweetsInCluster.map(tweet => {
+      var corrSeqs = [];
+      features.map(feature => {
+        if (parseInt(tweet.group) === tweet[feature + 'GrpPred'])
+          corrSeqs.push({
+            seq: tweet[feature + 'Seq'],
+            seqRank: tweet[feature + 'SeqRank'],
+            group: tweet.group
+          });
+      });
+
+      return corrSeqs;
+    });
+
+    const groupBySeqInCluster = _.groupBy(
+      _.flattenDeep(seqsInCluster, 2),
+      'seq'
+    );
+
+    const uniqueSeqsInCluster = Object.keys(groupBySeqInCluster).map(seq => {
+      const seqRanks = groupBySeqInCluster[seq].map(d => d.seqRank),
+        seqCount = groupBySeqInCluster[seq].length,
+        libSeqs = groupBySeqInCluster[seq].filter(d => d.group === '1');
+
+      return {
+        seq: seq,
+        avgRank: _.mean(seqRanks),
+        count: seqCount,
+        libRatio:
+          libSeqs.length === 0 || seqCount === 0 ? 0 : libSeqs.length / seqCount
+      };
+    });
+
+    const top20SeqsForCluster = _.orderBy(
+      uniqueSeqsInCluster,
+      ['avgRank', 'count'],
+      ['asc', 'desc']
+    ).slice(0, 20);
+
+    return (
+      <div
+        style={{
+          marginLeft: '15px',
+          marginTop: '10px',
+          width: '20%'
+        }}
+      >
+        <div
+          style={{
+            textTransform: 'uppercase',
+            fontSize: '0.8rem',
+            fontWeight: 600
+          }}
+        >
+          Sequences in cluster
+        </div>
+        <div
+          style={{ background: 'whitesmoke', padding: '10px', height: '100%' }}
+        >
+          {top20SeqsForCluster.map(uniqueSeq => (
+            <Word word={uniqueSeq} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 };
 
 const WordList = ({ feature, wordsInTweets }) => {
@@ -165,7 +236,7 @@ const WordList = ({ feature, wordsInTweets }) => {
       tweets: tweets,
       importance: _.mean(tweetRanks),
       avgFeature: _.mean(featureValues),
-      libRatio: libTweets.length === 0 ? 0 : libTweets.lengh / tweets.length
+      libRatio: libTweets.length === 0 ? 0 : libTweets.length / tweets.length
     };
   });
 
@@ -293,25 +364,27 @@ const SeqPlotView = ({
   });
 
   return (
-    <SeqPlotViewWrapper>
-      {selectedFeatures.map(feature => (
-        <div style={{ marginLeft: '10px' }}>
-          <FeatureIndicator>{feature.key}</FeatureIndicator>
-          <WordList feature={feature} wordsInTweets={wordsInTweets} />
-        </div>
-      ))}
-      <WordGroupPlot>
-        <svg
-          width={layout.wordGroupPlot.width}
-          height={layout.wordGroupPlot.height}
-          ref={ref}
-        />
-      </WordGroupPlot>
+    <div style={{ display: 'flex' }}>
+      <SeqPlotViewWrapper>
+        {selectedFeatures.map(feature => (
+          <div style={{ marginLeft: '10px' }}>
+            <FeatureIndicator>{feature.key}</FeatureIndicator>
+            <WordList feature={feature} wordsInTweets={wordsInTweets} />
+          </div>
+        ))}
+        {/* <WordGroupPlot>
+          <svg
+            width={layout.wordGroupPlot.width}
+            height={layout.wordGroupPlot.height}
+            ref={ref}
+          />
+        </WordGroupPlot> */}
+      </SeqPlotViewWrapper>
       <SeqListForCluster
         isClusterSelected={isClusterSelected}
         tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
       />
-    </SeqPlotViewWrapper>
+    </div>
   );
 };
 

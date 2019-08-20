@@ -77,10 +77,20 @@ const ScoreView = ({ tweet }) => {
     .domain([1, 0])
     .range([layout.svg.height - layout.marginBottom, 0]);
 
-  const yCareScale = d3
+  const yCFScale = d3
+    .scaleLinear()
+    .domain([0, 1, 2, 3])
+    .range([
+      layout.svg.width,
+      layout.svg.width - layout.svg.width / 3,
+      layout.svg.width - (layout.svg.width / 3) * 2,
+      0
+    ]);
+
+  const categoryMappingScale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])
-    .range([layout.svg.width, 0]);
+    .range(['None', 'Virtue', 'Vice', 'Both']);
 
   useEffect(() => {
     const svg = d3.select(ref.current);
@@ -97,19 +107,29 @@ const ScoreView = ({ tweet }) => {
       .append('rect')
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yCareScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) =>
+        i === 2 || i === 3 ? yCFScale(d) : yScoreScale(d)
+      )
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
-        i === 2
-          ? layout.svg.height - layout.marginBottom - yCareScale(d)
+        i === 2 || i === 3
+          ? layout.svg.height - layout.marginBottom - yCFScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       )
       .style('fill', globalColors.feature)
       .on('mouseover', (d, i) => {
         const titleHtml = '<div style="font-weight: 600">Features</div>';
-        const scoreHtml = features.map(
-          feature => '<div>- ' + feature + ': ' + tweet[feature] + '</div>'
-        );
+        const scoreHtml = features.map(feature => {
+          return (
+            '<div>- ' +
+            feature +
+            ': ' +
+            (feature === 'fairness' || feature === 'care'
+              ? categoryMappingScale(tweet[feature])
+              : tweet[feature]) +
+            '</div>'
+          );
+        });
 
         tooltip.html(titleHtml + scoreHtml.join(''));
         tooltip.show();
@@ -120,11 +140,11 @@ const ScoreView = ({ tweet }) => {
 
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yCareScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) => (i === 2 ? yCFScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
         i === 2
-          ? layout.svg.height - layout.marginBottom - yCareScale(d)
+          ? layout.svg.height - layout.marginBottom - yCFScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       );
     featureRecData.exit().remove();

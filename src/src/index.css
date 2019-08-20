@@ -39,6 +39,7 @@ code {
 
 .doc_selected {
   background-color: whitesmoke !important;
+  border: 2px solid lightgray !important;
   /* color: white !important; */
 }
 
