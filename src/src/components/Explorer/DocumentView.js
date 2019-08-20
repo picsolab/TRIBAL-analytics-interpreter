@@ -111,7 +111,7 @@ const ScoreView = ({ tweetList }) => {
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(['V', 'D', 'H', 'F'])
+      .data(['V', 'F', 'D', 'C'])
       .enter()
       .append('text')
       .text(d => d)

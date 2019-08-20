@@ -170,7 +170,7 @@ const FeaturePlotView = React.memo(
 
       const yCareScale = d3
         .scaleOrdinal()
-        .domain([1, 0, 3, 2])
+        .domain([2, 3, 0, 1])
         .range([
           layout.height,
           layout.height - ((layout.height - layout.margin.top) / 3) * 1,
@@ -180,7 +180,7 @@ const FeaturePlotView = React.memo(
 
       const yFairnessScale = d3
         .scaleOrdinal()
-        .domain([1, 0, 2])
+        .domain([2, 0, 1])
         .range([
           layout.height,
           layout.height - (layout.height - layout.margin.top) / 2,
@@ -558,7 +558,7 @@ const FeaturePlotView = React.memo(
           if (d.key === 'care') {
             yAxisSetting = d3
               .axisLeft(yCareScale)
-              .tickValues([0, 1, 2, 3])
+              .tickValues([1, 0, 3, 2])
               .tickFormat(function(d, i) {
                 return d === 0
                   ? 'None'
@@ -626,7 +626,7 @@ const FeaturePlotView = React.memo(
           } else if (d.key === 'fairness') {
             yAxisSetting = d3
               .axisLeft(yFairnessScale)
-              .tickValues([0, 1, 2])
+              .tickValues([1, 0, 2])
               .tickFormat(function(d, i) {
                 return d === 0
                   ? 'None'
