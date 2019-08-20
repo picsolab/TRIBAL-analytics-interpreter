@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
+
+import { searchTweets } from '../../modules/explorer';
 
 import styled from 'styled-components';
 import { Button } from 'grommet';
@@ -111,12 +114,25 @@ const WordGroupPlot = styled.div.attrs({
 // };
 
 const Word = ({ word }) => {
+  const dispatch = useDispatch();
   const seqDivColorScale = d3
     .scaleLinear()
     .domain([0, 0.5, 1])
     .range([globalColors.group.con, 'gray', globalColors.group.lib]);
+
   return (
-    <WordWrapper style={{ backgroundColor: seqDivColorScale(word.libRatio) }}>
+    <WordWrapper
+      style={{ backgroundColor: seqDivColorScale(word.libRatio) }}
+      onClick={function(e) {
+        console.log('onClick: ', e);
+        console.log(this);
+        dispatch(
+          searchTweets({
+            searchKeyword: word.seq
+          })
+        );
+      }}
+    >
       {word.seq}
     </WordWrapper>
   );
@@ -197,13 +213,13 @@ const WordList = ({ feature, wordsInTweets }) => {
     );
     WordLists = (
       <div>
-        <ValueIndicator>{'> 0.5'}</ValueIndicator>
+        <ValueIndicator>{'HIGH'}</ValueIndicator>
         <WordListWrapper>
           {uniqueWordsAboveThreshold.slice(0, 10).map(word => (
             <Word word={word} />
           ))}
         </WordListWrapper>
-        <ValueIndicator>{'<= 0.5'}</ValueIndicator>
+        <ValueIndicator>{'LOW'}</ValueIndicator>
         <WordListWrapper>
           {uniqueWordsBelowThreshold.slice(0, 10).map(word => (
             <Word word={word} />

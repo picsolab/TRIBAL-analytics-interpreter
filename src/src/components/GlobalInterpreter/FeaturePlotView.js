@@ -176,7 +176,7 @@ const FeaturePlotView = React.memo(
         .domain([0, 1])
         .range([layout.height, layout.margin.top]);
 
-      const yPDHarmFeatureValueScale = d3
+      const yPDCareFeatureValueScale = d3
         .scaleLinear()
         .domain([0, 3])
         .range([layout.height, layout.margin.top]);
@@ -395,7 +395,7 @@ const FeaturePlotView = React.memo(
         .attr('x1', xFeatureToOutputScale(0))
         .attr('y1', d => {
           const lastFeature = selectedFeatures[selectedFeatures.length - 1].key;
-          return lastFeature === 'harm' || lastFeature === 'fairness'
+          return lastFeature === 'care' || lastFeature === 'fairness'
             ? yHFScale(d[lastFeature])
             : yVDScale(d[lastFeature]);
         })
@@ -476,8 +476,8 @@ const FeaturePlotView = React.memo(
             .line()
             .x(e => xPDProbScale(e.pdpValue))
             .y(e =>
-              d.key === 'harm'
-                ? yPDHarmFeatureValueScale(e.featureValue)
+              d.key === 'care'
+                ? yPDCareFeatureValueScale(e.featureValue)
                 : yPDFeatureValueScale(e.featureValue)
             )
             .curve(d3.curveCatmullRom);
@@ -487,14 +487,14 @@ const FeaturePlotView = React.memo(
             .x0(0)
             .x1(e => xPDProbScale(e.pdpValue))
             .y(e =>
-              d.key === 'harm'
-                ? yPDHarmFeatureValueScale(e.featureValue)
+              d.key === 'care'
+                ? yPDCareFeatureValueScale(e.featureValue)
                 : yPDFeatureValueScale(e.featureValue)
             )
             .curve(d3.curveCatmullRom);
 
           // For harm and fairness, add ordinal scale + bar chart
-          if (d.key === 'harm' || d.key === 'fairness') {
+          if (d.key === 'care' || d.key === 'fairness') {
             yAxisSetting = d3
               .axisLeft(yHFScale)
               .tickValues([0, 1, 2, 3])
@@ -509,7 +509,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp')
               .attr('x', 2)
-              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue) - 5)
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 10)
               .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
@@ -526,7 +526,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp_for_con')
               .attr('x', 2)
-              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue) - 5)
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 5)
               .style('stroke', d3.rgb(globalColors.group.con).darker())
@@ -543,7 +543,7 @@ const FeaturePlotView = React.memo(
               .append('rect')
               .attr('class', 'rect_pdp_for_lib')
               .attr('x', 2)
-              .attr('y', e => yPDHarmFeatureValueScale(e.featureValue))
+              .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
               .attr('width', e => xPDProbScale(e.pdpValue))
               .attr('height', 5)
               .style('stroke', d3.rgb(globalColors.group.lib).darker())
@@ -672,7 +672,7 @@ const FeaturePlotView = React.memo(
           // check if data element has property and contains a value
           if (!(p.key in d) || d[p.key] === null) return null;
 
-          return p.key === 'harm' || p.key === 'fairness'
+          return p.key === 'care' || p.key === 'fairness'
             ? [xFeatureScale(p.key), yHFScale(d[p.key])]
             : [xFeatureScale(p.key), yVDScale(d[p.key])];
         });
@@ -829,7 +829,7 @@ const FeaturePlotView = React.memo(
           return xFeatureScale(d[0]);
         })
         .y((d, i) =>
-          d[0] === 'harm' || d[0] === 'fairness'
+          d[0] === 'care' || d[0] === 'fairness'
             ? yHFScale(d[1])
             : yVDScale(d[1])
         );

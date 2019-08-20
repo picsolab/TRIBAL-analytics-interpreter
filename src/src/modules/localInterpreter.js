@@ -50,7 +50,7 @@ const initialState = {
     botScore: 'N/A',
     valence: 0.215672608,
     dominance: 0.801444548,
-    harm: 0.988902207,
+    care: 0.988902207,
     fairness: 0.415014834
   },
   contrastiveRules: [],

@@ -242,7 +242,7 @@ const ListView = ({ userList, selectedUser }) => {
   return (
     <ListViewWrapper>
       <div style={{ height: '50%' }}>
-        <SubsectionTitle>User</SubsectionTitle>
+        <SubsectionTitle>Tweet users</SubsectionTitle>
         <UserListWrapper>
           <UserListView userList={userList} selectedUser={selectedUser} />
         </UserListWrapper>

@@ -72,7 +72,7 @@ const customCheckBoxTheme = {
   }
 };
 
-var currentlySelectedFeatures = ['valence', 'dominance', 'harm', 'fairness'];
+var currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness'];
 
 const Generator = props => {
   const dispatch = useDispatch();

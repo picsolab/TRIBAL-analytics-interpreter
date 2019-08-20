@@ -33,7 +33,7 @@ const initialState = {
   features: [
     { key: 'valence', abbr: 'V' },
     { key: 'dominance', abbr: 'D' },
-    { key: 'harm', abbr: 'H' },
+    { key: 'care', abbr: 'C' },
     { key: 'fairness', abbr: 'F' }
   ],
   selectedFeatures: [
@@ -50,8 +50,8 @@ const initialState = {
     },
     { key: 'dominance', abbr: 'D', type: 'continuous', threshold: 0.5 },
     {
-      key: 'harm',
-      abbr: 'H',
+      key: 'care',
+      abbr: 'C',
       type: 'categorical',
       values: [
         { num: 0, real: 'none' },

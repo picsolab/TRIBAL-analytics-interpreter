@@ -45,13 +45,13 @@ const GlobalInterpreterContainer = () => {
     },
     {
       word: 'care',
-      fromFeature: 'harm',
+      fromFeature: 'care',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.14, lib: 0.86 }
     },
     {
       word: 'bad',
-      fromFeature: 'harm',
+      fromFeature: 'care',
       importance: '0.6',
       numTweetsGroupRatio: { con: 0.5, lib: 0.5 }
     }

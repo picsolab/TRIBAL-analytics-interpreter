@@ -43,7 +43,7 @@ const ScoreView = ({ tweetList }) => {
   };
 
   useEffect(() => {
-    const features = ['valence', 'dominance', 'harm', 'fairness'],
+    const features = ['valence', 'dominance', 'care', 'fairness'],
       numFeatures = features.length;
 
     const avgScores = features.map(feature => {
@@ -60,7 +60,7 @@ const ScoreView = ({ tweetList }) => {
       .domain([1, 0])
       .range([layout.svg.height - layout.marginBottom, 0]);
 
-    const yHarmScale = d3
+    const yCareScale = d3
       .scaleLinear()
       .domain([0, 3])
       .range([layout.svg.width, 0]);
@@ -73,11 +73,11 @@ const ScoreView = ({ tweetList }) => {
       .append('rect')
       .attr('class', 'feature_avg_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) => (i === 2 ? yCareScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => {
         return i === 2
-          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d);
       })
       .style('fill', globalColors.feature)
@@ -89,7 +89,7 @@ const ScoreView = ({ tweetList }) => {
             : i === 1
             ? 'dominance'
             : i === 2
-            ? 'harm'
+            ? 'care'
             : 'fairness';
 
         d3.selectAll('.feature_sort_by').classed('feature_sort_by', false);
@@ -132,7 +132,7 @@ const DocumentView = ({ tweetList, filteredTweetList, selectedTweet }) => {
 
   return (
     <DocumentViewWrapper>
-      <SubsectionTitle>Document</SubsectionTitle>
+      <SubsectionTitle>Tweets</SubsectionTitle>
       <ScoreView tweetList={tweetList} />
       <div style={{ fontWeight: 600, fontSize: '0.7rem' }}>Selected</div>
       <Document tweet={selectedTweet} isSelected={true} />

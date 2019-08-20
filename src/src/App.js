@@ -27,7 +27,7 @@ const Container = styled.div`
   grid-template-areas:
     'h h h h'
     'g g g e'
-    'm l gr e';
+    'm l l e';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -83,7 +83,7 @@ function App() {
         </Button>
       </Header>
       <ExplorerContainer />
-      <GroupViewerContainer />
+      {/* <GroupViewerContainer /> */}
       {/* <InstanceViewerContainer /> */}
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />

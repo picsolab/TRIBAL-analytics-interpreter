@@ -145,7 +145,7 @@ class SearchTweets(APIView):
         
         content_q = Q()
         for keyword in keywords:
-            content_q |= Q(content__contains=keyword)
+            content_q &= Q(content__contains=keyword)
 
         retrieved_tweet_objects = models.Tweet.objects.filter(content_q)
         tweet_objects_json = eval(serializers.serialize('json', retrieved_tweet_objects))
@@ -203,7 +203,7 @@ class RunDecisionTree(APIView):
 class RunClustering(APIView):
 
     def get(self, request, format=None):
-        selected_features = ['valence', 'dominance', 'harm', 'fairness']
+        selected_features = ['valence', 'dominance', 'care', 'fairness']
         tweet_objects = models.Tweet.objects.all()
         # serializer return string, so convert it to list with eval()
         tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
@@ -342,7 +342,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
 class FindContrastiveExamples(APIView):
 
     def post(self, request, format=None):
-        features = ['valence', 'dominance', 'harm', 'fairness']
+        features = ['valence', 'dominance', 'care', 'fairness']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         q_type = request_json['qType']
         selected_tweet = request_json['selectedTweet']

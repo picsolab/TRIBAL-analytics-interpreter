@@ -94,8 +94,8 @@ const ContrastiveInstanceWrapper = styled.div.attrs({
   width: 45%;
 `;
 
-const TeamIndicator = styled.div.attrs({
-  className: 'team_indicator'
+const CampIndicator = styled.div.attrs({
+  className: 'camp_indicator'
 })`
   height: 30px;
   padding: 0 5px;
@@ -274,29 +274,29 @@ const QAView = ({
             &nbsp;
             {'classified as'}
             &nbsp;
-            <TeamIndicator
+            <CampIndicator
               style={{
                 backgroundColor:
-                  selectedTweet.group === '1'
+                  selectedTweet.pred === '1'
                     ? globalColors.group.lib
                     : globalColors.group.con
               }}
             >
-              {selectedTweet.group === '1' ? 'blue team' : 'red team'}
-            </TeamIndicator>
+              {selectedTweet.pred === '1' ? 'blue camp' : 'red camp'}
+            </CampIndicator>
             &nbsp;
             {' than '}
             &nbsp;
-            <TeamIndicator
+            <CampIndicator
               style={{
                 backgroundColor:
-                  selectedTweet.group === '1'
+                  selectedTweet.pred === '1'
                     ? globalColors.group.con
                     : globalColors.group.lib
               }}
             >
-              {selectedTweet.group === '1' ? 'red team' : 'blue team'}
-            </TeamIndicator>{' '}
+              {selectedTweet.pred === '1' ? 'red camp' : 'blue camp'}
+            </CampIndicator>{' '}
             &nbsp; ?
           </QuestionWrapper>
         </div>
@@ -314,9 +314,9 @@ const QAView = ({
             {contrastiveEXs.map(contEX => (
               <div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  {contrastiveEXs[0].contFeature + '-contrastive example'}
+                  {contEX.contFeature + '-contrastive example'}
                 </div>
-                <Document tweet={contrastiveEXs[0]} />
+                <Document tweet={contEX} />
               </div>
             ))}
           </ContrastiveInstanceWrapper>
@@ -368,16 +368,16 @@ const QAView = ({
               &nbsp;
               {'classified as'}
               &nbsp;
-              <TeamIndicator
+              <CampIndicator
                 style={{
                   backgroundColor:
-                    selectedTweet.group === '1'
+                    selectedTweet.pred === '1'
                       ? globalColors.group.lib
                       : globalColors.group.con
                 }}
               >
-                {selectedTweet.group === '1' ? 'blue team' : 'red team'}
-              </TeamIndicator>
+                {selectedTweet.pred === '1' ? 'blue camp' : 'red camp'}
+              </CampIndicator>
             </div>
             {/* second line of question */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -424,22 +424,22 @@ const QAView = ({
               &nbsp;&nbsp;
               {'classified as'}
               &nbsp;&nbsp;
-              <TeamIndicator
+              <CampIndicator
                 style={{
                   backgroundColor:
-                    secondSelectedTweet.group === '1'
+                    secondSelectedTweet.pred === '1'
                       ? globalColors.group.lib
-                      : secondSelectedTweet.group === '0'
+                      : secondSelectedTweet.pred === '0'
                       ? globalColors.group.con
                       : 'gray'
                 }}
               >
-                {secondSelectedTweet.group === '1'
-                  ? 'blue team'
-                  : secondSelectedTweet.group === '0'
-                  ? 'red team'
+                {secondSelectedTweet.pred === '1'
+                  ? 'blue camp'
+                  : secondSelectedTweet.pred === '0'
+                  ? 'red camp'
                   : ' '}
-              </TeamIndicator>
+              </CampIndicator>
               &nbsp; ?
             </div>
           </QuestionWrapper>

@@ -56,7 +56,7 @@ const DocumentWrapper = styled.div.attrs({
 
 const ScoreView = ({ tweet }) => {
   const ref = useRef(null);
-  const features = ['valence', 'dominance', 'harm', 'fairness'],
+  const features = ['valence', 'dominance', 'care', 'fairness'],
     numFeatures = features.length,
     tweetScores = Object.values(_.pick(tweet, features));
 
@@ -77,7 +77,7 @@ const ScoreView = ({ tweet }) => {
     .domain([1, 0])
     .range([layout.svg.height - layout.marginBottom, 0]);
 
-  const yHarmScale = d3
+  const yCareScale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])
     .range([layout.svg.width, 0]);
@@ -97,11 +97,11 @@ const ScoreView = ({ tweet }) => {
       .append('rect')
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) => (i === 2 ? yCareScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
         i === 2
-          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       )
       .style('fill', globalColors.feature)
@@ -120,11 +120,11 @@ const ScoreView = ({ tweet }) => {
 
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => (i === 2 ? yHarmScale(d) : yScoreScale(d)))
+      .attr('height', (d, i) => (i === 2 ? yCareScale(d) : yScoreScale(d)))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) =>
         i === 2
-          ? layout.svg.height - layout.marginBottom - yHarmScale(d)
+          ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
       );
     featureRecData.exit().remove();

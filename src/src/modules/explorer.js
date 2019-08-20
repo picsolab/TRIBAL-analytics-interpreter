@@ -18,7 +18,7 @@ export const searchTweets = ({ searchKeyword }) => {
         content: d.content,
         valence: d.valence,
         dominance: d.dominance,
-        harm: d.harm,
+        care: d.care,
         fairness: d.fairness,
         userId: d.user_id,
         screenName: d.screen_name
