@@ -27,8 +27,10 @@ code {
 
 .axis text {
   font-weight: 600;
-  fill: mediumaquamarine;
+  fill: black;
   font-size: 0.8rem;
+  stroke: white;
+  stroke-width: 0.7;
 }
 
 .g_feature_group_axis path {

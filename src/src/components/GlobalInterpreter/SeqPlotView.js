@@ -142,7 +142,29 @@ const SeqListForCluster = ({
   tweetsInClusterForSeqPlot
 }) => {
   const features = ['valence', 'fairness', 'dominance', 'care'];
-  if (isClusterSelected === false) return <div />;
+  if (isClusterSelected === false)
+    return (
+      <div
+        style={{
+          marginLeft: '15px',
+          marginTop: '10px',
+          width: '20%'
+        }}
+      >
+        <div
+          style={{
+            textTransform: 'uppercase',
+            fontSize: '0.8rem',
+            fontWeight: 600
+          }}
+        >
+          Sequences in cluster
+        </div>
+        <div
+          style={{ background: 'whitesmoke', padding: '10px', height: '100%' }}
+        />
+      </div>
+    );
   else if (isClusterSelected === true) {
     const corrTweetsInCluster = tweetsInClusterForSeqPlot.filter(
       d => parseInt(d.group) == d.pred

@@ -6,8 +6,9 @@ import './App.css';
 // import './index.css';
 import styled from 'styled-components';
 
-import { fetchTweets, runDT } from './modules/tweet';
+import { fetchTweets } from './modules/tweet';
 import { fetchUsers } from './modules/user';
+import { runDT } from './modules/globalInterpreter';
 
 import { Button } from 'antd';
 import { SectionTitle, SectionWrapper } from './GlobalStyles';
@@ -17,6 +18,7 @@ import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer'
 import LocalInterpreterContainer from './containers/LocalInterpreterContainer';
 import GroupViewerContainer from './containers/GroupViewerContainer';
 import InstanceViewerContainer from './containers/InstanceViewerContainer';
+import ResultViewContainer from './containers/ResultViewContainer';
 
 const Container = styled.div`
   width: 85%;
@@ -27,7 +29,7 @@ const Container = styled.div`
   grid-template-areas:
     'h h h h'
     'g g g e'
-    'm l l e';
+    'r l l e';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -87,6 +89,7 @@ function App() {
       {/* <InstanceViewerContainer /> */}
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />
+      <ResultViewContainer />
       <Mockup3 />
       <Mockup />
     </Container>

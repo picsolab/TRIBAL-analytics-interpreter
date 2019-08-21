@@ -16,6 +16,7 @@ const GlobalInterpreterContainer = () => {
       pdpValues,
       pdpValuesForCon,
       pdpValuesForLib,
+      pdpValuesForClusters,
       isClusterSelected,
       tweetsInClusterForSeqPlot
     } = useSelector(state => state.globalInterpreter, []);
@@ -75,6 +76,7 @@ const GlobalInterpreterContainer = () => {
       pdpValues={pdpValues}
       pdpValuesForCon={pdpValuesForCon}
       pdpValuesForLib={pdpValuesForLib}
+      pdpValuesForClusters={pdpValuesForClusters}
       isLoaded={isLoaded}
       isClusterSelected={isClusterSelected}
       tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}

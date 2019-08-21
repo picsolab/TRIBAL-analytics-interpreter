@@ -17,12 +17,8 @@ import {
   SubTitle
 } from '../../GlobalStyles';
 
-import { runDT, runDTThenRunClandPD } from '../../modules/tweet';
-import {
-  runClustering,
-  runClusteringAndPartialDependenceForClusters
-} from '../../modules/cluster';
-import { calculatePartialDependence } from '../../modules/globalInterpreter';
+import { runDTThenRunClandPD } from '../../modules/tweet';
+import { runDT } from '../../modules/globalInterpreter';
 
 import Generator from './Generator';
 import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
@@ -251,6 +247,7 @@ const GlobalInterpreter = props => {
     pdpValues,
     pdpValuesForCon,
     pdpValuesForLib,
+    pdpValuesForClusters,
     isLoaded,
     isClusterSelected,
     tweetsInClusterForSeqPlot
@@ -352,6 +349,7 @@ const GlobalInterpreter = props => {
       />
       <FeaturePlotView
         globalMode={globalMode}
+        currentModel={currentModel}
         numFeatures={numFeatures}
         tweets={tweets}
         selectedFeatures={selectedFeatures}
@@ -360,6 +358,7 @@ const GlobalInterpreter = props => {
         pdpValues={pdpValues}
         pdpValuesForCon={pdpValuesForCon}
         pdpValuesForLib={pdpValuesForLib}
+        pdpValuesForClusters={pdpValuesForClusters}
         isLoaded={isLoaded}
       />
       <SeqPlotView

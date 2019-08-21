@@ -27,8 +27,7 @@ import {
   Button1
 } from '../../GlobalStyles';
 
-import { runDT } from '../../modules/tweet';
-import globalInterpreter from '../../modules/globalInterpreter';
+import { runDT } from '../../modules/globalInterpreter';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
@@ -111,10 +110,10 @@ const Generator = props => {
 
   return (
     <GeneratorWrapper>
-      <SubsectionTitle>Aggregate</SubsectionTitle>
+      {/* <SubsectionTitle>Aggregate</SubsectionTitle>
       <div style={{ backgroundColor: '#beffe7', fontWeight: 600 }}>All</div>
       <div>Emotion</div>
-      <div>Moral</div>
+      <div>Moral</div> */}
       <Form
         onSubmit={({ value }) => {
           const selectedTweetsByMode =
@@ -144,7 +143,7 @@ const Generator = props => {
         </div>
         <div>Logistic Regression</div>
         <Button1
-          style={{ marginTop: '10px' }}
+          style={{ marginTop: '30px' }}
           size="xsmall"
           type="submit"
           primary
@@ -152,7 +151,6 @@ const Generator = props => {
         />
       </Form>
       <div style={{ height: '30px' }} />
-      <SubsectionTitle>Models</SubsectionTitle>
     </GeneratorWrapper>
   );
 };

@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { runClusteringAndPartialDependenceForClusters } from './cluster';
+import { runDT } from './globalInterpreter';
 
 import axios from 'axios';
 
@@ -13,7 +14,7 @@ const SEARCH_TWEETS = 'SEARCH_TWEETS';
 const SORT_TWEETS_BY_FEATURE = 'SORT_TWEETS_BY_FEATURE';
 const FILTER_TWEETLIST_BY_USER = 'FILTER_TWEETLIST_BY_USER';
 const LIST_TWEETS_IN_CL = 'LIST_TWEETS_IN_CL';
-const RUN_DT = 'RUN_DT';
+const UPDATE_TWEETS_AFTER_RUNNING_ML = 'UPDATE_TWEETS_AFTER_RUNNING_ML';
 const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
 const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
 const RUN_CL_N_CAL_PD_FOR_TWEETS = 'RUN_CL_N_CAL_PD_FOR_TWEETS';
@@ -77,21 +78,6 @@ export const fetchTweets = () => {
           tweetsWithPredFeatures: tweetsWithPredFeatures
         }
       });
-    });
-  };
-};
-
-export const runDT = ({ tweets, selectedFeatures }) => {
-  return async dispatch => {
-    await axios({
-      method: 'post',
-      url: '/tweets/runDecisionTree/',
-      data: JSON.stringify({
-        tweets: tweets,
-        selectedFeatures: selectedFeatures
-      })
-    }).then(res => {
-      dispatch({ type: 'RUN_DT', payload: res.data });
     });
   };
 };
@@ -171,9 +157,12 @@ const tweet = (state = initialState, action) => {
         selectedTweet: action.payload
       };
     case SELECT_SECOND_TWEET:
+      const selectedTweetId = action.payload;
       return {
         ...state,
-        secondSelectedTweet: action.payload
+        secondSelectedTweet: state.tweets.filter(
+          d => d.tweetId === selectedTweetId
+        )[0]
       };
     case SEARCH_TWEETS:
       return {
@@ -201,11 +190,9 @@ const tweet = (state = initialState, action) => {
         ...state,
         tweetList: action.payload
       };
-    case RUN_DT:
+    case UPDATE_TWEETS_AFTER_RUNNING_ML:
       return {
         ...state,
-        currentModel: action.payload.modelId,
-        modelId: action.payload.modelId,
         tweets: JSON.parse(action.payload.tweets)
       };
     case CAL_PD_FOR_TWEETS:

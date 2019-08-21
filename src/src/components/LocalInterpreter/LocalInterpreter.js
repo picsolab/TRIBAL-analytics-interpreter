@@ -409,7 +409,7 @@ const QAView = ({
                     );
                     dispatch({
                       type: 'SELECT_SECOND_TWEET',
-                      payload: tweetForSecondTweet
+                      payload: tweetForSecondTweet.tweetId
                     });
                     dispatch(
                       findContrastiveExamples({

@@ -39,9 +39,20 @@ const ScoreDiv = styled.div.attrs({
 const ContentDiv = styled.div.attrs({
   className: 'content'
 })`
-  width: 100%;
+  width: 90%;
   padding: 3px;
   font-size: 0.8rem;
+`;
+
+const IndexIndicator = styled.div.attrs({
+  className: 'index_indicator'
+})`
+  height: 20px;
+  width: 40px;
+  text-align: center;
+  background: mediumaquamarine;
+  color: white;
+  margin-top: auto;
 `;
 
 const DocumentWrapper = styled.div.attrs({
@@ -220,7 +231,8 @@ const Document = props => {
           onClick={e => {
             const classList = e.target.className.split(' ');
             const isSelected =
-              classList.filter(d => d === 'selected').length !== 0;
+              classList.filter(d => d === 'doc_glyph_second_selected')
+                .length !== 0;
 
             if (isSelected) {
               // to unselect
@@ -261,11 +273,59 @@ const Document = props => {
               payload: tweet
             });
           }}
+          onContextMenu={e => {
+            e.preventDefault();
+            console.log(e.target);
+
+            const classList = e.target.className.split(' ');
+            const isSelected =
+              classList.filter(d => d === 'second_selected').length !== 0;
+
+            if (isSelected) {
+            } else {
+              // to encode the selection
+
+              // Cancel all effects
+              d3.selectAll('.doc_glyph')
+                .classed('.doc_glyph_second_selected', false)
+                .style('opacity', 0.5)
+                .style('border-width', '0px')
+                .style('font-size', '0.8rem');
+
+              d3.selectAll('.doc_second_selected')
+                .classed('doc_second_selected', false)
+                .style('background-color', 'white');
+
+              // Adjust the effect to the selected tweet
+              d3.select(e.target)
+                .classed('doc_glyph_second_selected', true)
+                .style('border-width', '2px')
+                .style('opacity', 1);
+
+              d3.select(e.target.parentNode.parentNode)
+                .classed('doc_second_selected', false)
+                .style('background-color', 'white');
+
+              d3.select(e.target.parentNode.parentNode)
+                .classed('doc_second_selected', true)
+                .style('background-color', 'whitesmoke');
+            }
+
+            console.log('second-selected: ', tweet);
+
+            dispatch({
+              type: 'SELECT_SECOND_TWEET',
+              payload: tweet.tweetId
+            });
+          }}
         />
         <div>{tweet.screenName}</div>
         <ScoreView tweet={tweet} />
       </div>
-      <ContentDiv>{tweet.content}</ContentDiv>
+      <div style={{ display: 'flex' }}>
+        <ContentDiv>{tweet.content}</ContentDiv>
+        <IndexIndicator>{tweet.tweetId}</IndexIndicator>
+      </div>
     </DocumentWrapper>
   );
 };

@@ -26,8 +26,8 @@ const AggregationBar = styled.div.attrs({
   margin-top: 5px;
   margin-left: 20px;
   // border-bottom: 1px solid #6af1bf;
-  background-color: #beffe7;
-  border: 1px solid #6af1bf;
+  background-color: white;
+  border: white;
   border-radius: 3px;
 `;
 

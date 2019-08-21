@@ -69,48 +69,6 @@ const layout = {
 const wholeWidth = layout.width + layout.margin.left + layout.margin.right,
   wholeHeight = layout.height + layout.margin.top + layout.margin.bottom;
 
-// const color = d3
-//   .scaleOrdinal()
-//   .domain([
-//     'Radial Velocity',
-//     'Imaging',
-//     'Eclipse Timing constiations',
-//     'Astrometry',
-//     'Microlensing',
-//     'Orbital Brightness Modulation',
-//     'Pulsar Timing',
-//     'Pulsation Timing constiations',
-//     'Transit',
-//     'Transit Timing constiations'
-//   ])
-//   .range([
-//     '#DB7F85',
-//     '#50AB84',
-//     '#4C6C86',
-//     '#C47DCB',
-//     '#B59248',
-//     '#DD6CA7',
-//     '#E15E5A',
-//     '#5DA5B3',
-//     '#725D82',
-//     '#54AF52',
-//     '#954D56',
-//     '#8C92E8',
-//     '#D8597D',
-//     '#AB9C27',
-//     '#D67D4B',
-//     '#D58323',
-//     '#BA89AD',
-//     '#357468',
-//     '#8F86C2',
-//     '#7D9E33',
-//     '#517C3F',
-//     '#9D5130',
-//     '#5E9ACF',
-//     '#776327',
-//     '#944F7E'
-//   ]);
-
 const groupColorScale = d3
   .scaleOrdinal()
   .domain([1, 0])
@@ -136,7 +94,9 @@ const FeaturePlotView = React.memo(
     isLoaded,
     pdpValues,
     pdpValuesForCon,
-    pdpValuesForLib
+    pdpValuesForLib,
+    pdpValuesForClusters,
+    currentModel
   }) => {
     const dispatch = useDispatch();
     const ref = useRef(null),
@@ -199,7 +159,7 @@ const FeaturePlotView = React.memo(
 
       const yPDCareFeatureValueScale = d3
         .scaleOrdinal()
-        .domain([1, 0, 3, 2])
+        .domain([2, 3, 0, 1])
         .range([
           layout.height,
           layout.height - ((layout.height - layout.margin.top) / 3) * 1,
@@ -209,7 +169,7 @@ const FeaturePlotView = React.memo(
 
       const yPDFairnessFeatureValueScale = d3
         .scaleOrdinal()
-        .domain([1, 0, 2])
+        .domain([2, 0, 1])
         .range([
           layout.height,
           layout.height - (layout.height - layout.margin.top) / 2,
@@ -1004,19 +964,10 @@ const FeaturePlotView = React.memo(
                 clusterId = d.clusterId;
           console.log('clicked cluster: ', clusterId);
           if (selectedCluster.classed('cluster_selected') === true) {
-              // Put back the tweetList with entire tweets
-              dispatch({
-                type: 'LIST_TWEETS_IN_CL',
-                payload: tweets
-              });
-
-              dispatch({
-                type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
-                payload: {
-                  isClusterSelected: false,
-                  tweetsInClusterForSeqPlot: []
-                }
-              });
+              d3.select(this).classed('cluster_selected', false)
+                .style('stroke', 'gray')
+                .style('stroke-width', '1px');
+              console.log('click already selected cluster: ', clusterId);
 
               // Return back all elements to the normal
               gFeaturePlot.selectAll('.path_tweet').remove();
@@ -1041,6 +992,16 @@ const FeaturePlotView = React.memo(
               d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
+
+              d3.selectAll('.path_pdp').remove();
+              d3.selectAll('.area_pdp').remove();
+              d3.selectAll('.rect_pdp').remove();
+              d3.selectAll('.path_pdp_for_con').remove();
+              d3.selectAll('.area_pdp_for_con').remove();
+              d3.selectAll('.path_pdp_for_lib').remove();
+              d3.selectAll('.area_pdp_for_lib').remove();
+              d3.selectAll('.rect_pdp_for_con').remove();
+              d3.selectAll('.rect_pdp_for_lib').remove();
 
               // To put back the output prob plot
               const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
@@ -1128,6 +1089,282 @@ const FeaturePlotView = React.memo(
                 .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
                 .style('fill', d => globalColors.group.wrong.con)
                 .style('opacity', 0.5);
+
+              // To restore PDP for all
+              // For cluster-specific PDPs
+              d3.selectAll('.axis')
+                  .each(function(d, i) {
+                    var yAxisSetting;
+
+                    const drawPDPLine = d3
+                      .line()
+                      .x(e => xPDProbScale(e.pdpValue))
+                      .y(e =>
+                        d.key === 'care'
+                          ? yPDCareFeatureValueScale(e.featureValue)
+                          : d.key === 'fairness'
+                          ? yPDFairnessFeatureValueScale(e.featureValue)
+                          : yPDFeatureValueScale(e.featureValue)
+                      )
+                      .curve(d3.curveCatmullRom);
+          
+                    const drawPDPArea = d3
+                      .area()
+                      .x0(0)
+                      .x1(e => xPDProbScale(e.pdpValue))
+                      .y(e =>
+                        d.key === 'care'
+                          ? yPDCareFeatureValueScale(e.featureValue)
+                          : d.key === 'fairness'
+                          ? yPDFairnessFeatureValueScale(e.featureValue)
+                          : yPDFeatureValueScale(e.featureValue)
+                      )
+                      .curve(d3.curveCatmullRom);
+          
+                    // For harm and fairness, add ordinal scale + bar chart
+                    if (d.key === 'care') {
+                      yAxisSetting = d3
+                        .axisLeft(yCareScale)
+                        .tickValues([1, 0, 3, 2])
+                        .tickFormat(function(d, i) {
+                          return d === 0
+                            ? 'None'
+                            : d === 1
+                            ? 'Virtue'
+                            : d === 2
+                            ? 'Vice'
+                            : 'Both';
+                        })
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      // For all
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp')
+                        .data(pdpValues[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 10)
+                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', 'rgb(190, 255, 231)')
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_con')
+                        .data(pdpValuesForCon[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_con')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.con).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.con)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_lib')
+                        .data(pdpValuesForLib[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_lib')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.lib)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+                      // For valence and dominance, add linear scale + line chart
+                    } else if (d.key === 'fairness') {
+                      yAxisSetting = d3
+                        .axisLeft(yFairnessScale)
+                        .tickValues([1, 0, 2])
+                        .tickFormat(function(d, i) {
+                          return d === 0
+                            ? 'None'
+                            : d === 1
+                            ? 'Virtue'
+                            : d === 2
+                            ? 'Vice'
+                            : 'Both';
+                        })
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      // For all
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp')
+                        .data(pdpValues[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 10)
+                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', 'rgb(190, 255, 231)')
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_con')
+                        .data(pdpValuesForCon[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_con')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.con).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.con)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_lib')
+                        .data(pdpValuesForLib[d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_lib')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.lib)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+                      // For valence and dominance, add linear scale + line chart
+                    } else {
+                      yAxisSetting = d3
+                        .axisLeft(yVDScale)
+                        .tickValues(d3.range(0, 1.1, 0.2))
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      //// Add a path (to draw a separate line), and also area (to fill the area)
+                      /// For all
+                      // path
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValues[d.key])
+                        .attr('class', 'path_pdp')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', 'rgb(190, 255, 231)')
+                        .style('stroke-width', 4)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      // area
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValues[d.key])
+                        .attr('class', 'area_pdp')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', 'gray')
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      /// Path
+                      // For con
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForCon[d.key])
+                        .attr('class', 'path_pdp_for_con')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', globalColors.group.con)
+                        .style('stroke-width', 2)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      /// For lib
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForLib[d.key])
+                        .attr('class', 'path_pdp_for_lib')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', globalColors.group.lib)
+                        .style('stroke-width', 2)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      /// Area
+                      // For con
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForCon[d.key])
+                        .attr('class', 'area_pdp_for_con')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', globalColors.group.con)
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      // For lib
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForLib[d.key])
+                        .attr('class', 'area_pdp_for_lib')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', globalColors.group.lib)
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+                    }
+                  });
+
+                  // Put back the tweetList with entire tweets
+                  dispatch({
+                    type: 'LIST_TWEETS_IN_CL',
+                    payload: tweets
+                  });
+
+                  dispatch({
+                    type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+                    payload: {
+                      isClusterSelected: false,
+                      tweetsInClusterForSeqPlot: []
+                    }
+                  });
+
+                  dispatch({
+                    type: 'CAL_PD',
+                    payload: tweets
+                  });
+
           } else {
               const clusterId = d.clusterId,
                 tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
@@ -1157,6 +1394,11 @@ const FeaturePlotView = React.memo(
                 }
               });
 
+              // dispatch({
+              //   type: 'CAL_PD',
+              //   payload: tweetsInCluster
+              // });
+
               // Remove previous elements
               gFeaturePlot.selectAll('.path_tweet_for_cluster').remove();
 
@@ -1167,6 +1409,16 @@ const FeaturePlotView = React.memo(
               d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
               d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
+
+              d3.selectAll('.path_pdp').remove();
+              d3.selectAll('.area_pdp').remove();
+              d3.selectAll('.rect_pdp').remove();
+              d3.selectAll('.path_pdp_for_con').remove();
+              d3.selectAll('.area_pdp_for_con').remove();
+              d3.selectAll('.path_pdp_for_lib').remove();
+              d3.selectAll('.area_pdp_for_lib').remove();
+              d3.selectAll('.rect_pdp_for_con').remove();
+              d3.selectAll('.rect_pdp_for_lib').remove();
 
               // selectedFeatures.forEach(feature => {
               //   const featureName = feature.key;
@@ -1216,8 +1468,6 @@ const FeaturePlotView = React.memo(
 
                 return tweetPathData;
               });
-
-              console.log('tweetsPathDataForCluster: ', tweetsPathDataForCluster);
 
               gFeaturePlot
                 .selectAll('.path_tweet_for_cluster')
@@ -1335,8 +1585,263 @@ const FeaturePlotView = React.memo(
                 .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
                 .style('fill', d => globalColors.group.wrong.lib)
                 .style('opacity', 0.5);
+
+              // For cluster-specific PDPs
+              d3.selectAll('.axis')
+                  .each(function(d, i) {
+                    var yAxisSetting;
+
+                    const drawPDPLine = d3
+                      .line()
+                      .x(e => xPDProbScale(e.pdpValue))
+                      .y(e =>
+                        d.key === 'care'
+                          ? yPDCareFeatureValueScale(e.featureValue)
+                          : d.key === 'fairness'
+                          ? yPDFairnessFeatureValueScale(e.featureValue)
+                          : yPDFeatureValueScale(e.featureValue)
+                      )
+                      .curve(d3.curveCatmullRom);
+          
+                    const drawPDPArea = d3
+                      .area()
+                      .x0(0)
+                      .x1(e => xPDProbScale(e.pdpValue))
+                      .y(e =>
+                        d.key === 'care'
+                          ? yPDCareFeatureValueScale(e.featureValue)
+                          : d.key === 'fairness'
+                          ? yPDFairnessFeatureValueScale(e.featureValue)
+                          : yPDFeatureValueScale(e.featureValue)
+                      )
+                      .curve(d3.curveCatmullRom);
+          
+                    // For harm and fairness, add ordinal scale + bar chart
+                    if (d.key === 'care') {
+                      yAxisSetting = d3
+                        .axisLeft(yCareScale)
+                        .tickValues([1, 0, 3, 2])
+                        .tickFormat(function(d, i) {
+                          return d === 0
+                            ? 'None'
+                            : d === 1
+                            ? 'Virtue'
+                            : d === 2
+                            ? 'Vice'
+                            : 'Both';
+                        })
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      // For all
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp')
+                        .data(pdpValuesForClusters[clusterId]['all'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 10)
+                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', 'rgb(190, 255, 231)')
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_con')
+                        .data(pdpValuesForClusters[clusterId]['con'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_con')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.con).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.con)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_lib')
+                        .data(pdpValuesForClusters[clusterId]['lib'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_lib')
+                        .attr('x', 2)
+                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.lib)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+                      // For valence and dominance, add linear scale + line chart
+                    } else if (d.key === 'fairness') {
+                      yAxisSetting = d3
+                        .axisLeft(yFairnessScale)
+                        .tickValues([1, 0, 2])
+                        .tickFormat(function(d, i) {
+                          return d === 0
+                            ? 'None'
+                            : d === 1
+                            ? 'Virtue'
+                            : d === 2
+                            ? 'Vice'
+                            : 'Both';
+                        })
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      // For all
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp')
+                        .data(pdpValuesForClusters[clusterId]['all'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 10)
+                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', 'rgb(190, 255, 231)')
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_con')
+                        .data(pdpValuesForClusters[clusterId]['con'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_con')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.con).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.con)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+          
+                      d3.select('.g_feature_axis_' + d.key)
+                        .selectAll('.rect_pdp_for_lib')
+                        .data(pdpValuesForClusters[clusterId]['lib'][d.key])
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'rect_pdp_for_lib')
+                        .attr('x', 2)
+                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
+                        .attr('width', e => xPDProbScale(e.pdpValue))
+                        .attr('height', 5)
+                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                        // .style('stroke-width', 4)
+                        .style('fill', globalColors.group.lib)
+                        // .style('stroke-dasharray', '8,3')
+                        // .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.5);
+                      // For valence and dominance, add linear scale + line chart
+                    } else {
+                      yAxisSetting = d3
+                        .axisLeft(yVDScale)
+                        .tickValues(d3.range(0, 1.1, 0.2))
+                        .tickSize(1);
+                      d3.select(this).call(yAxisSetting);
+          
+                      //// Add a path (to draw a separate line), and also area (to fill the area)
+                      /// For all
+                      // path
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['all'][d.key])
+                        .attr('class', 'path_pdp')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', 'rgb(190, 255, 231)')
+                        .style('stroke-width', 4)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      // area
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['all'][d.key])
+                        .attr('class', 'area_pdp')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', 'gray')
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      /// Path
+                      // For con
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['con'][d.key])
+                        .attr('class', 'path_pdp_for_con')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', globalColors.group.con)
+                        .style('stroke-width', 2)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      /// For lib
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
+                        .attr('class', 'path_pdp_for_lib')
+                        .attr('d', drawPDPLine)
+                        .style('stroke', globalColors.group.lib)
+                        .style('stroke-width', 2)
+                        .style('fill', 'none')
+                        // .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('opacity', 1);
+          
+                      /// Area
+                      // For con
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['con'][d.key])
+                        .attr('class', 'area_pdp_for_con')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', globalColors.group.con)
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+          
+                      // For lib
+                      d3.select('.g_feature_axis_' + d.key)
+                        .append('path')
+                        .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
+                        .attr('class', 'area_pdp_for_lib')
+                        .attr('d', drawPDPArea)
+                        .style('stroke', 'none')
+                        .style('fill', globalColors.group.lib)
+                        .style('stroke-dasharray', '8,3')
+                        .style('shape-rendering', 'crispedges')
+                        .style('fill-opacity', 0.3);
+                    }
+                  })
         
-            }
+            } // end of else click
       });
 
       const clusterTitle = gClusterPlot

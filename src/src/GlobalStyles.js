@@ -41,7 +41,8 @@ export const SubsectionTitle = styled.div.attrs({
   font-weight: 550;
   border-bottom: 2px solid gray;
   padding-bottom: 2px;
-  margin: 10px 0;
+  margin-top: 20px;
+  margin-bottom: 10px;
 `;
 
 export const SubTitle = styled.div`
