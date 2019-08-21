@@ -187,16 +187,18 @@ class RunDecisionTree(APIView):
         df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
 
         y_pred_for_test = clf.predict(X_test)
-        print('accuracy: ', accuracy_score(y_test, y_pred_for_test))
+        accuracy = accuracy_score(y_test, y_pred_for_test)
         scores = cross_validate(clf, X, y, cv=10)['test_score']
-
-        # load graph with graph_tool and explore structure as you please
 
         save_model(clf, 'dt_0')
 
+        print('accuracy: ', accuracy)
+
         return Response({
             'modelId': 'dt_0',
-            'tweets': df_tweets.to_json(orient='records')
+            'tweets': df_tweets.to_json(orient='records'),
+            'features': features,
+            'accuracy': accuracy
         })
 
 
@@ -321,6 +323,32 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             pdp_values_for_con_dict[feature] = pdp_values_for_con_json
             pdp_values_for_lib_dict[feature] = pdp_values_for_lib_json
 
+        pdp_values_for_cls_dict = {}
+        # Calculate PD for clusters
+        for cl_idx in df_tweets_by_cluster.groups.keys():
+            indexes = df_tweets_by_cluster.groups[cl_idx]
+            df_tweets_in_cluster = df_tweets.loc[indexes]
+            X_cl = df_tweets_in_cluster[features]
+            X_cl_con = X_cl.loc[df_tweets['group'] == '0']
+            X_cl_lib = X_cl.loc[df_tweets['group'] == '1']
+
+            pdp_values_for_cls_dict[cl_idx] = {
+                'all': {}, 'con': {}, 'lib': {}
+            }
+
+            for feature_idx, feature in enumerate(features):
+                pdp_values_cl, feature_values_cl = partial_dependence(model, X_cl, [feature_idx], percentiles=(0, 1))   # 0 is the selected feature index
+                pdp_values_cl_for_con, feature_values_cl_for_con = partial_dependence(model, X_cl_con, [feature_idx], percentiles=(0, 1))
+                pdp_values_cl_for_lib, feature_values_cl_for_lib = partial_dependence(model, X_cl_lib, [feature_idx], percentiles=(0, 1))
+
+                pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values_cl[0], 'featureValue': feature_values_cl[0] }).to_json(orient='records')
+                pdp_values_cl_for_con_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_con[0], 'featureValue': feature_values_cl_for_con[0] }).to_json(orient='records')
+                pdp_values_cl_for_lib_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_lib[0], 'featureValue': feature_values_cl_for_lib[0] }).to_json(orient='records')
+                
+                pdp_values_for_cls_dict[cl_idx]['all'][feature] = pdp_values_cl_json
+                pdp_values_for_cls_dict[cl_idx]['con'][feature] = pdp_values_cl_for_con_json
+                pdp_values_for_cls_dict[cl_idx]['lib'][feature] = pdp_values_cl_for_lib_json
+
         # Results
         cluster_ids = cls_labels
 
@@ -335,7 +363,8 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             'clusterIdsForTweets': cluster_ids,
             'pdpValues': pdp_values_dict,
             'pdpValuesForCon': pdp_values_for_con_dict,
-            'pdpValuesForLib': pdp_values_for_lib_dict
+            'pdpValuesForLib': pdp_values_for_lib_dict,
+            'pdpValuesForClusters': pdp_values_for_cls_dict
         })
 
 
