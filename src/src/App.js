@@ -74,7 +74,7 @@ function App() {
     <Container className={Container}>
       <Header className={Header} style={{ display: 'flex' }}>
         <Title className=".App-link">TRIBAL</Title>
-        <Button
+        {/* <Button
           href="https://docs.google.com/document/d/13oREBJCSthiAUS7uHgkxLXqRIYekNfBvzN_Snt9lIKY/edit?usp=sharing"
           target="_blank"
           type="primary"
@@ -82,7 +82,7 @@ function App() {
           style={{ marginLeft: 'auto' }}
         >
           Feedbacks
-        </Button>
+        </Button> */}
       </Header>
       <ExplorerContainer />
       {/* <GroupViewerContainer /> */}

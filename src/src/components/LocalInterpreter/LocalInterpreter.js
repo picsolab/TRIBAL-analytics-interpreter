@@ -247,7 +247,7 @@ const QAView = ({
             Why &nbsp;
             <Grommet theme={customDropdownTheme}>
               <Select
-                style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                style={{ width: '100px', height: '10px', margin: '0 10px' }}
                 multiple={true}
                 value={'tweet ' + selectedTweet.tweetId}
                 onChange={e => {
