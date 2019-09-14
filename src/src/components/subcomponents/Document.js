@@ -88,23 +88,17 @@ const ScoreView = ({ tweet }) => {
     .domain([1, 0])
     .range([layout.svg.height - layout.marginBottom, 0]);
 
-  const yCFScale = d3
-    .scaleLinear()
-    .domain([3, 2, 1, 0])
-    .range([
-      layout.svg.width,
-      layout.svg.width - layout.svg.width / 3,
-      layout.svg.width - (layout.svg.width / 3) * 2,
-      0
-    ]);
-
   const yCareScale = d3
     .scaleOrdinal()
     .domain([1, 0, 3, 2])
     .range([
-      layout.height,
-      layout.height - ((layout.height - layout.marginBottom) / 3) * 1,
-      layout.height - ((layout.height - layout.marginBottom) / 3) * 2,
+      layout.svg.height - layout.marginBottom,
+      layout.svg.height -
+        layout.marginBottom -
+        (layout.svg.height - 3 * layout.marginBottom) / 1,
+      layout.svg.height -
+        layout.marginBottom -
+        (layout.svg.height - 3 * layout.marginBottom) / 2,
       layout.marginBottom
     ]);
 
@@ -112,15 +106,25 @@ const ScoreView = ({ tweet }) => {
     .scaleOrdinal()
     .domain([1, 0, 2])
     .range([
-      layout.height,
-      layout.height - (layout.height - layout.marginBottom) / 2,
+      layout.svg.height - layout.marginBottom,
+      layout.svg.height -
+        layout.marginBottom -
+        (layout.svg.height - 2 * layout.marginBottom) / 2,
       layout.marginBottom
     ]);
 
-  const categoryMappingScale = d3
+  console.log('yFairness: ', yFairnessScale.domain(), yFairnessScale.range());
+  console.log('yCare: ', yCareScale.domain(), yCareScale.range());
+
+  const categoryMappingCareScale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])
     .range(['None', 'Virtue', 'Vice', 'Both']);
+
+  const categoryMappingFairnessScale = d3
+    .scaleOrdinal()
+    .domain([0, 1, 2])
+    .range(['None', 'Virtue', 'Vice']);
 
   useEffect(() => {
     const svg = d3.select(ref.current);
@@ -156,8 +160,10 @@ const ScoreView = ({ tweet }) => {
             '<div>- ' +
             feature +
             ': ' +
-            (feature === 'fairness' || feature === 'care'
-              ? categoryMappingScale(tweet[feature])
+            (feature === 'fairness'
+              ? categoryMappingFairnessScale(tweet[feature])
+              : feature === 'care'
+              ? categoryMappingCareScale(tweet[feature])
               : tweet[feature]) +
             '</div>'
           );
@@ -169,7 +175,7 @@ const ScoreView = ({ tweet }) => {
       .on('mouseout', (d, i) => {
         tooltip.hide();
       });
-
+    featureRecData.exit().remove();
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) =>
@@ -182,8 +188,29 @@ const ScoreView = ({ tweet }) => {
           : i === 3
           ? layout.svg.height - layout.marginBottom - yCareScale(d)
           : layout.svg.height - layout.marginBottom - yScoreScale(d)
-      );
-    featureRecData.exit().remove();
+      )
+      .on('mouseover', (d, i) => {
+        const titleHtml = '<div style="font-weight: 600">Features</div>';
+        const scoreHtml = features.map(feature => {
+          return (
+            '<div>- ' +
+            feature +
+            ': ' +
+            (feature === 'fairness'
+              ? categoryMappingFairnessScale(tweet[feature])
+              : feature === 'care'
+              ? categoryMappingCareScale(tweet[feature])
+              : tweet[feature]) +
+            '</div>'
+          );
+        });
+
+        tooltip.html(titleHtml + scoreHtml.join(''));
+        tooltip.show();
+      })
+      .on('mouseout', (d, i) => {
+        tooltip.hide();
+      });
 
     const featureTitle = d3
       .select(ref.current)
@@ -231,7 +258,7 @@ const Document = props => {
           onClick={e => {
             const classList = e.target.className.split(' ');
             const isSelected =
-              classList.filter(d => d === 'doc_glyph_second_selected')
+              classList.filter(d => d === 'doc_glyph_secon  xd_selected')
                 .length !== 0;
 
             if (isSelected) {
