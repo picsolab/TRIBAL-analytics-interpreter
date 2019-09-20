@@ -664,7 +664,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValues[d.key])
-              .attr('class', 'path_pdp')
+              .attr('class', 'path_pdp_' + d.key)
               .attr('d', drawPDPLine)
               .style('stroke', 'rgb(190, 255, 231)')
               .style('stroke-width', 4)
@@ -677,7 +677,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValues[d.key])
-              .attr('class', 'area_pdp')
+              .attr('class', 'area_pdp_' + d.key)
               .attr('d', drawPDPArea)
               .style('stroke', 'none')
               .style('fill', 'gray')
@@ -690,7 +690,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValuesForCon[d.key])
-              .attr('class', 'path_pdp_for_con')
+              .attr('class', 'path_pdp_for_con_' + d.key)
               .attr('d', drawPDPLine)
               .style('stroke', globalColors.group.con)
               .style('stroke-width', 2)
@@ -703,7 +703,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValuesForLib[d.key])
-              .attr('class', 'path_pdp_for_lib')
+              .attr('class', 'path_pdp_for_lib_' + d.key)
               .attr('d', drawPDPLine)
               .style('stroke', globalColors.group.lib)
               .style('stroke-width', 2)
@@ -717,7 +717,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValuesForCon[d.key])
-              .attr('class', 'area_pdp_for_con')
+              .attr('class', 'area_pdp_for_con_' + d.key)
               .attr('d', drawPDPArea)
               .style('stroke', 'none')
               .style('fill', globalColors.group.con)
@@ -729,7 +729,7 @@ const FeaturePlotView = React.memo(
             d3.select('.g_feature_axis_' + d.key)
               .append('path')
               .datum(pdpValuesForLib[d.key])
-              .attr('class', 'area_pdp_for_lib')
+              .attr('class', 'area_pdp_for_lib_' + d.key)
               .attr('d', drawPDPArea)
               .style('stroke', 'none')
               .style('fill', globalColors.group.lib)
@@ -942,907 +942,24 @@ const FeaturePlotView = React.memo(
 
       // prettier-ignore
       const clusterCircles = gClusterPlot
-      .selectAll('.cluster_circle')
-      .data(clusters)
-      .enter()
-      .append('circle')
-      .attr('class', (d, i) => 'cluster_circle cluster_circle_' + i)
-      .attr('cx', 0)
-      .attr('cy', d => yClusterCoordScale(d.clusterId) + yClusterCoordScale.bandwidth()/2)
-      .attr('r', d => numTweetClusterScale(d.numTweets))
-      .style('fill', d => groupRatioScale(d.groupRatio.lib))
-      .style('fill-opacity', 0.5)
-      .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
-      .on('mouseover', function(d) {
-          d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
-      })
-      .on('mouseout', function(d) {
-          d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
-      })
-      .on('click', function(d, i) {
-          const selectedCluster = d3.select(this),
-                clusterId = d.clusterId;
-          console.log('clicked cluster: ', clusterId);
-          if (selectedCluster.classed('cluster_selected') === true) {
-              d3.select(this).classed('cluster_selected', false)
-                .style('stroke', 'gray')
-                .style('stroke-width', '1px');
-              console.log('click already selected cluster: ', clusterId);
-
-              // Return back all elements to the normal
-              gFeaturePlot.selectAll('.path_tweet').remove();
-              d3.select('canvas').style('opacity', 1);
-
-              d3.selectAll('.cluster_selected')
-                .style('stroke', 'gray')
-                .style('stroke-width', '1px')
-                .classed('cluster_selected', false);
-
-              d3.selectAll('.cluster_output_prob_rect_selected')
-                .style('stroke', 'gray')
-                .style('stroke-width', '1px')
-                .classed('cluster_output_prob_rect_selected', false);
-
-              d3.selectAll('.line_feature_to_output')
-                .style('opacity', 0.3);
-
-              d3.selectAll('.path_tweet_for_cluster').remove();
-              d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
-              d3.selectAll('.g_output_prob_hist_for_wrong_pred').remove();
-              d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
-              d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
-              d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
-
-              d3.selectAll('.path_pdp').remove();
-              d3.selectAll('.area_pdp').remove();
-              d3.selectAll('.rect_pdp').remove();
-              d3.selectAll('.path_pdp_for_con').remove();
-              d3.selectAll('.area_pdp_for_con').remove();
-              d3.selectAll('.path_pdp_for_lib').remove();
-              d3.selectAll('.area_pdp_for_lib').remove();
-              d3.selectAll('.rect_pdp_for_con').remove();
-              d3.selectAll('.rect_pdp_for_lib').remove();
-
-              // To put back the output prob plot
-              const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
-                e => e.clusterId === clusterId
-              );
-
-              const dataBinCorrectPredTweetsForCluster = d3
-                .histogram()
-                .domain([0, 1])
-                .value(d => d.prob)
-                .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred);
-
-              const dataBinWrongPredTweetsForCluster = d3
-                .histogram()
-                .domain([0, 1])
-                .value(d => d.prob)
-                .thresholds(d3.range(0, 1, 0.05))(tweetsWrongPred);
-
-              gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_hist_for_correct_pred')
-                .attr('transform', d => {
-                  return (
-                    'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
-                  );
-                })
-                .selectAll('.rect_output_prob_hist_for_correct_pred')
-                .data(dataBinCorrectPredTweetsForCluster)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_correct_pred')
-                .attr('x', 3)
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbCorrectHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d =>
-                  d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
-                )
-                .style('opacity', 0.3);
-
-              const tweetLibHistForWrongPred = gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
-                .attr('transform', d => {
-                  return 'translate(' + 0 + ',' + 0 + ')';
-                })
-                .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
-                .data(dataBinLibWrongPredTweets)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred')
-                .attr(
-                  'x',
-                  d =>
-                    layout.outputProbPlot.width / 2 -
-                    3 -
-                    xOutputProbWrongHistScale(d.length)
-                )
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbWrongHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d => globalColors.group.wrong.lib)
-                .style('opacity', 0.5);
-        
-              const tweetConHistForWrongPred = gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
-                .attr('transform', d => {
-                  return 'translate(' + 0 + ',' + 0 + ')';
-                })
-                .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
-                .data(dataBinConWrongPredTweets)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_con_wrong_pred')
-                .attr(
-                  'x',
-                  d =>
-                    layout.outputProbPlot.width / 2 -
-                    3 -
-                    xOutputProbWrongHistScale(d.length)
-                )
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbWrongHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d => globalColors.group.wrong.con)
-                .style('opacity', 0.5);
-
-              // To restore PDP for all
-              // For cluster-specific PDPs
-              d3.selectAll('.axis')
-                  .each(function(d, i) {
-                    var yAxisSetting;
-
-                    const drawPDPLine = d3
-                      .line()
-                      .x(e => xPDProbScale(e.pdpValue))
-                      .y(e =>
-                        d.key === 'care'
-                          ? yPDCareFeatureValueScale(e.featureValue)
-                          : d.key === 'fairness'
-                          ? yPDFairnessFeatureValueScale(e.featureValue)
-                          : yPDFeatureValueScale(e.featureValue)
-                      )
-                      .curve(d3.curveCatmullRom);
-          
-                    const drawPDPArea = d3
-                      .area()
-                      .x0(0)
-                      .x1(e => xPDProbScale(e.pdpValue))
-                      .y(e =>
-                        d.key === 'care'
-                          ? yPDCareFeatureValueScale(e.featureValue)
-                          : d.key === 'fairness'
-                          ? yPDFairnessFeatureValueScale(e.featureValue)
-                          : yPDFeatureValueScale(e.featureValue)
-                      )
-                      .curve(d3.curveCatmullRom);
-          
-                    // For harm and fairness, add ordinal scale + bar chart
-                    if (d.key === 'care') {
-                      yAxisSetting = d3
-                        .axisLeft(yCareScale)
-                        .tickValues([1, 0, 3, 2])
-                        .tickFormat(function(d, i) {
-                          return d === 0
-                            ? 'None'
-                            : d === 1
-                            ? 'Virtue'
-                            : d === 2
-                            ? 'Vice'
-                            : 'Both';
-                        })
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      // For all
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp')
-                        .data(pdpValues[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 10)
-                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', 'rgb(190, 255, 231)')
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_con')
-                        .data(pdpValuesForCon[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_con')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.con).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.con)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_lib')
-                        .data(pdpValuesForLib[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_lib')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.lib)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-                      // For valence and dominance, add linear scale + line chart
-                    } else if (d.key === 'fairness') {
-                      yAxisSetting = d3
-                        .axisLeft(yFairnessScale)
-                        .tickValues([1, 0, 2])
-                        .tickFormat(function(d, i) {
-                          return d === 0
-                            ? 'None'
-                            : d === 1
-                            ? 'Virtue'
-                            : d === 2
-                            ? 'Vice'
-                            : 'Both';
-                        })
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      // For all
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp')
-                        .data(pdpValues[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 10)
-                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', 'rgb(190, 255, 231)')
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_con')
-                        .data(pdpValuesForCon[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_con')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.con).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.con)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_lib')
-                        .data(pdpValuesForLib[d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_lib')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.lib)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-                      // For valence and dominance, add linear scale + line chart
-                    } else {
-                      yAxisSetting = d3
-                        .axisLeft(yVDScale)
-                        .tickValues(d3.range(0, 1.1, 0.2))
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      //// Add a path (to draw a separate line), and also area (to fill the area)
-                      /// For all
-                      // path
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValues[d.key])
-                        .attr('class', 'path_pdp')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', 'rgb(190, 255, 231)')
-                        .style('stroke-width', 4)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      // area
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValues[d.key])
-                        .attr('class', 'area_pdp')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', 'gray')
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      /// Path
-                      // For con
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForCon[d.key])
-                        .attr('class', 'path_pdp_for_con')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', globalColors.group.con)
-                        .style('stroke-width', 2)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      /// For lib
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForLib[d.key])
-                        .attr('class', 'path_pdp_for_lib')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', globalColors.group.lib)
-                        .style('stroke-width', 2)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      /// Area
-                      // For con
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForCon[d.key])
-                        .attr('class', 'area_pdp_for_con')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', globalColors.group.con)
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      // For lib
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForLib[d.key])
-                        .attr('class', 'area_pdp_for_lib')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', globalColors.group.lib)
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-                    }
-                  });
-
-                  // Put back the tweetList with entire tweets
-                  dispatch({
-                    type: 'LIST_TWEETS_IN_CL',
-                    payload: tweets
-                  });
-
-                  dispatch({
-                    type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
-                    payload: {
-                      isClusterSelected: false,
-                      tweetsInClusterForSeqPlot: []
-                    }
-                  });
-
-                  dispatch({
-                    type: 'CAL_PD',
-                    payload: tweets
-                  });
-
-          } else {
-              const clusterId = d.clusterId,
-                tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
-
-              // const drawPDPArea = d3
-              //   .area()
-              //   .x0(0)
-              //   .x1(e => xPDProbScale(e.pdpValue))
-              //   .y(e =>
-              //     d.key === 'care'
-              //       ? yPDCareFeatureValueScale(e.featureValue)
-              //       : yPDFeatureValueScale(e.featureValue)
-              //   )
-              //   .curve(d3.curveCatmullRom);
-
-              // List tweets within this cluster in tweetList
-              dispatch({
-                type: 'LIST_TWEETS_IN_CL',
-                payload: tweetsInCluster
-              });
-
-              dispatch({
-                type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
-                payload: {
-                  isClusterSelected: true,
-                  tweetsInClusterForSeqPlot: tweetsInCluster
-                }
-              });
-
-              // dispatch({
-              //   type: 'CAL_PD',
-              //   payload: tweetsInCluster
-              // });
-
-              // Remove previous elements
-              gFeaturePlot.selectAll('.path_tweet_for_cluster').remove();
-
-              d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
-              d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred').remove();
-              d3.selectAll('.g_output_prob_con_hist_for_con_wrong_pred').remove();
-
-              d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
-              d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
-              d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
-
-              d3.selectAll('.path_pdp').remove();
-              d3.selectAll('.area_pdp').remove();
-              d3.selectAll('.rect_pdp').remove();
-              d3.selectAll('.path_pdp_for_con').remove();
-              d3.selectAll('.area_pdp_for_con').remove();
-              d3.selectAll('.path_pdp_for_lib').remove();
-              d3.selectAll('.area_pdp_for_lib').remove();
-              d3.selectAll('.rect_pdp_for_con').remove();
-              d3.selectAll('.rect_pdp_for_lib').remove();
-
-              // selectedFeatures.forEach(feature => {
-              //   const featureName = feature.key;
-
-              //   d3.selectAll('.area_pdp_for_lib')
-              //   .datum(pdpValuesForLib[featureName])
-              //   .attr('class', 'area_pdp_for_lib')
-              //   .attr('d', drawPDPArea);
-              // });
-
-              d3.selectAll('.cluster_selected')
-                .style('stroke', 'gray')
-                .style('stroke-width', '1px')
-                .classed('cluster_selected', false);
-
-              d3.selectAll('.cluster_output_prob_rect_selected')
-                .style('stroke', 'gray')
-                .style('stroke-width', '1px')
-                .classed('cluster_output_prob_rect_selected', false);
-
-              d3.selectAll('.line_feature_to_output')
-                .style('opacity', 0);
-
-              // Highlight selected cluster
-              selectedCluster.classed('cluster_selected', true);
-              selectedCluster
-                .style('stroke-width', '3px')
-                .style('stroke', 'black');
-
-              d3.select('.cluster_output_prob_rect_' + clusterId)
-                .style('stroke', 'black')
-                .style('stroke-width', '2px')
-                .classed('cluster_output_prob_rect_selected', true);
-
-              d3.selectAll('.line_feature_to_output_' + clusterId)
-                .style('opacity', 0.3);
-
-              // To highlight the paths
-              // Highlight the cluster paths by generating svg paths
-              const tweetsPathDataForCluster = tweetsInCluster.map(d => {
-                const tweetWithSelectedFeatures = _.pick(
-                  d,
-                  selectedFeatures.map(({ key }) => key)
-                );
-                var tweetPathData = Object.entries(tweetWithSelectedFeatures);
-                tweetPathData.group = d.group;
-
-                return tweetPathData;
-              });
-
-              gFeaturePlot
-                .selectAll('.path_tweet_for_cluster')
-                .data(tweetsPathDataForCluster)
-                .enter()
-                .append('path')
-                .attr('class', 'path_tweet_for_cluster')
-                .attr('d', drawTweetLine)
-                .style('stroke', d => groupColorScale(d.group))
-                .style('fill', 'none')
-                .style('stroke-width', 0.3)
-                .style('opacity', 0.3);
-
-              d3.select('canvas')
-                .style('opacity', 0.1);
-
-              // To adjust the output prob plot
-              const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
-                e => e.clusterId === clusterId
-              );
-              const tweetsConWrongPredForCluster = tweetsWrongPred.filter(
-                e => (e.clusterId === clusterId && e.group === '0')
-              );
-              const tweetsLibWrongPredForCluster = tweetsWrongPred.filter(
-                e => (e.clusterId === clusterId && e.group === '1')
-              );
-
-              const dataBinCorrectPredTweetsForCluster = d3
-                .histogram()
-                .domain([0, 1])
-                .value(d => d.prob)
-                .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPredForCluster);
-
-              const dataBinConWrongPredTweetsForCluster = d3
-                .histogram()
-                .domain([0, 1])
-                .value(d => d.prob)
-                .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPredForCluster);
-
-              const dataBinLibWrongPredTweetsForCluster = d3
-                .histogram()
-                .domain([0, 1])
-                .value(d => d.prob)
-                .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPredForCluster);
-
-              // Adjust the output probability plot
-              gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_hist_for_correct_pred_for_cluster')
-                .attr('transform', d => {
-                  return (
-                    'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
-                  );
-                })
-                .selectAll('.g_output_prob_hist_for_correct_pred_for_cluster')
-                .data(dataBinCorrectPredTweetsForCluster)
-                .enter()
-                .append('rect')
-                .attr('class', 'g_output_prob_hist_for_correct_pred_for_cluster')
-                .attr('x', 3)
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbCorrectHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d =>
-                  d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
-                )
-                .style('opacity', 0.3);
-
-              // tweetLibHistForWrongPredForCluster
-              gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred_for_cluster')
-                .attr('transform', d => {
-                  return 'translate(' + 0 + ',' + 0 + ')';
-                })
-                .selectAll('.rect_output_prob_hist_for_con_wrong_pred_for_cluster')
-                .data(dataBinConWrongPredTweetsForCluster)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_con_wrong_for_cluster')
-                .attr(
-                  'x',
-                  d =>
-                    layout.outputProbPlot.width / 2 -
-                    3 -
-                    xOutputProbWrongHistScale(d.length)
-                )
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbWrongHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d => globalColors.group.wrong.con)
-                .style('opacity', 0.5);
-              
-              // tweetConHistForWrongPredForCluster
-              gOutputProbPlot
-                .append('g')
-                .attr('class', 'g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster')
-                .attr('transform', d => {
-                  return 'translate(' + 0 + ',' + 0 + ')';
-                })
-                .selectAll('.rect_output_prob_hist_for_lib_wrong_pred_for_cluster')
-                .data(dataBinLibWrongPredTweetsForCluster)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred_for_cluster')
-                .attr(
-                  'x',
-                  d =>
-                    layout.outputProbPlot.width / 2 -
-                    3 -
-                    xOutputProbWrongHistScale(d.length)
-                )
-                .attr('y', d => yOutputProbHistBinScale(d.x0))
-                .attr('width', d => xOutputProbWrongHistScale(d.length))
-                .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-                .style('fill', d => globalColors.group.wrong.lib)
-                .style('opacity', 0.5);
-
-              // For cluster-specific PDPs
-              d3.selectAll('.axis')
-                  .each(function(d, i) {
-                    var yAxisSetting;
-
-                    const drawPDPLine = d3
-                      .line()
-                      .x(e => xPDProbScale(e.pdpValue))
-                      .y(e =>
-                        d.key === 'care'
-                          ? yPDCareFeatureValueScale(e.featureValue)
-                          : d.key === 'fairness'
-                          ? yPDFairnessFeatureValueScale(e.featureValue)
-                          : yPDFeatureValueScale(e.featureValue)
-                      )
-                      .curve(d3.curveCatmullRom);
-          
-                    const drawPDPArea = d3
-                      .area()
-                      .x0(0)
-                      .x1(e => xPDProbScale(e.pdpValue))
-                      .y(e =>
-                        d.key === 'care'
-                          ? yPDCareFeatureValueScale(e.featureValue)
-                          : d.key === 'fairness'
-                          ? yPDFairnessFeatureValueScale(e.featureValue)
-                          : yPDFeatureValueScale(e.featureValue)
-                      )
-                      .curve(d3.curveCatmullRom);
-          
-                    // For harm and fairness, add ordinal scale + bar chart
-                    if (d.key === 'care') {
-                      yAxisSetting = d3
-                        .axisLeft(yCareScale)
-                        .tickValues([1, 0, 3, 2])
-                        .tickFormat(function(d, i) {
-                          return d === 0
-                            ? 'None'
-                            : d === 1
-                            ? 'Virtue'
-                            : d === 2
-                            ? 'Vice'
-                            : 'Both';
-                        })
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      // For all
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp')
-                        .data(pdpValuesForClusters[clusterId]['all'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 10)
-                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', 'rgb(190, 255, 231)')
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_con')
-                        .data(pdpValuesForClusters[clusterId]['con'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_con')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.con).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.con)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_lib')
-                        .data(pdpValuesForClusters[clusterId]['lib'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_lib')
-                        .attr('x', 2)
-                        .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.lib)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-                      // For valence and dominance, add linear scale + line chart
-                    } else if (d.key === 'fairness') {
-                      yAxisSetting = d3
-                        .axisLeft(yFairnessScale)
-                        .tickValues([1, 0, 2])
-                        .tickFormat(function(d, i) {
-                          return d === 0
-                            ? 'None'
-                            : d === 1
-                            ? 'Virtue'
-                            : d === 2
-                            ? 'Vice'
-                            : 'Both';
-                        })
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      // For all
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp')
-                        .data(pdpValuesForClusters[clusterId]['all'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 10)
-                        .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', 'rgb(190, 255, 231)')
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_con')
-                        .data(pdpValuesForClusters[clusterId]['con'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_con')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue) - 5)
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.con).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.con)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-          
-                      d3.select('.g_feature_axis_' + d.key)
-                        .selectAll('.rect_pdp_for_lib')
-                        .data(pdpValuesForClusters[clusterId]['lib'][d.key])
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect_pdp_for_lib')
-                        .attr('x', 2)
-                        .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
-                        .attr('width', e => xPDProbScale(e.pdpValue))
-                        .attr('height', 5)
-                        .style('stroke', d3.rgb(globalColors.group.lib).darker())
-                        // .style('stroke-width', 4)
-                        .style('fill', globalColors.group.lib)
-                        // .style('stroke-dasharray', '8,3')
-                        // .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.5);
-                      // For valence and dominance, add linear scale + line chart
-                    } else {
-                      yAxisSetting = d3
-                        .axisLeft(yVDScale)
-                        .tickValues(d3.range(0, 1.1, 0.2))
-                        .tickSize(1);
-                      d3.select(this).call(yAxisSetting);
-          
-                      //// Add a path (to draw a separate line), and also area (to fill the area)
-                      /// For all
-                      // path
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['all'][d.key])
-                        .attr('class', 'path_pdp')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', 'rgb(190, 255, 231)')
-                        .style('stroke-width', 4)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      // area
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['all'][d.key])
-                        .attr('class', 'area_pdp')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', 'gray')
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      /// Path
-                      // For con
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['con'][d.key])
-                        .attr('class', 'path_pdp_for_con')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', globalColors.group.con)
-                        .style('stroke-width', 2)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      /// For lib
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
-                        .attr('class', 'path_pdp_for_lib')
-                        .attr('d', drawPDPLine)
-                        .style('stroke', globalColors.group.lib)
-                        .style('stroke-width', 2)
-                        .style('fill', 'none')
-                        // .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('opacity', 1);
-          
-                      /// Area
-                      // For con
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['con'][d.key])
-                        .attr('class', 'area_pdp_for_con')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', globalColors.group.con)
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-          
-                      // For lib
-                      d3.select('.g_feature_axis_' + d.key)
-                        .append('path')
-                        .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
-                        .attr('class', 'area_pdp_for_lib')
-                        .attr('d', drawPDPArea)
-                        .style('stroke', 'none')
-                        .style('fill', globalColors.group.lib)
-                        .style('stroke-dasharray', '8,3')
-                        .style('shape-rendering', 'crispedges')
-                        .style('fill-opacity', 0.3);
-                    }
-                  })
-        
-            } // end of else click
-      });
+        .selectAll('.cluster_circle')
+        .data(clusters)
+        .enter()
+        .append('circle')
+        .attr('class', (d, i) => 'cluster_circle cluster_circle_' + i)
+        .attr('cx', 0)
+        .attr('cy', d => yClusterCoordScale(d.clusterId) + yClusterCoordScale.bandwidth()/2)
+        .attr('r', d => numTweetClusterScale(d.numTweets))
+        .style('fill', d => groupRatioScale(d.groupRatio.lib))
+        .style('fill-opacity', 0.5)
+        .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
+        .on('mouseover', function(d) {
+            d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
+        })
+        .on('mouseout', function(d) {
+            d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
+        })
+        .on('click', updateOnClickCluster);
 
       const clusterTitle = gClusterPlot
         .append('text')
@@ -1926,6 +1043,919 @@ const FeaturePlotView = React.memo(
           .append('text')
           .text('Output Prob')
           .attr('y', 10);
+      }
+
+      function updateOnClickCluster(d, i) {
+        const selectedCluster = d3.select(this),
+          clusterId = d.clusterId;
+        console.log('clicked cluster: ', clusterId);
+        if (selectedCluster.classed('cluster_selected') === true) {
+          d3.select(this)
+            .classed('cluster_selected', false)
+            .style('stroke', 'gray')
+            .style('stroke-width', '1px');
+          console.log('click already selected cluster: ', clusterId);
+
+          // Return back all elements to the normal
+          gFeaturePlot.selectAll('.path_tweet').remove();
+          d3.select('canvas').style('opacity', 1);
+
+          d3.selectAll('.cluster_selected')
+            .style('stroke', 'gray')
+            .style('stroke-width', '1px')
+            .classed('cluster_selected', false);
+
+          d3.selectAll('.cluster_output_prob_rect_selected')
+            .style('stroke', 'gray')
+            .style('stroke-width', '1px')
+            .classed('cluster_output_prob_rect_selected', false);
+
+          d3.selectAll('.line_feature_to_output').style('opacity', 0.3);
+
+          d3.selectAll('.path_tweet_for_cluster').remove();
+          //d3.selectAll('.g_output_prob_hist_for_correct_pred').remove();
+          //d3.selectAll('.g_output_prob_hist_for_wrong_pred').remove();
+          //d3.selectAll('.g_output_prob_hist_for_correct_pred_for_cluster').remove();
+          //d3.selectAll('.g_output_prob_con_hist_for_lib_wrong_pred_for_cluster').remove();
+          //d3.selectAll('.g_output_prob_lib_hist_for_lib_wrong_pred_for_cluster').remove();
+
+          d3.selectAll('.path_pdp').remove();
+          d3.selectAll('.area_pdp').remove();
+          d3.selectAll('.rect_pdp').remove();
+          d3.selectAll('.path_pdp_for_con').remove();
+          d3.selectAll('.area_pdp_for_con').remove();
+          d3.selectAll('.path_pdp_for_lib').remove();
+          d3.selectAll('.area_pdp_for_lib').remove();
+          d3.selectAll('.rect_pdp_for_con').remove();
+          d3.selectAll('.rect_pdp_for_lib').remove();
+
+          // To put back the output prob plot
+          const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
+            e => e.clusterId === clusterId
+          );
+
+          const dataBinCorrectPredTweets = d3
+            .histogram()
+            .domain([0, 1])
+            .value(d => d.prob)
+            .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred);
+
+          const dataBinWrongPredTweets = d3
+            .histogram()
+            .domain([0, 1])
+            .value(d => d.prob)
+            .thresholds(d3.range(0, 1, 0.05))(tweetsWrongPred);
+
+          const outputProbCorrRectsData = d3
+            .selectAll('.rect_output_prob_hist_for_correct_pred')
+            .data(dataBinCorrectPredTweets);
+
+          outputProbCorrRectsData.exit().remove();
+
+          outputProbCorrRectsData
+            .attr('y', d => yOutputProbHistBinScale(d.x0))
+            .attr('width', d => xOutputProbCorrectHistScale(d.length));
+
+          // gOutputProbPlot
+          //   .append('g')
+          //   .attr('class', 'g_output_prob_hist_for_correct_pred')
+          //   .attr('transform', d => {
+          //     return (
+          //       'translate(' + layout.outputProbPlot.width / 2 + ',' + 0 + ')'
+          //     );
+          //   })
+          //   .selectAll('.rect_output_prob_hist_for_correct_pred')
+          //   .data(dataBinCorrectPredTweetsForCluster)
+          //   .enter()
+          //   .append('rect')
+          //   .attr('class', 'rect_output_prob_hist_for_correct_pred')
+          //   .attr('x', 3)
+          //   .attr('y', d => yOutputProbHistBinScale(d.x0))
+          //   .attr('width', d => xOutputProbCorrectHistScale(d.length))
+          //   .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+          //   .style('fill', d =>
+          //     d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con
+          //   )
+          //   .style('opacity', 0.3);
+
+          const outputProbWrongRectsForLibData = d3
+            .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+            .data(dataBinLibWrongPredTweets);
+
+          outputProbWrongRectsForLibData.exit().remove();
+
+          outputProbWrongRectsForLibData
+            .attr(
+              'x',
+              d =>
+                layout.outputProbPlot.width / 2 -
+                3 -
+                xOutputProbWrongHistScale(d.length)
+            )
+            .attr('width', d => xOutputProbWrongHistScale(d.length));
+
+          const outputProbWrongRectsForConData = d3
+            .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+            .data(dataBinConWrongPredTweets);
+
+          outputProbWrongRectsForConData.exit().remove();
+
+          outputProbWrongRectsForConData
+            .attr(
+              'x',
+              d =>
+                layout.outputProbPlot.width / 2 -
+                3 -
+                xOutputProbWrongHistScale(d.length)
+            )
+            .attr('width', d => xOutputProbWrongHistScale(d.length));
+
+          // const tweetLibHistForWrongPred = gOutputProbPlot
+          //   .append('g')
+          //   .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
+          //   .attr('transform', d => {
+          //     return 'translate(' + 0 + ',' + 0 + ')';
+          //   })
+          //   .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+          //   .data(dataBinLibWrongPredTweets)
+          //   .enter()
+          //   .append('rect')
+          //   .attr('class', 'rect_output_prob_hist_for_lib_wrong_pred')
+          // .attr(
+          //   'x',
+          //   d =>
+          //     layout.outputProbPlot.width / 2 -
+          //     3 -
+          //     xOutputProbWrongHistScale(d.length)
+          // )
+          //   .attr('y', d => yOutputProbHistBinScale(d.x0))
+          //   .attr('width', d => xOutputProbWrongHistScale(d.length))
+          //   .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+          //   .style('fill', d => globalColors.group.wrong.lib)
+          //   .style('opacity', 0.5);
+
+          // const tweetConHistForWrongPred = gOutputProbPlot
+          //   .append('g')
+          //   .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
+          //   .attr('transform', d => {
+          //     return 'translate(' + 0 + ',' + 0 + ')';
+          //   })
+          //   .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+          //   .data(dataBinConWrongPredTweets)
+          //   .enter()
+          //   .append('rect')
+          //   .attr('class', 'rect_output_prob_hist_for_con_wrong_pred')
+          //   .attr(
+          //     'x',
+          //     d =>
+          //       layout.outputProbPlot.width / 2 -
+          //       3 -
+          //       xOutputProbWrongHistScale(d.length)
+          //   )
+          //   .attr('y', d => yOutputProbHistBinScale(d.x0))
+          //   .attr('width', d => xOutputProbWrongHistScale(d.length))
+          //   .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
+          //   .style('fill', d => globalColors.group.wrong.con)
+          //   .style('opacity', 0.5);
+
+          // To restore PDP for all
+          // For cluster-specific PDPs
+          d3.selectAll('.axis').each(function(d, i) {
+            var yAxisSetting;
+
+            const drawPDPLine = d3
+              .line()
+              .x(e => xPDProbScale(e.pdpValue))
+              .y(e =>
+                d.key === 'care'
+                  ? yPDCareFeatureValueScale(e.featureValue)
+                  : d.key === 'fairness'
+                  ? yPDFairnessFeatureValueScale(e.featureValue)
+                  : yPDFeatureValueScale(e.featureValue)
+              )
+              .curve(d3.curveCatmullRom);
+
+            const drawPDPArea = d3
+              .area()
+              .x0(0)
+              .x1(e => xPDProbScale(e.pdpValue))
+              .y(e =>
+                d.key === 'care'
+                  ? yPDCareFeatureValueScale(e.featureValue)
+                  : d.key === 'fairness'
+                  ? yPDFairnessFeatureValueScale(e.featureValue)
+                  : yPDFeatureValueScale(e.featureValue)
+              )
+              .curve(d3.curveCatmullRom);
+
+            // For harm and fairness, add ordinal scale + bar chart
+            if (d.key === 'care') {
+              yAxisSetting = d3
+                .axisLeft(yCareScale)
+                .tickValues([1, 0, 3, 2])
+                .tickFormat(function(d, i) {
+                  return d === 0
+                    ? 'None'
+                    : d === 1
+                    ? 'Virtue'
+                    : d === 2
+                    ? 'Vice'
+                    : 'Both';
+                })
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              // For all
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp')
+                .data(pdpValues[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 10)
+                .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                // .style('stroke-width', 4)
+                .style('fill', 'rgb(190, 255, 231)')
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_con')
+                .data(pdpValuesForCon[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_con')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.con).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.con)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_lib')
+                .data(pdpValuesForLib[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_lib')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.lib)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+              // For valence and dominance, add linear scale + line chart
+            } else if (d.key === 'fairness') {
+              yAxisSetting = d3
+                .axisLeft(yFairnessScale)
+                .tickValues([1, 0, 2])
+                .tickFormat(function(d, i) {
+                  return d === 0
+                    ? 'None'
+                    : d === 1
+                    ? 'Virtue'
+                    : d === 2
+                    ? 'Vice'
+                    : 'Both';
+                })
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              // For all
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp')
+                .data(pdpValues[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp')
+                .attr('x', 2)
+                .attr(
+                  'y',
+                  e => yPDFairnessFeatureValueScale(e.featureValue) - 5
+                )
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 10)
+                .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                // .style('stroke-width', 4)
+                .style('fill', 'rgb(190, 255, 231)')
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_con')
+                .data(pdpValuesForCon[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_con')
+                .attr('x', 2)
+                .attr(
+                  'y',
+                  e => yPDFairnessFeatureValueScale(e.featureValue) - 5
+                )
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.con).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.con)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_lib')
+                .data(pdpValuesForLib[d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_lib')
+                .attr('x', 2)
+                .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.lib)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+              // For valence and dominance, add linear scale + line chart
+            } else {
+              yAxisSetting = d3
+                .axisLeft(yVDScale)
+                .tickValues(d3.range(0, 1.1, 0.2))
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              //// Add a path (to draw a separate line), and also area (to fill the area)
+              /// For all
+              // path
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValues[d.key])
+                .attr('class', 'path_pdp')
+                .attr('d', drawPDPLine)
+                .style('stroke', 'rgb(190, 255, 231)')
+                .style('stroke-width', 4)
+                .style('fill', 'none')
+                // .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('opacity', 1);
+
+              // area
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValues[d.key])
+                .attr('class', 'area_pdp')
+                .attr('d', drawPDPArea)
+                .style('stroke', 'none')
+                .style('fill', 'gray')
+                .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              /// Path
+              // For con
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValuesForCon[d.key])
+                .attr('class', 'path_pdp_for_con')
+                .attr('d', drawPDPLine)
+                .style('stroke', globalColors.group.con)
+                .style('stroke-width', 2)
+                .style('fill', 'none')
+                // .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('opacity', 1);
+
+              /// For lib
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValuesForLib[d.key])
+                .attr('class', 'path_pdp_for_lib')
+                .attr('d', drawPDPLine)
+                .style('stroke', globalColors.group.lib)
+                .style('stroke-width', 2)
+                .style('fill', 'none')
+                // .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('opacity', 1);
+
+              /// Area
+              // For con
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValuesForCon[d.key])
+                .attr('class', 'area_pdp_for_con')
+                .attr('d', drawPDPArea)
+                .style('stroke', 'none')
+                .style('fill', globalColors.group.con)
+                .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              // For lib
+              d3.select('.g_feature_axis_' + d.key)
+                .append('path')
+                .datum(pdpValuesForLib[d.key])
+                .attr('class', 'area_pdp_for_lib')
+                .attr('d', drawPDPArea)
+                .style('stroke', 'none')
+                .style('fill', globalColors.group.lib)
+                .style('stroke-dasharray', '8,3')
+                .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+            }
+          });
+
+          // Put back the tweetList with entire tweets
+          dispatch({
+            type: 'LIST_TWEETS_IN_CL',
+            payload: tweets
+          });
+
+          dispatch({
+            type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+            payload: {
+              isClusterSelected: false,
+              tweetsInClusterForSeqPlot: []
+            }
+          });
+
+          dispatch({
+            type: 'CAL_PD',
+            payload: tweets
+          });
+          // When unselecting a selected cluster (going back to the whole)
+        } else {
+          const clusterId = d.clusterId,
+            tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
+
+          // List tweets within this cluster in tweetList
+          dispatch({
+            type: 'LIST_TWEETS_IN_CL',
+            payload: tweetsInCluster
+          });
+
+          dispatch({
+            type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+            payload: {
+              isClusterSelected: true,
+              tweetsInClusterForSeqPlot: tweetsInCluster
+            }
+          });
+
+          // Remove previous elements
+          gFeaturePlot.selectAll('.path_tweet_for_cluster').remove();
+
+          d3.selectAll('.path_pdp').remove();
+          d3.selectAll('.area_pdp').remove();
+          d3.selectAll('.rect_pdp').remove();
+          d3.selectAll('.path_pdp_for_con').remove();
+          d3.selectAll('.area_pdp_for_con').remove();
+          d3.selectAll('.path_pdp_for_lib').remove();
+          d3.selectAll('.area_pdp_for_lib').remove();
+          d3.selectAll('.rect_pdp_for_con').remove();
+          d3.selectAll('.rect_pdp_for_lib').remove();
+
+          d3.selectAll('.cluster_selected')
+            .style('stroke', 'gray')
+            .style('stroke-width', '1px')
+            .classed('cluster_selected', false);
+
+          d3.selectAll('.cluster_output_prob_rect_selected')
+            .style('stroke', 'gray')
+            .style('stroke-width', '1px')
+            .classed('cluster_output_prob_rect_selected', false);
+
+          d3.selectAll('.line_feature_to_output').style('opacity', 0);
+
+          // Highlight selected cluster
+          selectedCluster.classed('cluster_selected', true);
+          selectedCluster.style('stroke-width', '3px').style('stroke', 'black');
+
+          d3.select('.cluster_output_prob_rect_' + clusterId)
+            .style('stroke', 'black')
+            .style('stroke-width', '2px')
+            .classed('cluster_output_prob_rect_selected', true);
+
+          d3.selectAll('.line_feature_to_output_' + clusterId).style(
+            'opacity',
+            0.3
+          );
+
+          // To highlight the paths
+          // Highlight the cluster paths by generating svg paths
+          const tweetsPathDataForCluster = tweetsInCluster.map(d => {
+            const tweetWithSelectedFeatures = _.pick(
+              d,
+              selectedFeatures.map(({ key }) => key)
+            );
+            var tweetPathData = Object.entries(tweetWithSelectedFeatures);
+            tweetPathData.group = d.group;
+
+            return tweetPathData;
+          });
+
+          gFeaturePlot
+            .selectAll('.path_tweet_for_cluster')
+            .data(tweetsPathDataForCluster)
+            .enter()
+            .append('path')
+            .attr('class', 'path_tweet_for_cluster')
+            .attr('d', drawTweetLine)
+            .style('stroke', d => groupColorScale(d.group))
+            .style('fill', 'none')
+            .style('stroke-width', 0.3)
+            .style('opacity', 0.3);
+
+          d3.select('canvas').style('opacity', 0.1);
+
+          // To adjust the output prob plot
+          const tweetsCorrectPredForCluster = tweetsCorrectPred.filter(
+            e => e.clusterId === clusterId
+          );
+          const tweetsConWrongPredForCluster = tweetsWrongPred.filter(
+            e => e.clusterId === clusterId && e.group === '0'
+          );
+          const tweetsLibWrongPredForCluster = tweetsWrongPred.filter(
+            e => e.clusterId === clusterId && e.group === '1'
+          );
+
+          const dataBinCorrectPredTweetsForCluster = d3
+            .histogram()
+            .domain([0, 1])
+            .value(d => d.prob)
+            .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPredForCluster);
+
+          const dataBinConWrongPredTweetsForCluster = d3
+            .histogram()
+            .domain([0, 1])
+            .value(d => d.prob)
+            .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPredForCluster);
+
+          const dataBinLibWrongPredTweetsForCluster = d3
+            .histogram()
+            .domain([0, 1])
+            .value(d => d.prob)
+            .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPredForCluster);
+
+          // dataBinCorrectPredTweets = dataBinCorrectPredTweetsForCluster;
+
+          const outputProbRectsData = d3
+            .selectAll('.rect_output_prob_hist_for_correct_pred')
+            .data(dataBinCorrectPredTweetsForCluster);
+
+          outputProbRectsData.exit().remove();
+
+          outputProbRectsData
+            .attr('y', d => yOutputProbHistBinScale(d.x0))
+            .attr('width', d => xOutputProbCorrectHistScale(d.length));
+
+          const outputProbWrongRectsForLibData = d3
+            .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+            .data(dataBinLibWrongPredTweetsForCluster);
+
+          outputProbWrongRectsForLibData.exit().remove();
+          outputProbWrongRectsForLibData
+            .attr(
+              'x',
+              d =>
+                layout.outputProbPlot.width / 2 -
+                3 -
+                xOutputProbWrongHistScale(d.length)
+            )
+            .attr('width', d => xOutputProbWrongHistScale(d.length));
+
+          const outputProbWrongRectsForConData = d3
+            .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+            .data(dataBinConWrongPredTweetsForCluster);
+
+          outputProbWrongRectsForConData.exit().remove();
+          outputProbWrongRectsForConData
+            .attr(
+              'x',
+              d =>
+                layout.outputProbPlot.width / 2 -
+                3 -
+                xOutputProbWrongHistScale(d.length)
+            )
+            .attr('width', d => xOutputProbWrongHistScale(d.length));
+
+          // For cluster-specific PDPs
+          d3.selectAll('.axis').each(function(d, i) {
+            var yAxisSetting;
+
+            const drawPDPLine = d3
+              .line()
+              .x(e => xPDProbScale(e.pdpValue))
+              .y(e =>
+                d.key === 'care'
+                  ? yPDCareFeatureValueScale(e.featureValue)
+                  : d.key === 'fairness'
+                  ? yPDFairnessFeatureValueScale(e.featureValue)
+                  : yPDFeatureValueScale(e.featureValue)
+              )
+              .curve(d3.curveCatmullRom);
+
+            const drawPDPArea = d3
+              .area()
+              .x0(0)
+              .x1(e => xPDProbScale(e.pdpValue))
+              .y(e =>
+                d.key === 'care'
+                  ? yPDCareFeatureValueScale(e.featureValue)
+                  : d.key === 'fairness'
+                  ? yPDFairnessFeatureValueScale(e.featureValue)
+                  : yPDFeatureValueScale(e.featureValue)
+              )
+              .curve(d3.curveCatmullRom);
+
+            // For harm and fairness, add ordinal scale + bar chart
+            if (d.key === 'care') {
+              yAxisSetting = d3
+                .axisLeft(yCareScale)
+                .tickValues([1, 0, 3, 2])
+                .tickFormat(function(d, i) {
+                  return d === 0
+                    ? 'None'
+                    : d === 1
+                    ? 'Virtue'
+                    : d === 2
+                    ? 'Vice'
+                    : 'Both';
+                })
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              // For all
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp')
+                .data(pdpValuesForClusters[clusterId]['all'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 10)
+                .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                // .style('stroke-width', 4)
+                .style('fill', 'rgb(190, 255, 231)')
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_con')
+                .data(pdpValuesForClusters[clusterId]['con'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_con')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue) - 5)
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.con).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.con)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_lib')
+                .data(pdpValuesForClusters[clusterId]['lib'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_lib')
+                .attr('x', 2)
+                .attr('y', e => yPDCareFeatureValueScale(e.featureValue))
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.lib)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+              // For valence and dominance, add linear scale + line chart
+            } else if (d.key === 'fairness') {
+              yAxisSetting = d3
+                .axisLeft(yFairnessScale)
+                .tickValues([1, 0, 2])
+                .tickFormat(function(d, i) {
+                  return d === 0
+                    ? 'None'
+                    : d === 1
+                    ? 'Virtue'
+                    : d === 2
+                    ? 'Vice'
+                    : 'Both';
+                })
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              // For all
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp')
+                .data(pdpValuesForClusters[clusterId]['all'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp')
+                .attr('x', 2)
+                .attr(
+                  'y',
+                  e => yPDFairnessFeatureValueScale(e.featureValue) - 5
+                )
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 10)
+                .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+                // .style('stroke-width', 4)
+                .style('fill', 'rgb(190, 255, 231)')
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.3);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_con')
+                .data(pdpValuesForClusters[clusterId]['con'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_con')
+                .attr('x', 2)
+                .attr(
+                  'y',
+                  e => yPDFairnessFeatureValueScale(e.featureValue) - 5
+                )
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.con).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.con)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+
+              d3.select('.g_feature_axis_' + d.key)
+                .selectAll('.rect_pdp_for_lib')
+                .data(pdpValuesForClusters[clusterId]['lib'][d.key])
+                .enter()
+                .append('rect')
+                .attr('class', 'rect_pdp_for_lib')
+                .attr('x', 2)
+                .attr('y', e => yPDFairnessFeatureValueScale(e.featureValue))
+                .attr('width', e => xPDProbScale(e.pdpValue))
+                .attr('height', 5)
+                .style('stroke', d3.rgb(globalColors.group.lib).darker())
+                // .style('stroke-width', 4)
+                .style('fill', globalColors.group.lib)
+                // .style('stroke-dasharray', '8,3')
+                // .style('shape-rendering', 'crispedges')
+                .style('fill-opacity', 0.5);
+              // For valence and dominance, add linear scale + line chart
+            } else {
+              yAxisSetting = d3
+                .axisLeft(yVDScale)
+                .tickValues(d3.range(0, 1.1, 0.2))
+                .tickSize(1);
+              d3.select(this).call(yAxisSetting);
+
+              //// Add a path (to draw a separate line), and also area (to fill the area)
+              /// For all
+
+              const pdpPathDatumForAll = d3
+                .select('.path_pdp_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['all'][d.key]);
+
+              pdpPathDatumForAll.exit().remove();
+              pdpPathDatumForAll.attr('d', drawPDPLine);
+
+              const pdpAreaDatumForAll = d3
+                .select('.area_pdp_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['all'][d.key]);
+
+              pdpAreaDatumForAll.exit().remove();
+              pdpAreaDatumForAll.attr('d', drawPDPArea);
+
+              const pdpPathDatumForCon = d3
+                .select('.path_pdp_for_con_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['con'][d.key]);
+
+              pdpPathDatumForCon.exit().remove();
+              pdpPathDatumForCon.attr('d', drawPDPLine);
+
+              const pdpAreaDatumForCon = d3
+                .select('.area_pdp_for_con_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['con'][d.key]);
+
+              pdpAreaDatumForCon.exit().remove();
+              pdpAreaDatumForCon.attr('d', drawPDPArea);
+
+              const pdpPathDatumForLib = d3
+                .selectAll('.path_pdp_for_lib_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['lib'][d.key]);
+
+              pdpPathDatumForLib.exit().remove();
+              pdpPathDatumForLib.attr('d', drawPDPLine);
+
+              const pdpAreaDatumForLib = d3
+                .selectAll('.area_pdp_for_lib_' + d.key)
+                .datum(pdpValuesForClusters[clusterId]['lib'][d.key]);
+
+              pdpAreaDatumForLib.exit().remove();
+              pdpAreaDatumForLib.attr('d', drawPDPArea);
+
+              // // path
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['all'][d.key])
+              //   .attr('class', 'path_pdp_' + d.key)
+              //   .attr('d', drawPDPLine)
+              //   .style('stroke', 'rgb(190, 255, 231)')
+              //   .style('stroke-width', 4)
+              //   .style('fill', 'none')
+              //   // .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('opacity', 1);
+
+              // // area
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['all'][d.key])
+              //   .attr('class', 'area_pdp_' + d.key)
+              //   .attr('d', drawPDPArea)
+              //   .style('stroke', 'none')
+              //   .style('fill', 'gray')
+              //   .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('fill-opacity', 0.3);
+
+              // /// Path
+              // // For con
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['con'][d.key])
+              //   .attr('class', 'path_pdp_for_con_' + d.key)
+              //   .attr('d', drawPDPLine)
+              //   .style('stroke', globalColors.group.con)
+              //   .style('stroke-width', 2)
+              //   .style('fill', 'none')
+              //   // .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('opacity', 1);
+
+              // /// For lib
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
+              //   .attr('class', 'path_pdp_for_lib_' + d.key)
+              //   .attr('d', drawPDPLine)
+              //   .style('stroke', globalColors.group.lib)
+              //   .style('stroke-width', 2)
+              //   .style('fill', 'none')
+              //   // .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('opacity', 1);
+
+              // /// Area
+              // // For con
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['con'][d.key])
+              //   .attr('class', 'area_pdp_for_con_' + d.key)
+              //   .attr('d', drawPDPArea)
+              //   .style('stroke', 'none')
+              //   .style('fill', globalColors.group.con)
+              //   .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('fill-opacity', 0.3);
+
+              // // For lib
+              // d3.select('.g_feature_axis_' + d.key)
+              //   .append('path')
+              //   .datum(pdpValuesForClusters[clusterId]['lib'][d.key])
+              //   .attr('class', 'area_pdp_for_lib_' + d.key)
+              //   .attr('d', drawPDPArea)
+              //   .style('stroke', 'none')
+              //   .style('fill', globalColors.group.lib)
+              //   .style('stroke-dasharray', '8,3')
+              //   .style('shape-rendering', 'crispedges')
+              //   .style('fill-opacity', 0.3);
+            }
+          });
+        } // end of else click
       }
     }, [
       tweets,
