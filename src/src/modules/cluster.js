@@ -9,7 +9,8 @@ const RUN_CL_N_CAL_PD = 'RUN_CL_N_CAL_PD';
 export const runClusteringAndPartialDependenceForClusters = ({
   tweets,
   features,
-  modelId
+  modelId,
+  groups
 }) => {
   return async dispatch => {
     await axios({
@@ -18,7 +19,8 @@ export const runClusteringAndPartialDependenceForClusters = ({
       data: JSON.stringify({
         tweets: tweets,
         modelId: modelId,
-        features: features
+        features: features,
+        groups: groups
       })
     }).then(res => {
       dispatch({ type: 'RUN_CL_N_CAL_PD', payload: res.data });
@@ -68,7 +70,7 @@ const cluster = (state = initialState, action) => {
       };
     case RUN_CL_N_CAL_PD:
       const orderedCluster = _.orderBy(
-        JSON.parse(action.payload.clusters),
+        action.payload.clusters,
         ['groupRatio'],
         ['desc']
       );

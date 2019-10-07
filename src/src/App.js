@@ -6,7 +6,7 @@ import './App.css';
 // import './index.css';
 import styled from 'styled-components';
 
-import { fetchTweets } from './modules/tweet';
+import { fetchTweets, fetchWords } from './modules/tweet';
 import { fetchUsers } from './modules/user';
 import { runDT } from './modules/globalInterpreter';
 
@@ -24,12 +24,12 @@ const Container = styled.div`
   width: 85%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 700px 450px;
-  grid-template-columns: 15.3% 44.75% 15% 25%;
+  grid-template-rows: 50px 900px 450px;
+  grid-template-columns: 10% 65% 25%;
   grid-template-areas:
-    'h h h h'
-    'g g g e'
-    'r l l e';
+    'h h h'
+    'g g e'
+    'r l e';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -68,6 +68,7 @@ function App() {
   useEffect(() => {
     dispatch(fetchTweets());
     dispatch(fetchUsers());
+    dispatch(fetchWords());
   });
 
   return (

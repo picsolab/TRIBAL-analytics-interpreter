@@ -31,7 +31,7 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   grid-area: g;
   display: grid;
   grid-template-columns: 20% 80%;
-  grid-template-rows: 50px 50px 20px 250px 300px;
+  grid-template-rows: 50px 50px 20px 500px 300px;
   grid-template-areas:
     'ge t'
     'ge md'
@@ -172,31 +172,6 @@ const customDropdownTheme = {
       fontSize: '0.7rem'
     }
   }
-
-  // dropdown: {
-  //   // size: '18px',
-  //   // // toggle: {
-  //   // //   extend: `
-  //   // //   font-size: 0.9rem;
-  //   // //   margin-right: 3px;
-  //   // // `
-  //   // // },
-  //   // icon: {
-  //   //   size: '15px'
-  //   // },
-  //   // border: {
-  //   //   width: '1px',
-  //   //   extend: `
-  //   //   font-size: 0.9rem;
-  //   //   margin-right: 3px;
-  //   // `
-  //   // },
-  //   // gap: 'xsmall',
-  //   extend: `
-  //     font-size: 0.9rem;
-  //     // margin-right: 3px;
-  //   `
-  // }
 };
 
 const globalModesWithDisplay = globalModes.map(d => ({
@@ -237,17 +212,19 @@ const GlobalInterpreter = props => {
   const {
     globalMode,
     currentModel,
+    groups,
     features,
     selectedFeatures,
     tweets,
+    words,
+    goals,
     tweetsWithPredFeatures,
     clusters,
     clusterIdsForTweets,
-    words,
     pdpValues,
-    pdpValuesForCon,
-    pdpValuesForLib,
-    pdpValuesForClusters,
+    pdpValuesForGroups,
+    pdpValuesForCls,
+    pdpValuesForClsGroups,
     isLoaded,
     isClusterSelected,
     tweetsInClusterForSeqPlot
@@ -260,7 +237,8 @@ const GlobalInterpreter = props => {
       runDTThenRunClandPD({
         tweets: tweets,
         selectedFeatures: selectedFeatures,
-        modelId: currentModel
+        modelId: currentModel,
+        groups: groups
       })
     );
   }, []);
@@ -315,7 +293,8 @@ const GlobalInterpreter = props => {
                     runDTThenRunClandPD({
                       tweets: tweetsWithPredFeatures,
                       selectedFeatures: selectedFeatures,
-                      modelId: currentModel
+                      modelId: currentModel,
+                      groups: groups
                     })
                   )
                 : // when selectedGlobalMode is 0 or 1
@@ -323,7 +302,8 @@ const GlobalInterpreter = props => {
                     runDTThenRunClandPD({
                       tweets: tweets,
                       selectedFeatures: selectedFeatures,
-                      modelId: currentModel
+                      modelId: currentModel,
+                      groups: groups
                     })
                   );
             }
@@ -350,22 +330,24 @@ const GlobalInterpreter = props => {
       <FeaturePlotView
         globalMode={globalMode}
         currentModel={currentModel}
+        groups={groups}
         numFeatures={numFeatures}
+        goals={goals}
         tweets={tweets}
-        selectedFeatures={selectedFeatures}
+        words={words}
+        features={selectedFeatures}
         clusters={clusters}
         // clusterIdsForTweets={clusterIdsForTweets}
         pdpValues={pdpValues}
-        pdpValuesForCon={pdpValuesForCon}
-        pdpValuesForLib={pdpValuesForLib}
-        pdpValuesForClusters={pdpValuesForClusters}
+        pdpValuesForGroups={pdpValuesForGroups}
+        pdpValuesForCls={pdpValuesForCls}
+        pdpValuesForCls={pdpValuesForClsGroups}
         isLoaded={isLoaded}
       />
       <SeqPlotView
         globalMode={globalMode}
         numFeatures={numFeatures}
         wordsInTweets={tweets}
-        words={words}
         selectedFeatures={selectedFeatures}
         isClusterSelected={isClusterSelected}
         tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}

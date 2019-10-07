@@ -3,62 +3,25 @@ import { useSelector, useDispatch } from 'react-redux';
 import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter';
 
 const GlobalInterpreterContainer = () => {
-  const { tweets, tweetsWithPredFeatures, isLoaded } = useSelector(
+  const { tweets, words, tweetsWithPredFeatures, isLoaded } = useSelector(
       state => state.tweet,
       []
     ),
     { clusters } = useSelector(state => state.cluster, []),
     {
       currentModel,
+      goals,
+      groups,
       features,
       selectedFeatures,
       globalMode,
       pdpValues,
-      pdpValuesForCon,
-      pdpValuesForLib,
-      pdpValuesForClusters,
+      pdpValuesForGroups,
+      pdpValuesForCls,
+      pdpValuesForClsGroups,
       isClusterSelected,
       tweetsInClusterForSeqPlot
     } = useSelector(state => state.globalInterpreter, []);
-
-  const words = [
-    {
-      word: 'hate',
-      fromFeature: 'valence',
-      importance: '0.8',
-      numTweetsGroupRatio: { con: 0.4, lib: 0.6 }
-    },
-    {
-      word: 'act',
-      fromFeature: 'dominance',
-      importance: '0.7',
-      numTweetsGroupRatio: { con: 0.7, lib: 0.3 }
-    },
-    {
-      word: 'dominant',
-      fromFeature: 'dominance',
-      importance: '0.6',
-      numTweetsGroupRatio: { con: 0.94, lib: 0.06 }
-    },
-    {
-      word: 'fair',
-      fromFeature: 'fairness',
-      importance: '0.6',
-      numTweetsGroupRatio: { con: 0.24, lib: 0.76 }
-    },
-    {
-      word: 'care',
-      fromFeature: 'care',
-      importance: '0.6',
-      numTweetsGroupRatio: { con: 0.14, lib: 0.86 }
-    },
-    {
-      word: 'bad',
-      fromFeature: 'care',
-      importance: '0.6',
-      numTweetsGroupRatio: { con: 0.5, lib: 0.5 }
-    }
-  ];
 
   if (!tweets || tweets.length === 0) return <div />;
 
@@ -66,17 +29,19 @@ const GlobalInterpreterContainer = () => {
     <GlobalInterpreter
       globalMode={globalMode}
       tweets={tweets}
+      words={words}
       tweetsWithPredFeatures={tweetsWithPredFeatures}
       clusters={clusters}
       // clusterIdsForTweets={clusterIdsForTweets}
-      words={words}
       currentModel={currentModel}
+      goals={goals}
+      groups={groups}
       features={features}
       selectedFeatures={selectedFeatures}
       pdpValues={pdpValues}
-      pdpValuesForCon={pdpValuesForCon}
-      pdpValuesForLib={pdpValuesForLib}
-      pdpValuesForClusters={pdpValuesForClusters}
+      pdpValuesForGroups={pdpValuesForGroups}
+      pdpValuesForCls={pdpValuesForCls}
+      pdpValuesForClsGroups={pdpValuesForClsGroups}
       isLoaded={isLoaded}
       isClusterSelected={isClusterSelected}
       tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}

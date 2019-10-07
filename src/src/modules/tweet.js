@@ -6,6 +6,7 @@ import axios from 'axios';
 
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
+const FETCH_WORDS = 'FETCH_WORDS';
 const UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE =
   'UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE';
 const SELECT_TWEET = 'SELECT_TWEET';
@@ -82,7 +83,27 @@ export const fetchTweets = () => {
   };
 };
 
-export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
+export const fetchWords = () => {
+  return async dispatch => {
+    await axios.get('/tweets/loadWords').then(res => {
+      console.log('loadWords: ', res.data);
+      const data = res.data.map(d => ({
+        word: d.word,
+        countTotal: d.count_total,
+        countGroup0: d['0'],
+        countGroup1: d['1']
+      }));
+      dispatch({ type: 'FETCH_WORDS', payload: data });
+    });
+  };
+};
+
+export function runDTThenRunClandPD({
+  tweets,
+  selectedFeatures,
+  modelId,
+  groups
+}) {
   // Again, Redux Thunk will inject dispatch here.
   // It also injects a second argument called getState() that lets us read the current state.
   return (dispatch, getState) => {
@@ -97,7 +118,8 @@ export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
         runClusteringAndPartialDependenceForClusters({
           tweets: fetchedTweets,
           features: selectedFeatures,
-          modelId: modelId
+          modelId: modelId,
+          groups: groups
         })
       );
     });
@@ -107,6 +129,7 @@ export function runDTThenRunClandPD({ tweets, selectedFeatures, modelId }) {
 // initial value for state
 const initialState = {
   tweets: [],
+  words: [],
   tweetsWithPredFeatures: [],
   tweetList: [],
   tweetListStatus: '',
@@ -126,6 +149,11 @@ const tweet = (state = initialState, action) => {
         tweetList: action.payload.tweets,
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
         selectedTweet: action.payload.tweets[0]
+      };
+    case FETCH_WORDS:
+      return {
+        ...state,
+        words: action.payload
       };
     case UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE:
       const updatedGlobalMode = action.payload;

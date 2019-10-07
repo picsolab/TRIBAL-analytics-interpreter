@@ -26,19 +26,35 @@ code {
 }
 
 .axis text {
-  font-weight: 600;
-  fill: black;
+  font-weight: 400;
+  fill: gray;
   font-size: 0.8rem;
-  stroke: white;
-  stroke-width: 0.7;
+  /* stroke: white;
+  stroke-width: 0.7; */
 }
 
 .g_feature_group_axis path {
   stroke: none;
 }
 
-.g_feature_axis text {
-  fill: black;
+.g_feature_axis path {
+  stroke: gray;
+  stroke-width: 2px;
+}
+.g_feature_axis line {
+  stroke: gray;
+  stroke-width: 2px;
+}
+
+.g_word_x_axis line {
+  stroke: none;
+}
+.g_word_x_axis path {
+  stroke: none;
+}
+
+.g_word_x_axis text {
+  fill: gray;
 }
 
 .doc_selected {

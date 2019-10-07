@@ -113,9 +113,6 @@ const ScoreView = ({ tweet }) => {
       layout.marginBottom
     ]);
 
-  console.log('yFairness: ', yFairnessScale.domain(), yFairnessScale.range());
-  console.log('yCare: ', yCareScale.domain(), yCareScale.range());
-
   const categoryMappingCareScale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])

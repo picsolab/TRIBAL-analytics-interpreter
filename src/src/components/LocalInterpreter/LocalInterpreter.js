@@ -361,7 +361,8 @@ const QAView = ({
                         tweets: tweets,
                         selectedTweet: tweetForFirstTweet,
                         secondSelectedTweet: secondSelectedTweet,
-                        currentModel: currentModel
+                        currentModel: currentModel,
+                        features: features
                       })
                     );
                   }}
@@ -488,7 +489,8 @@ const LocalInterpreter = ({
         tweets: tweets,
         selectedTweet: selectedTweet,
         secondSelectedTweet: secondSelectedTweet,
-        currentModel: currentModel
+        currentModel: currentModel,
+        features: features
       })
     );
   }, [selectedTweet]);

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { store } from '../index';
+import * as d3 from 'd3';
 
 const CAL_PD = 'CAL_PD';
 const RUN_CL_N_CAL_PD_FOR_PDP_VALUES = 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES';
@@ -49,6 +50,11 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
 
 // initial value for state
 const initialState = {
+  goals: ['emotion', 'moral'],
+  groups: [
+    { name: 'liberal', abbr: 'lib' },
+    { name: 'conservative', abbr: 'con' }
+  ],
   features: [
     { key: 'valence', abbr: 'V' },
     { key: 'dominance', abbr: 'D' },
@@ -60,30 +66,49 @@ const initialState = {
       key: 'valence',
       abbr: 'V',
       type: 'continuous',
-      threshold: 0.5
+      threshold: 0.5,
+      values: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      scale: d3.scaleLinear(),
+      pdScale: d3.scaleLinear(),
+      domain: [0, 1]
+    },
+    {
+      key: 'dominance',
+      abbr: 'D',
+      type: 'continuous',
+      threshold: 0.5,
+      values: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      scale: d3.scaleLinear(),
+      pdScale: d3.scaleLinear(),
+      domain: [0, 1]
     },
     {
       key: 'fairness',
       abbr: 'F',
       type: 'categorical',
       values: [
-        { num: 0, real: 'none' },
-        { num: 1, real: 'virtue' },
-        { num: 2, real: 'vice' },
-        { num: 3, real: 'both' }
-      ]
+        { num: 0, category: 'none' },
+        { num: 1, category: 'virtue' },
+        { num: 2, category: 'vice' },
+        { num: 3, category: 'both' }
+      ],
+      scale: d3.scaleOrdinal(),
+      pdScale: d3.scaleOrdinal(),
+      domain: [2, 0, 1]
     },
-    { key: 'dominance', abbr: 'D', type: 'continuous', threshold: 0.5 },
     {
       key: 'care',
       abbr: 'C',
       type: 'categorical',
       values: [
-        { num: 0, real: 'none' },
-        { num: 1, real: 'virtue' },
-        { num: 2, real: 'vice' },
-        { num: 3, real: 'both' }
-      ]
+        { num: 0, category: 'none' },
+        { num: 1, category: 'virtue' },
+        { num: 2, category: 'vice' },
+        { num: 3, category: 'both' }
+      ],
+      scale: d3.scaleOrdinal(),
+      pdScale: d3.scaleOrdinal(),
+      domain: [2, 3, 0, 1]
     }
   ],
   areFeaturesChecked: { valence: false },
@@ -103,9 +128,9 @@ const initialState = {
     // }
   ],
   pdpValues: [],
-  pdpValuesForCon: [],
-  pdpValuesForLib: [],
-  pdpValuesForClusters: {},
+  pdpValuesForGroups: [],
+  pdpValuesForCls: [],
+  pdpValuesForClsGroups: [],
   globalMode: 1, // 1: true-true, 2: true-pred, 3: pred-pred, 4:
   isClusterSelected: false,
   tweetsInClusterForSeqPlot: []
@@ -155,11 +180,6 @@ const globalInterpreter = (state = initialState, action) => {
         isValenceChecked: action.payload
       };
     case CAL_PD:
-      console.log('calculatePartialDependence state: ', state);
-      console.log(
-        'calculatePartialDependence payload: ',
-        JSON.parse(action.payload.tweets)
-      );
       console.log('pdpvalues0: ', action.payload.pdpValues);
       return {
         ...state,
@@ -187,57 +207,12 @@ const globalInterpreter = (state = initialState, action) => {
         ]
       };
     case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
-      var pdpValuesObj = {};
-      var pdpValuesForConObj = {};
-      var pdpValuesForLibObj = {};
-      var pdpValuesForClustersObj = {};
-      Object.keys(action.payload.pdpValuesForClusters).forEach(clusterId => {
-        pdpValuesForClustersObj[clusterId] = {};
-
-        Object.keys(
-          action.payload.pdpValuesForClusters[clusterId]['all']
-        ).forEach(feature => {
-          const all = JSON.parse(
-            action.payload.pdpValuesForClusters[clusterId]['all'][feature]
-          );
-          const con = JSON.parse(
-            action.payload.pdpValuesForClusters[clusterId]['con'][feature]
-          );
-          const lib = JSON.parse(
-            action.payload.pdpValuesForClusters[clusterId]['lib'][feature]
-          );
-
-          pdpValuesForClustersObj[clusterId] = {
-            all: {
-              ...pdpValuesForClustersObj[clusterId]['all'],
-              [feature]: all
-            },
-            con: {
-              ...pdpValuesForClustersObj[clusterId]['con'],
-              [feature]: con
-            },
-            lib: {
-              ...pdpValuesForClustersObj[clusterId]['lib'],
-              [feature]: lib
-            }
-          };
-        });
-      });
-      Object.keys(action.payload.pdpValues).forEach(feature => {
-        pdpValuesObj[feature] = JSON.parse(action.payload.pdpValues[feature]);
-        pdpValuesForConObj[feature] = JSON.parse(
-          action.payload.pdpValuesForCon[feature]
-        );
-        pdpValuesForLibObj[feature] = JSON.parse(
-          action.payload.pdpValuesForLib[feature]
-        );
-      });
       return {
         ...state,
-        pdpValues: pdpValuesObj,
-        pdpValuesForCon: pdpValuesForConObj,
-        pdpValuesForLib: pdpValuesForLibObj,
-        pdpValuesForClusters: pdpValuesForClustersObj
+        pdpValues: action.payload.pdpValues,
+        pdpValuesForGroups: action.payload.pdpValuesForGroups,
+        pdpValuesForCls: action.payload.pdpValuesForCls,
+        pdpvaluesForClsGroups: action.payload.pdpValuesForClsGroups
       };
     case SHOW_SEQ_PLOT_FOR_CLUSTER:
       return {

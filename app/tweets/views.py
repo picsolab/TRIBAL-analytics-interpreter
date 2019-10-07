@@ -18,7 +18,20 @@ from sklearn.inspection import partial_dependence, plot_partial_dependence
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics import accuracy_score
 
+from collections import Counter
 from io import StringIO
+
+# A tweet as json
+'''
+{'grp': '0', 'content': 'truck control...', 'screen_name': 'feedthebuzz', 
+ 'valence': 0.333333333, 'valence_seq': 'terror attack kills scores in nice', 
+ 'valence_seq_rank': 15, 'valence_pred': 0.161331654, 'valence_grp_pred': 0, 
+ 'dominance': 0.270833333, 'dominance_seq': 'terror attack kills scores in', 'dominance_seq_rank': 15, 'dominance_pred': 0.299620539, 'dominance_grp_pred': 0, 
+ 'care': 2, 'care_seq': 'terror attack kills scores in nice', 'care_seq_rank': 13, 'care_pred': 2, 'care_grp_pred': 0, 'care_prob': 4.848002434, 
+ 'fairness': 1, 'fairness_seq': 'terror attack kills', 'fairness_seq_rank': 3, 'fairness_pred': 2, 'fairness_grp_pred': 0, 'fairness_prob': 1.320369363, 
+ 'tweet_id': 0
+}
+'''
 
 
 def save_model(model, model_id):
@@ -134,6 +147,54 @@ class LoadUsers(APIView):
 
         return Response(users_json)
 
+class LoadWords(APIView):
+    def get(self, request, format=None):
+        tweet_objects = models.Tweet.objects.all()
+        # serializer return string, so convert it to list with eval()
+        tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
+        groups = [0, 1]
+
+        tweets_json = []
+        word_tokens = [] # All importance word apperances from all second-level features
+        for tweet_idx, tweet in enumerate(tweet_objects_json):
+            tweet_json = tweet['fields']
+            tweet_json.update({ 'tweet_id': tweet['pk'] })
+            tweets_json.append(tweet_json)
+
+            word_tokens.append({ 'word': tweet_json['valence_seq'], 'group': tweet_json['grp'] })
+            word_tokens.append({ 'word': tweet_json['dominance_seq'], 'group': tweet_json['grp'] })
+            word_tokens.append({ 'word': tweet_json['fairness_seq'], 'group': tweet_json['grp'] })
+            word_tokens.append({ 'word': tweet_json['care_seq'], 'group': tweet_json['grp'] })
+        
+        # Orgainze word tokens as unique words and their frequencies
+        word_count_dict = {}
+        for word_dict in word_tokens:
+            if word_dict['word'] in word_count_dict.keys():
+                print('in dict: ', word_count_dict[word_dict['word']])
+                word_count_dict[word_dict['word']][word_dict['group']] += 1
+                word_count_dict[word_dict['word']]['count_total'] += 1
+            else:
+                word_count_dict[word_dict['word']] = {}
+                word_count_dict[word_dict['word']]['count_total'] = 0
+                for group in groups:  # Create keys for all groups
+                    word_count_dict[word_dict['word']][str(group)] = 0
+        #word_count_dict = dict(Counter(word_tokens)) # { 'dog': 2, 'cat': 1, ... }
+        df_word_count = pd.DataFrame()
+        
+        df_word_list = pd.DataFrame(list(word_count_dict.keys()), columns=['word'])
+        df_word_count_per_group = pd.DataFrame.from_dict(list(word_count_dict.values()))
+        print('df_word_list: ', df_word_list.head())
+        print('df_word_count_per_group: ', df_word_count_per_group.head())
+
+        df_word_count = pd.concat([ df_word_list, df_word_count_per_group ], axis=1)
+        print('df_word_count: ', df_word_count)
+        # Filter out words with threshold
+        df_filtered_word_count = df_word_count.loc[df_word_count['count_total'] > 30]
+        print(df_filtered_word_count.head())
+        
+
+        return Response(df_filtered_word_count.to_dict(orient='records')) # [{ 'word': 'dog', 'count': 2 }, { ... }, ...]
+
 # For the global interpretability,
 class SearchTweets(APIView):
     def get(self, request, format=None):
@@ -191,8 +252,6 @@ class RunDecisionTree(APIView):
         scores = cross_validate(clf, X, y, cv=10)['test_score']
 
         save_model(clf, 'dt_0')
-
-        print('accuracy: ', accuracy)
 
         return Response({
             'modelId': 'dt_0',
@@ -258,16 +317,19 @@ class CalculatePartialDependence(APIView):
 
         model = load_model(model_id)
 
-        pdp_values_dict = {}
+        pdp_values_list = {}
         for feature_idx, feature in enumerate(features):
             pdp_values, feature_values = partial_dependence(model, X, [feature_idx], percentiles=(0, 1))   # 0 is the selected feature index
-            pdp_values_dict[feature] = pd.DataFrame({ 'pdpValue': pdp_values, 'featureValue': feature_values }).to_json(orient='index')
+            pdp_values_list.append({
+              'feature': feature,
+              'values': pd.DataFrame({ 'pdpValue': pdp_values, 'featureValue': feature_values }).to_json(orient='index')
+            })
 
         # performance
 
         return Response({
             'modelId': model,
-            'pdpValues': pdp_values_dict
+            'pdpValues': pdp_values_list
         })
 
 
@@ -279,6 +341,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         feature_objs = request_json['features']
         features = [feature['key'] for feature in feature_objs]
         tweets = request_json['tweets']
+        groups = request_json['groups']
 
         # tweet_objects = models.Tweet.objects.all()
         # tweet_objects_json = eval(serializers.serialize('json', tweet_objects)) # serializer return string, so convert it to list with eval()
@@ -298,56 +361,70 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             'group': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
         }).rename(columns={'group': 'group_lib_ratio'}) # '1': lib
 
-        # Calculate partial dependence
+        # Prepare data for partial dependence (PD)
         lb = preprocessing.LabelBinarizer()
         X = df_tweets[features]
-        X_con = df_tweets.loc[df_tweets['group'] == '0', features]
-        X_lib = df_tweets.loc[df_tweets['group'] == '1', features]
+        X_for_groups = []
+        for group_idx, group in enumerate(groups):
+            X_group = X.loc[df_tweets['group'] == str(group_idx)]
+            X_for_groups.append(X_group)
+        
         y = lb.fit_transform(df_tweets['group'].astype(str))
         y = np.ravel(y)
 
         model = load_model(model_id)
-        pdp_values_dict = {}
-        pdp_values_for_con_dict = {}
-        pdp_values_for_lib_dict = {}
+
+        # Calculate PD-all
+        pdp_values_for_all = []
         for feature_idx, feature in enumerate(features):
             pdp_values, feature_values = partial_dependence(model, X, [feature_idx], percentiles=(0, 1))   # 0 is the selected feature index
-            pdp_values_for_con, feature_values_for_con = partial_dependence(model, X_con, [feature_idx], percentiles=(0, 1))
-            pdp_values_for_lib, feature_values_for_lib = partial_dependence(model, X_lib, [feature_idx], percentiles=(0, 1))
+            pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_dict(orient='records')
             
-            pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_json(orient='records')
-            pdp_values_for_con_json = pd.DataFrame({ 'pdpValue': pdp_values_for_con[0], 'featureValue': feature_values_for_con[0] }).to_json(orient='records')
-            pdp_values_for_lib_json = pd.DataFrame({ 'pdpValue': pdp_values_for_lib[0], 'featureValue': feature_values_for_lib[0] }).to_json(orient='records')
-            
-            pdp_values_dict[feature] = pdp_values_json
-            pdp_values_for_con_dict[feature] = pdp_values_for_con_json
-            pdp_values_for_lib_dict[feature] = pdp_values_for_lib_json
+            pdp_values_for_all.append({ 'feature': feature, 'values': pdp_values_json })
 
-        pdp_values_for_cls_dict = {}
-        # Calculate PD for clusters
+        # Calculate PD-per-group
+        pdp_values_for_groups = []
+        for group_idx, group in enumerate(groups):
+            pdp_values_for_features = []
+            for feature_idx, feature in enumerate(features):
+                pdp_values, feature_values = partial_dependence(model, X_for_groups[group_idx], [feature_idx], percentiles=(0, 1))
+                pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_dict(orient='records')
+                pdp_values_for_features.append({ 'feature': feature, 'values': pdp_values_json })
+
+            pdp_values_for_groups.append({ 'group': group, 'valuesForFeatures': pdp_values_for_features })
+
+        # Calculate PD-per-clusters (for all and for groups)
+        pdp_values_for_cls = []
+        pdp_values_for_cls_and_groups = []
         for cl_idx in df_tweets_by_cluster.groups.keys():
+            # Prepare data for PD per cluster
             indexes = df_tweets_by_cluster.groups[cl_idx]
             df_tweets_in_cluster = df_tweets.loc[indexes]
             X_cl = df_tweets_in_cluster[features]
-            X_cl_con = X_cl.loc[df_tweets['group'] == '0']
-            X_cl_lib = X_cl.loc[df_tweets['group'] == '1']
 
-            pdp_values_for_cls_dict[cl_idx] = {
-                'all': {}, 'con': {}, 'lib': {}
-            }
+            X_for_groups = []
+            for group_idx, group in enumerate(groups):
+                X_group = X_cl.loc[df_tweets['group'] == str(group_idx)]
+                X_for_groups.append(X_group)
 
+            # for all
+            pdp_values_for_features = []
             for feature_idx, feature in enumerate(features):
                 pdp_values_cl, feature_values_cl = partial_dependence(model, X_cl, [feature_idx], percentiles=(0, 1))   # 0 is the selected feature index
-                pdp_values_cl_for_con, feature_values_cl_for_con = partial_dependence(model, X_cl_con, [feature_idx], percentiles=(0, 1))
-                pdp_values_cl_for_lib, feature_values_cl_for_lib = partial_dependence(model, X_cl_lib, [feature_idx], percentiles=(0, 1))
+                pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values_cl[0], 'featureValue': feature_values_cl[0] }).to_dict(orient='records')
+                pdp_values_for_features.append({ 'cluster': cl_idx, 'feature': feature, 'values': pdp_values_cl_json })
+            
+            pdp_values_for_cls.append({ 'cluster': cl_idx, 'valuesForFeatures': pdp_values_for_features })
 
-                pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values_cl[0], 'featureValue': feature_values_cl[0] }).to_json(orient='records')
-                pdp_values_cl_for_con_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_con[0], 'featureValue': feature_values_cl_for_con[0] }).to_json(orient='records')
-                pdp_values_cl_for_lib_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_lib[0], 'featureValue': feature_values_cl_for_lib[0] }).to_json(orient='records')
+            # for groups
+            for group_idx, group in enumerate(groups):
+                pdp_values_for_cls_and_features = []
+                for feature_idx, feature in enumerate(features):
+                    pdp_values, feature_values = partial_dependence(model, X_for_groups[group_idx], [feature_idx], percentiles=(0, 1))
+                    pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_dict(orient='records')
+                    pdp_values_for_cls_and_features.append({ 'feature': feature, 'values': pdp_values_cl_json })
                 
-                pdp_values_for_cls_dict[cl_idx]['all'][feature] = pdp_values_cl_json
-                pdp_values_for_cls_dict[cl_idx]['con'][feature] = pdp_values_cl_for_con_json
-                pdp_values_for_cls_dict[cl_idx]['lib'][feature] = pdp_values_cl_for_lib_json
+                pdp_values_for_cls_and_groups.append({ 'cluster': cl_idx, 'group': group, 'valuesForFeatures': pdp_values_for_cls_and_features })
 
         # Results
         cluster_ids = cls_labels
@@ -359,14 +436,13 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         })
 
         return Response({
-            'clusters': df_clusters.to_json(orient='records'),
+            'clusters': df_clusters.to_dict(orient='records'),
             'clusterIdsForTweets': cluster_ids,
-            'pdpValues': pdp_values_dict,
-            'pdpValuesForCon': pdp_values_for_con_dict,
-            'pdpValuesForLib': pdp_values_for_lib_dict,
-            'pdpValuesForClusters': pdp_values_for_cls_dict
+            'pdpValues': pdp_values_for_all,
+            'pdpValuesForGroups': pdp_values_for_groups,
+            'pdpValuesForCls': pdp_values_for_cls,
+            'pdpValuesForClsGroups': pdp_values_for_cls_and_groups
         })
-
 
 class FindContrastiveExamples(APIView):
 
@@ -589,3 +665,8 @@ class FindContrastiveExamples(APIView):
             return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
+
+class CalculateWordScores(APIView):
+
+    def post(self, request, format=None):
+        pass

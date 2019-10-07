@@ -370,7 +370,6 @@ const WordList = ({ feature, wordsInTweets }) => {
 
 const SeqPlotView = ({
   wordsInTweets,
-  words,
   selectedFeatures,
   globalMode,
   isClusterSelected,
