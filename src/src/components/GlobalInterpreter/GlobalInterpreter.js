@@ -17,7 +17,12 @@ import {
   SubTitle
 } from '../../GlobalStyles';
 
-import { runDTThenRunClandPD } from '../../modules/tweet';
+import {
+  runDTThenRunClandPD,
+  fetchWords,
+  calculateTFIDFAndCooc,
+  fetchWordsThenCalTFIDFAndCooc
+} from '../../modules/tweet';
 import { runDT } from '../../modules/globalInterpreter';
 
 import Generator from './Generator';
@@ -30,10 +35,10 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
 })`
   grid-area: g;
   display: grid;
-  grid-template-columns: 20% 80%;
-  grid-template-rows: 50px 50px 20px 500px 300px;
+  grid-template-columns: 10% 90%;
+  grid-template-rows: 40px 60px 20px 550px 250px;
   grid-template-areas:
-    'ge t'
+    't t'
     'ge md'
     'ge ab'
     'ge f'
@@ -47,8 +52,6 @@ const ModeViewWrapper = styled.div.attrs({
   display: flex;
   align-items: center;
   border: 1px solid #dadada;
-  background-color: whitesmoke;
-  padding: 4px;
 `;
 
 const ModeDropdown = styled(Select).attrs({
@@ -56,8 +59,8 @@ const ModeDropdown = styled(Select).attrs({
 })`
   width: 80%;
   height: 35px;
-  background-color: white;
-  border: 1px solid whitesmoke;
+  // background-color: white;
+  // border: 1px solid whitesmoke;
   border-radius: 10px;
 `;
 
@@ -220,6 +223,7 @@ const GlobalInterpreter = props => {
     goals,
     tweetsWithPredFeatures,
     clusters,
+    clustersForGoals,
     clusterIdsForTweets,
     pdpValues,
     pdpValuesForGroups,
@@ -227,12 +231,22 @@ const GlobalInterpreter = props => {
     pdpValuesForClsGroups,
     isLoaded,
     isClusterSelected,
-    tweetsInClusterForSeqPlot
+    tweetsInClusterForSeqPlot,
+    tfidf,
+    cooc
   } = props;
   const numFeatures = 6,
     numAbstractFeatures = 1;
 
   useEffect(() => {
+    dispatch(
+      fetchWordsThenCalTFIDFAndCooc({
+        groups: groups,
+        tweets: tweets,
+        words: words
+      })
+    );
+
     dispatch(
       runDTThenRunClandPD({
         tweets: tweets,
@@ -245,7 +259,12 @@ const GlobalInterpreter = props => {
 
   const loadingIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
 
-  if (!clusters || clusters.length === 0 || isLoaded === false)
+  if (
+    !clusters ||
+    clusters.length === 0 ||
+    isLoaded === false ||
+    cooc.length === 0
+  )
     return (
       <GlobalInterpreterWrapper>
         <div style={{ gridArea: 't' }}>
@@ -254,6 +273,7 @@ const GlobalInterpreter = props => {
         </div>
         <Generator
           globalMode={globalMode}
+          goals={goals}
           tweets={tweets}
           tweetsWithPredFeatures={tweetsWithPredFeatures}
           features={features}
@@ -267,7 +287,18 @@ const GlobalInterpreter = props => {
       <div style={{ gridArea: 't' }}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
-      <div style={{ gridArea: 'md', display: 'flex', alignItems: 'center' }}>
+      <div
+        style={{
+          gridArea: 'md',
+          display: 'flex',
+          alignItems: 'center',
+          // backgroundColor: 'white',
+          margin: '5px',
+          padding: '4px',
+          height: '80px'
+          // border: '0.5px solid #e6e6e6'
+        }}
+      >
         &nbsp;&nbsp;&nbsp;&nbsp;
         <SubsectionTitle>Mode: </SubsectionTitle>
         &nbsp;&nbsp;&nbsp;
@@ -318,6 +349,7 @@ const GlobalInterpreter = props => {
       </div>
       <Generator
         globalMode={globalMode}
+        goals={goals}
         tweets={tweets}
         tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
@@ -337,12 +369,15 @@ const GlobalInterpreter = props => {
         words={words}
         features={selectedFeatures}
         clusters={clusters}
+        clustersForGoals={clustersForGoals}
         // clusterIdsForTweets={clusterIdsForTweets}
         pdpValues={pdpValues}
         pdpValuesForGroups={pdpValuesForGroups}
         pdpValuesForCls={pdpValuesForCls}
         pdpValuesForCls={pdpValuesForClsGroups}
         isLoaded={isLoaded}
+        tfidf={tfidf}
+        cooc={cooc}
       />
       <SeqPlotView
         globalMode={globalMode}

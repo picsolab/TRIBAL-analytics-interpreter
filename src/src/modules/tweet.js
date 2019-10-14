@@ -19,6 +19,7 @@ const UPDATE_TWEETS_AFTER_RUNNING_ML = 'UPDATE_TWEETS_AFTER_RUNNING_ML';
 const CAL_PD_FOR_TWEETS = 'CAL_PD_FOR_TWEETS';
 const RUN_CLUSTERING_FOR_TWEETS = 'RUN_CLUSTERING_FOR_TWEETS';
 const RUN_CL_N_CAL_PD_FOR_TWEETS = 'RUN_CL_N_CAL_PD_FOR_TWEETS';
+const CAL_TFIDF_COOC = 'CAL_TFIDF_COOC';
 
 // Action functions
 export const fetchTweets = () => {
@@ -83,20 +84,63 @@ export const fetchTweets = () => {
   };
 };
 
-export const fetchWords = () => {
+export const fetchWords = ({ groups }) => {
   return async dispatch => {
-    await axios.get('/tweets/loadWords').then(res => {
-      console.log('loadWords: ', res.data);
-      const data = res.data.map(d => ({
-        word: d.word,
-        countTotal: d.count_total,
-        countGroup0: d['0'],
-        countGroup1: d['1']
-      }));
+    await axios({
+      method: 'post',
+      url: '/tweets/loadWords/',
+      data: JSON.stringify({
+        groups: groups
+      })
+    }).then(res => {
+      const data = res.data.map(d => {
+        const counts_per_groups = groups.map((group, group_idx) => ({
+          group: group_idx,
+          count: d[group_idx]
+        }));
+        return {
+          word: d.word,
+          countTotal: d.count_total,
+          countGroup: counts_per_groups
+        };
+      });
       dispatch({ type: 'FETCH_WORDS', payload: data });
     });
   };
 };
+
+export const calculateTFIDFAndCooc = ({ tweets, words }) => {
+  return async dispatch => {
+    await axios({
+      method: 'post',
+      url: '/tweets/calculateTFIDFAndCooc/',
+      data: JSON.stringify({
+        tweets: tweets,
+        words: words
+      })
+    }).then(res => {
+      console.log('words: ', res.data);
+      dispatch({ type: 'CAL_TFIDF_COOC', payload: res.data });
+    });
+  };
+};
+
+export function fetchWordsThenCalTFIDFAndCooc({ tweets, words, groups }) {
+  return (dispatch, getState) => {
+    // Remember I told you dispatch() can now handle thunks?
+    return dispatch(fetchWords({ groups: groups })).then(() => {
+      // Assuming this is where the fetched user got stored
+      const fetchedWords = getState().tweet.words;
+      // And we can dispatch() another thunk now!
+      return dispatch(
+        calculateTFIDFAndCooc({
+          tweets: tweets,
+          words: fetchedWords
+        })
+      );
+    });
+  };
+}
 
 export function runDTThenRunClandPD({
   tweets,
@@ -136,7 +180,9 @@ const initialState = {
   filteredTweetList: [],
   selectedTweet: [],
   secondSelectedTweet: [],
-  isLoaded: false
+  isLoaded: false,
+  tfidf: [],
+  cooc: []
 };
 
 // Reducers
@@ -240,6 +286,12 @@ const tweet = (state = initialState, action) => {
         ...state,
         tweets: updatedTweets,
         isLoaded: true
+      };
+    case CAL_TFIDF_COOC:
+      return {
+        ...state,
+        tfidf: action.payload.tfidf,
+        cooc: action.payload.cooc
       };
     default:
       return state;

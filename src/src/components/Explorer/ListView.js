@@ -20,6 +20,8 @@ const ListViewWrapper = styled(SectionWrapper).attrs({
   className: 'list_view_wrapper'
 })`
   grid-area: l;
+  background-color: white;
+  margin: 5px;
 `;
 
 const UserListWrapper = styled(ListViewStyle).attrs({
@@ -29,6 +31,8 @@ const UserListWrapper = styled(ListViewStyle).attrs({
   height: 85%;
   margin-right: 5px;
   overflow-y: scroll;
+  background-color: white;
+  margin: 5px;
 `;
 
 const WordListWrapper = styled(ListViewStyle).attrs({

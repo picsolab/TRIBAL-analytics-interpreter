@@ -57,6 +57,11 @@ code {
   fill: gray;
 }
 
+.g_cluster_x_axis path {
+  stroke: gray;
+  stroke-width: 2px;
+}
+
 .doc_selected {
   background-color: whitesmoke !important;
   border: 2px solid lightgray !important;
@@ -89,7 +94,7 @@ code {
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tooltip:after {
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   display: inline;
   font-size: 10px;
   width: 100%;

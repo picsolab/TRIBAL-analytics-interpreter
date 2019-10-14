@@ -72,14 +72,28 @@ function Axes() {
           .tickSize(5);
         d3.select(this).call(yAxisSetting);
 
+        // Feature titles
+        d3.select('.g_feature_axis_' + feature.key)
+          .append('text')
+          .attr('class', 'feature_title')
+          .text(feature.abbr)
+          .attr('x', lCom.hPlot.featurePlot.titles.m - 5)
+          .attr('y', -lCom.hPlot.featurePlot.titles.m)
+          .attr('font-size', '1rem')
+          .attr('font-weight', 600);
+
         d3.select('.g_feature_axis_' + feature.key)
           .append('rect')
+          .attr('class', 'axis_rect_' + featureName)
           .attr('x', 0)
-          .attr('y', 0)
+          .attr('y', -lCom.hPlot.featurePlot.axis.m)
           .attr('width', lCom.hPlot.featurePlot.axis.w)
-          .attr('height', lCom.hPlot.featurePlot.axis.h)
-          .style('stroke', 'lightgray')
-          .style('stroke-width', 0.5)
+          .attr(
+            'height',
+            lCom.hPlot.featurePlot.axis.h + lCom.hPlot.featurePlot.axis.m * 2
+          )
+          .style('stroke', 'gray')
+          .style('stroke-width', 2)
           .style('fill', 'whitesmoke')
           .style('fill-opacity', 0.5);
 
@@ -101,7 +115,7 @@ function Axes() {
             .style('fill-opacity', 0.3);
 
           // For per-group PDP
-          pdpValuesForGroups.forEach(pdpValuesObjForGroup => {
+          pdpValuesForGroups.forEach((pdpValuesObjForGroup, groupIdx) => {
             // an object { 'group': 'con',
             //            'valuesForFeatures': [ { 'feature': 'valence', values: [ VALUES ] }, ... ];
             const pdpvaluesForGroupsPerFeature = pdpValuesObjForGroup.valuesForFeatures.filter(
@@ -119,8 +133,11 @@ function Axes() {
               .attr('y', e => feature.scale(e.featureValue) - 5)
               .attr('width', e => feature.pdScale(e.pdpValue))
               .attr('height', 5)
-              .style('stroke', d3.rgb(globalColors.group[groupName]).darker())
-              .style('fill', globalColors.group[groupName])
+              .style(
+                'stroke',
+                d3.rgb(globalColors.groups[groupIdx].color).darker()
+              )
+              .style('fill', globalColors.groups[groupIdx].color)
               .style('fill-opacity', 0.3);
           });
           // if it's continuous, render area chart PDP
@@ -165,7 +182,7 @@ function Axes() {
             .style('fill-opacity', 0.3);
 
           // For per-group PDP
-          pdpValuesForGroups.forEach(pdpValuesObjForGroup => {
+          pdpValuesForGroups.forEach((pdpValuesObjForGroup, groupIdx) => {
             // an object { 'group': 'con',
             //            'valuesForFeatures': [ { 'feature': 'valence', values: [ VALUES ] }, ... ];
             const pdpvaluesForGroupsPerFeature = pdpValuesObjForGroup.valuesForFeatures.filter(
@@ -179,7 +196,7 @@ function Axes() {
               .datum(pdpvaluesForGroupsPerFeature)
               .attr('class', 'path_pdp_' + groupName)
               .attr('d', drawPDPLine)
-              .style('stroke', globalColors.group[groupName])
+              .style('stroke', globalColors.groups[groupIdx].color)
               .style('stroke-width', 2)
               .style('fill', 'none')
               .style('shape-rendering', 'crispedges')
@@ -192,7 +209,7 @@ function Axes() {
               .attr('class', 'area_pdp_' + groupName)
               .attr('d', drawPDPArea)
               .style('stroke', 'none')
-              .style('fill', globalColors.group[groupName])
+              .style('fill', globalColors.groups[groupIdx].color)
               .style('stroke-dasharray', '8,3')
               .style('shape-rendering', 'crispedges')
               .style('fill-opacity', 0.3);

@@ -52,8 +52,8 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
 const initialState = {
   goals: ['emotion', 'moral'],
   groups: [
-    { name: 'liberal', abbr: 'lib' },
-    { name: 'conservative', abbr: 'con' }
+    { idx: 0, name: 'liberal', abbr: 'lib' },
+    { idx: 1, name: 'conservative', abbr: 'con' }
   ],
   features: [
     { key: 'valence', abbr: 'V' },

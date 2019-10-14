@@ -38,6 +38,11 @@ urlpatterns = [
         name='calculate_partial_dependence'
     ),
     url(
+        regex=r'^calculateTFIDFAndCooc/$',
+        view=views.CalculateTFIDFAndCooc.as_view(),
+        name='calculate_tfidf_and_cooc'
+    ),
+    url(
         regex=r'^runClusteringAndPartialDependenceForClusters/$',
         view=views.RunClusteringAndPartialDependenceForClusters.as_view(),
         name='run_clustering_and_partial_dependence_for_clusters'
