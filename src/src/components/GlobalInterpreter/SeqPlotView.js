@@ -119,7 +119,7 @@ const Word = ({ word }) => {
   const seqDivColorScale = d3
     .scaleLinear()
     .domain([0, 0.5, 1])
-    .range([globalColors.group.con, 'gray', globalColors.group.lib]);
+    .range(globalColors.groups.map(d => d.color));
 
   return (
     <WordWrapper

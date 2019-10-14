@@ -17,12 +17,12 @@ const ExplorerWrapper = styled.div.attrs({
 })`
   grid-area: e;
   display: grid;
-  grid-template-rows: 150px 300px 650px;
-  grid-template-columns: 60% 40%;
+  grid-template-rows: 150px 650px 300px;
+  grid-template-columns: 100%;
   grid-template-areas:
-    'rt rt'
-    'd l'
-    'd l';
+    'rt'
+    'd'
+    'l';
   background-color: whitesmoke;
 `;
 

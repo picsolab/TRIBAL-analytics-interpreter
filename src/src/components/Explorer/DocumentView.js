@@ -21,6 +21,8 @@ const DocumentViewWrapper = styled(SectionWrapper).attrs({
   className: 'document_view_wrapper'
 })`
   grid-area: d;
+  background-color: white;
+  margin: 5px;
 `;
 
 const DocumentListWrapper = styled(ListViewStyle).attrs({

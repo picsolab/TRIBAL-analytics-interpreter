@@ -3,11 +3,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import GlobalInterpreter from '../components/GlobalInterpreter/GlobalInterpreter';
 
 const GlobalInterpreterContainer = () => {
-  const { tweets, words, tweetsWithPredFeatures, isLoaded } = useSelector(
-      state => state.tweet,
-      []
-    ),
-    { clusters } = useSelector(state => state.cluster, []),
+  const {
+      tweets,
+      words,
+      tweetsWithPredFeatures,
+      isLoaded,
+      tfidf,
+      cooc
+    } = useSelector(state => state.tweet, []),
+    { clusters, clustersForGoals } = useSelector(state => state.cluster, []),
     {
       currentModel,
       goals,
@@ -29,12 +33,13 @@ const GlobalInterpreterContainer = () => {
     <GlobalInterpreter
       globalMode={globalMode}
       tweets={tweets}
+      goals={goals}
       words={words}
       tweetsWithPredFeatures={tweetsWithPredFeatures}
       clusters={clusters}
+      clustersForGoals={clustersForGoals}
       // clusterIdsForTweets={clusterIdsForTweets}
       currentModel={currentModel}
-      goals={goals}
       groups={groups}
       features={features}
       selectedFeatures={selectedFeatures}
@@ -45,6 +50,8 @@ const GlobalInterpreterContainer = () => {
       isLoaded={isLoaded}
       isClusterSelected={isClusterSelected}
       tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
+      tfidf={tfidf}
+      cooc={cooc}
     />
   );
 };

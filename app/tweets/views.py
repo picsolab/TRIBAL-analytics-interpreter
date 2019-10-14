@@ -17,6 +17,8 @@ from sklearn import preprocessing
 from sklearn.inspection import partial_dependence, plot_partial_dependence
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.preprocessing import normalize
 
 from collections import Counter
 from io import StringIO
@@ -148,11 +150,14 @@ class LoadUsers(APIView):
         return Response(users_json)
 
 class LoadWords(APIView):
-    def get(self, request, format=None):
+    def post(self, request, format=None):
+        request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        group_objs = request_json['groups']
+
         tweet_objects = models.Tweet.objects.all()
         # serializer return string, so convert it to list with eval()
         tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
-        groups = [0, 1]
+        groups = [ group_obj['idx'] for group_obj in group_objs ]
 
         tweets_json = []
         word_tokens = [] # All importance word apperances from all second-level features
@@ -170,7 +175,6 @@ class LoadWords(APIView):
         word_count_dict = {}
         for word_dict in word_tokens:
             if word_dict['word'] in word_count_dict.keys():
-                print('in dict: ', word_count_dict[word_dict['word']])
                 word_count_dict[word_dict['word']][word_dict['group']] += 1
                 word_count_dict[word_dict['word']]['count_total'] += 1
             else:
@@ -188,8 +192,11 @@ class LoadWords(APIView):
 
         df_word_count = pd.concat([ df_word_list, df_word_count_per_group ], axis=1)
         print('df_word_count: ', df_word_count)
+
+        df_word_count['word'] = df_word_count['word'].map(lambda x: x.encode('unicode-escape').decode('utf-8'))
+        df_word_count.to_csv('word_count.csv', sep='\t', encoding = 'utf-8', index_label='idx')
         # Filter out words with threshold
-        df_filtered_word_count = df_word_count.loc[df_word_count['count_total'] > 30]
+        df_filtered_word_count = df_word_count.loc[df_word_count['count_total'] > 10]
         print(df_filtered_word_count.head())
         
 
@@ -271,6 +278,8 @@ class RunClustering(APIView):
         tweets_json = [tweet['fields'] for tweet in tweet_objects_json]
 
         df_tweets = pd.DataFrame(tweets_json)
+
+        # Clustering all together
         df_tweets_selected = df_tweets[selected_features]
         fit_cls = AgglomerativeClustering(n_clusters=10).fit(df_tweets_selected)
         cls_labels = fit_cls.labels_
@@ -283,6 +292,32 @@ class RunClustering(APIView):
             'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
         }).rename(columns={'grp': 'group_lib_ratio'})
 
+        # Clustering per each goal's features
+        goals_features = [
+            { 'goal': 'emotion', 'features': ['valence', 'dominance'] },
+            { 'goal': 'moral', 'features': ['care', 'fairness'] }
+        ]
+
+        clusters_per_goals = []
+        for goal_features in goals_features:
+            df_tweets_per_goal = df_tweets_selected[goal_feature['features']]
+            fit_cls = AgglomerativeClustering(n_clusters=4).fit(df_tweets_selected)
+            cls_labels = fit_cls.labels_
+            df_tweets_per_goal['clusterId'] = cls_labels
+
+            df_clusters_per_goal = df_tweets_per_goal.agg({
+                'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
+            }).rename(columns={'grp': 'group_lib_ratio'})
+
+            clusters_per_goal = { 
+                'goal': 'emotion', 
+                'clusters': df_clusters_per_goal.to_json(orient='records')
+            }
+            clusters_per_goal.append(clusters_per_goal)
+
+        print('clusters_per_goal')
+        print(clusters_per_goal)
+        # Save all results for clustering-all
         df_clusters = pd.DataFrame({
             'clusterId': list(df_tweets_by_cluster.groups),
             'numTweets': num_tweets_per_group,
@@ -295,7 +330,8 @@ class RunClustering(APIView):
 
         return Response({
             'clusterIdsForTweets': cluster_ids,
-            'clusters': df_clusters.to_json(orient='records')
+            'clusters': df_clusters.to_json(orient='records'),
+            'clustersPerGoal': clusters_per_goal
         })
 
 
@@ -356,10 +392,51 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         df_tweets['clusterId'] = cls_labels
         df_tweets_by_cluster = df_tweets.groupby(['clusterId'])
         num_tweets_per_group = df_tweets_by_cluster.size()
+        print('df_tweets_by_cluster')
+        print(df_tweets)
 
         df_group_ratio = df_tweets_by_cluster.agg({
             'group': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
         }).rename(columns={'group': 'group_lib_ratio'}) # '1': lib
+
+        # Clustering per each goal's features
+        goals_features = [
+            { 'goal': 'emotion', 'features': ['valence', 'dominance'] },
+            { 'goal': 'moral', 'features': ['care', 'fairness'] }
+        ]
+
+        clusters_per_goals = []
+        for goal_features in goals_features:
+            goal = goal_features['goal']
+            features_in_goal = goal_features['features']
+            df_tweets_per_goal = df_tweets[goal_features['features'] + ['group']]
+            fit_cls = AgglomerativeClustering(n_clusters=4).fit(df_tweets_per_goal)
+            cls_labels = fit_cls.labels_
+            df_tweets_per_goal['clusterId'] = cls_labels
+            df_tweets_per_goal_by_cluster = df_tweets_per_goal.groupby(['clusterId'])
+            print('df_tweets_per_goal')
+            print(df_tweets_per_goal)
+
+            # Define aggregated functions
+            agg_dict = {}
+            agg_dict['group'] = lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100  # group ratio
+            agg_dict['clusterId'] = lambda x: x.count() / df_tweets.shape[0]  # size of cluster (# of tweets)
+            for feature in features_in_goal:  # mean feature values
+                agg_dict[feature] = lambda x: x.mean()
+            
+            df_clusters_per_goal = df_tweets_per_goal_by_cluster.agg(agg_dict).rename(columns={
+                'group': 'group_lib_ratio',
+                'clusterId': 'countRatio'
+            })
+
+            clusters_per_goal = { 
+                'goal': goal, 
+                'clusters': df_clusters_per_goal.to_dict(orient='records')
+            }
+            clusters_per_goals.append(clusters_per_goal)
+
+        print('clusters_per_goal')
+        print(clusters_per_goals)
 
         # Prepare data for partial dependence (PD)
         lb = preprocessing.LabelBinarizer()
@@ -438,6 +515,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         return Response({
             'clusters': df_clusters.to_dict(orient='records'),
             'clusterIdsForTweets': cluster_ids,
+            'clustersForGoals': clusters_per_goals,
             'pdpValues': pdp_values_for_all,
             'pdpValuesForGroups': pdp_values_for_groups,
             'pdpValuesForCls': pdp_values_for_cls,
@@ -666,7 +744,44 @@ class FindContrastiveExamples(APIView):
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
 
-class CalculateWordScores(APIView):
+class CalculateTFIDFAndCooc(APIView): # Calculate TFIDF and Co-occurrence matrix
 
     def post(self, request, format=None):
-        pass
+        # tweets and words
+        request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        tweets = request_json['tweets']
+        words = request_json['words']
+        tweet_contents = [ tweet['content'] for tweet in tweets ]
+
+        unique_words = [ word_obj['word'] for word_obj in words ] # Do any filtering if needed (currently just assigning it)
+
+        # Load precomputed tf-idf score from the file
+        # df_tfidf = pd.read_csv('./app/static/data/tfidf_tribal_tweets.csv', index_col='idx')
+        chunks = pd.read_csv('./app/static/data/tfidf_tribal_tweets.csv', chunksize=1000)
+        df_tfidf = pd.concat(chunks, ignore_index=True)
+        df_tfidf = df_tfidf.set_index('idx')
+        # Dynamic calculation
+        # tf-idf
+        # cvect = CountVectorizer(ngram_range=(1,1), token_pattern='(?u)\\b\\w+\\b')
+        # counts = cvect.fit_transform(tweet_contents)
+        # normalized_counts = normalize(counts, norm='l1', axis=1)
+
+        # tfidf = TfidfVectorizer(ngram_range=(1,1), token_pattern='(?u)\\b\\w+\\b', smooth_idf=False)
+        # tfs = tfidf.fit_transform(tweet_contents)
+        # new_tfs = normalized_counts.multiply(tfidf.idf_)
+
+        # feature_names = tfidf.get_feature_names()
+        # df_tfidf = pd.DataFrame(new_tfs.T.todense(), index=feature_names, columns=range(len(tweet_contents)))
+        print('df_tfidf: ')
+        print(df_tfidf.head())
+        df_tfidf_for_selected_words = df_tfidf.reindex(unique_words)
+        #tfidf_dict = df_tfidf.to_dict(orient='records')
+        print('df_tfidf_selected_words: ', df_tfidf_for_selected_words.shape)
+        print('tfidf shape: ', df_tfidf.shape)
+
+        # co-occurrence
+        cooccurrence_mat = df_tfidf_for_selected_words.dot(df_tfidf_for_selected_words.T).fillna(0)
+        np.fill_diagonal(cooccurrence_mat.values, 0)
+        cooc_dict = cooccurrence_mat.to_dict(orient='dict')
+
+        return Response({'tfidf': {}, 'cooc': cooc_dict})

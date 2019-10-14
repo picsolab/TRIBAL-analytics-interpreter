@@ -17,18 +17,24 @@ import {
   SubsectionTitle,
   SubTitle
 } from '../../GlobalStyles';
+import { globalScales } from '../../GlobalScales';
 
 import { renderQueue } from '../../lib/renderQueue';
 
 import Level1Plot from './Level1Plot';
 import Level2Plot from './Level2Plot';
 import Level3Plot from './Level3Plot';
+import ClusterPlot from './ClusterPlot';
 
 const FeaturePlotViewWrapper = styled.div.attrs({
   className: 'feature_plot_view_wrapper'
 })`
   grid-area: f;
-  height: 100%;
+  height: 80%;
+  background-color: white;
+  margin: 5px;
+  padding: 5px;
+  border: 0.5px solid lightgray;
 `;
 
 const EmptyIndicator = styled.div.attrs({
@@ -40,23 +46,18 @@ const EmptyIndicator = styled.div.attrs({
 const Indicator = styled.div.attrs({
   className: 'h_indicator'
 })`
-  width: 50px;
+  // width: 50px;
   border-left: 2px solid black;
+  border-left: 2px solid #e8e8e8;
+  text-align: center;
+  background-color: whitesmoke;
   margin-right: 10px;
-  padding-left: 5px;
-  color: gray;
+  padding: 0 5px;
+  color: #929292;
   text-transform: uppercase;
   font-weight: 600;
   font-size: 0.8rem;
 `;
-
-function d3_functor(v) {
-  return typeof v === 'function'
-    ? v
-    : function() {
-        return v;
-      };
-}
 
 const layout = {
   margin: { top: 30, right: 110, bottom: 20, left: 30 },
@@ -102,32 +103,13 @@ const layout = {
   }
 };
 
-const wholeWidth = layout.width + layout.margin.left + layout.margin.right,
-  wholeHeight = layout.height + layout.margin.top + layout.margin.bottom;
-
-const scales = {};
-
-const groupColorScale = d3
-  .scaleOrdinal()
-  .domain([1, 0])
-  .range([globalColors.group.lib, globalColors.group.con]);
-
-const groupWrongColorScale = d3
-  .scaleOrdinal()
-  .domain([1, 0])
-  .range(['gray', globalColors.group.wrong.con]);
-
-const groupRatioScale = d3
-  .scaleLinear()
-  .domain([0, 0.5, 1])
-  .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
-
 const FeaturePlotView = React.memo(
   ({
     globalMode,
     goals,
     tweets,
     clusters,
+    clustersForGoals,
     words,
     groups,
     features,
@@ -136,22 +118,29 @@ const FeaturePlotView = React.memo(
     pdpValuesForGroups,
     pdpValuesForCls,
     pdpValuesForClsGroups,
-    currentModel
+    currentModel,
+    tfidf,
+    cooc
   }) => {
     const dispatch = useDispatch();
     const ref = useRef(null),
       ref2 = useRef(null);
+
+    // Set group color scale and save to global variable
+    globalScales.groupColorScales = groups.map((group, groupIdx) => {
+      return d3
+        .scaleLinear()
+        .domain([0, 1])
+        .range(['whitesmoke', globalColors.groups[groupIdx].color]);
+    });
 
     useEffect(() => {
       const container = d3.select(ref.current),
         svg = d3.select(ref2.current).style('margin-left', 10);
 
       // // Clean up old elements before update
-      // d3.selectAll('.g_feature_plot').remove();
-      // d3.selectAll('.g_cluster_plot').remove();
-      // d3.selectAll('.g_output_prob_plot').remove();
-      // d3.selectAll('.g_feature_to_output_paths').remove();
-      // d3.selectAll('.g_pdp').remove();
+      d3.selectAll('.g_h_plot').remove();
+      d3.selectAll('.g_cluster_plot').remove();
 
       //* Containers
       const gHPlot = svg
@@ -161,14 +150,6 @@ const FeaturePlotView = React.memo(
           'transform',
           'translate(' + lCom.hPlot.l + ',' + lCom.hPlot.t + ')'
         );
-
-      // const gHIndicator = svg
-      //   .append('g')
-      //   .attr('class', 'g_h_indicator')
-      //   .attr(
-      //     'transform',
-      //     'translate(' + l.hIndicator.l + ',' + l.hIndicator.t + ')'
-      //   );
 
       const gLevel1 = gHPlot
           .append('g')
@@ -215,7 +196,7 @@ const FeaturePlotView = React.memo(
         maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
         maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
 
-      // Scales
+      //* Scales
       const xFeatureScale = d3
         .scalePoint()
         .domain(features.map(({ key }) => key))
@@ -247,11 +228,41 @@ const FeaturePlotView = React.memo(
         }
       });
 
+      const groupColorScale = d3
+        .scaleOrdinal()
+        .domain([1, 0])
+        .range(globalColors.groups.map(d => d.color));
+
+      const groupColorScales = groups.map((group, group_idx) => {
+        return d3
+          .scaleLinear()
+          .domain([0, 1])
+          .range(['whitesmoke', globalColors.groups[group_idx].color]);
+      });
+
+      const groupWrongColorScale = d3
+        .scaleOrdinal()
+        .domain([1, 0])
+        .range(['gray', globalColors.group.wrong.con]);
+
+      const groupRatioScale = d3
+        .scaleLinear()
+        .domain([0, 0.5, 1])
+        .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
+
       // For level 1
       const xGoalScale = d3
         .scaleBand()
         .domain(goals)
         .range([0, lCom.hPlot.w + lCom.hPlot.featurePlot.axis.w]);
+
+      const xClusterPerGoalScale = d3
+        .scaleLinear()
+        .domain([0, 1])
+        .range([0, xGoalScale.bandwidth()]);
+
+      // For level 1 -> 2
+      //let xHorizontalScaleForFeature;
 
       // For level 2
       const xOutputProbCorrectHistScale = d3
@@ -267,78 +278,72 @@ const FeaturePlotView = React.memo(
       const yOutputProbScale = d3
         .scaleLinear()
         .domain([1, 0])
-        .range([0, lCom.outputProbPlot.h]);
+        .range([0, lCom.outputProbPlot.h / 2 - 30]);
 
-      const yGroupScale = d3
-        .scaleOrdinal()
-        .domain([1, 0])
+      const yGroupScale = d3 // Vertical position of outputProbPlot per group
+        .scaleBand()
+        .domain([0, 1])
         .range([0, lCom.outputProbPlot.h]);
 
       const yOutputProbHistBinScale = d3
         .scaleBand()
         .domain(dataBinCorrectPredTweets.map(d => d.x0).reverse()) // From 1 to 0
-        .range([0, lCom.outputProbPlot.h]);
+        .range([0, lCom.outputProbPlot.h / 2 - 30]);
 
       // For level 3
       const xWordScale = d3
-        .scaleOrdinal()
+        .scaleBand()
         .domain(words.map(d => d.word))
-        .range(d3.range(0, lCom.hPlot.w, lCom.hPlot.w / 10));
-
-      // //* Render the hIndicator
-      // gHIndicator
-      //   .append('text')
-      //   .attr('x', 0)
-      //   .attr('y', ll.l1.t + l.hIndicator.textHeight)
-      //   .text('Goal')
-      //   .style('fill', 'gray');
-
-      // gHIndicator
-      //   .append('text')
-      //   .attr('x', 0)
-      //   .attr('y', ll.l2.t + l.hIndicator.textHeight)
-      //   .text('Coarse')
-      //   .style('fill', 'gray');
-
-      // gHIndicator
-      //   .append('text')
-      //   .attr('x', 0)
-      //   .attr('y', ll.l3.t + l.hIndicator.textHeight)
-      //   .text('Fine')
-      //   .style('fill', 'gray');
+        .range([0, lCom.hPlot.w]);
 
       //* Render the plots for each level
-      gLevel1.call(goalPlot.dataForGoals(goals).xGoalScale(xGoalScale));
-
       gLevel2.call(
         featurePlot
-          .relevantData([
+          .dataLoader([
+            groups,
+            tweets,
+            features,
+            pdpValues,
+            pdpValuesForGroups,
             dataBinCorrectPredTweets,
             dataBinConWrongPredTweets,
             dataBinLibWrongPredTweets
           ])
-          .dataForFeatures(features)
-          .dataForPdpValues(pdpValues)
-          .dataForPdpValuesForGroups(pdpValuesForGroups)
           .xFeatureScale(xFeatureScale)
           .xOutputProbCorrectHistScale(xOutputProbCorrectHistScale)
           .xOutputProbWrongHistScale(xOutputProbWrongHistScale)
           .yOutputProbScale(yOutputProbScale)
           .yGroupScale(yGroupScale)
           .yOutputProbHistBinScale(yOutputProbHistBinScale)
+          .groupColorScale(groupColorScale)
       );
 
-      gLevel3
-        .selectAll('.word_rect')
-        .data(words)
-        .call(
-          wordPlot
-            .width(800)
-            .height(100)
-            .xWordScale(xWordScale)
-        );
+      gLevel1.call(
+        goalPlot
+          .dataForGoals(goals)
+          .dataForClusterForGoals(clustersForGoals)
+          .xGoalScale(xGoalScale)
+          .xClusterPerGoalScale(xClusterPerGoalScale)
+      );
+
+      gLevel3.call(
+        wordPlot
+          .dataForWords(words)
+          .dataForCooc(cooc)
+          .xWordScale(xWordScale)
+          .coocThreshold(0.2)
+      );
 
       //* Render components in between
+      //* Render featuresToWords lines
+      const lineFromFtoW = d3
+        .line()
+        .x(d => 20)
+        .y(d => 30)
+        .curve(d3.curveBasis);
+
+      //const paths = gLevel3.append('path').attr('d', lineFromFtoW);
+
       //* Render featureToOutput lines
       const gFeatureToOutputLines = gLevel2
         .append('g')
@@ -362,15 +367,10 @@ const FeaturePlotView = React.memo(
         .attr('x1', xFeatureToOutputScale(0))
         .attr('y1', d => {
           const lastFeature = features[features.length - 1];
-          return lastFeature.scale(d[lastFeature])
-          // return lastFeature === 'care'
-          //   ? yCareScale(d[lastFeature])
-          //   : lastFeature === 'fairness'
-          //   ? yFairnessScale(d[lastFeature])
-          //   : yVDScale(d[lastFeature]);
+          return lastFeature.scale(d[lastFeature.key])
         })
         .attr('x2', d => xFeatureToOutputScale(1))
-        .attr('y2', d => globalMode === 0 ? yGroupScale(d.group) : yOutputProbScale(d.prob))
+        .attr('y2', d => yOutputProbScale(d.prob))
         .style('stroke', d =>
           d.group === d.pred
             ? groupColorScale(d.group)
@@ -386,9 +386,7 @@ const FeaturePlotView = React.memo(
           return lastFeature.scale(d[lastFeature]);
         })
         .attr('x2', d => xFeatureToOutputScale(1))
-        .attr('y2', d =>
-          globalMode === 0 ? yGroupScale(d.group) : yOutputProbScale(d.prob)
-        );
+        .attr('y2', d => yOutputProbScale(d.prob));
 
       featureToOutputLinesData.exit().remove();
 
@@ -549,35 +547,42 @@ const FeaturePlotView = React.memo(
       // } // end of brush()
 
       //* Render clusters
-      const gClusterPlot = gLevel2
+      const clusterPlot = ClusterPlot();
+      const gClusterPlot = svg
         .append('g')
         .attr('class', 'g_cluster_plot')
         .attr(
           'transform',
           'translate(' +
             (lCom.clusterPlot.l + lCom.clusterPlot.maxR * 2) +
-            ',0)'
-        );
+            ',' +
+            lCom.clusterPlot.maxR * 2 +
+            ')'
+        )
+        .call(clusterPlot);
 
-      const yClusterCoordScale = d3
+      const xClusterCoordScale = d3
         .scaleBand()
         .domain(clusters.map(d => d.clusterId))
-        .range([0, lCom.clusterPlot.h]);
+        .range([0, lCom.clusterPlot.w]);
 
       const numTweetClusterScale = d3
         .scaleLinear()
         .domain(d3.extent(clusters.map(d => d.numTweets)))
         .range([lCom.clusterPlot.minR, lCom.clusterPlot.maxR]);
 
-      const yClusterAxisSetting = d3
-          .axisLeft(yClusterCoordScale)
+      const xClusterAxisSetting = d3
+          .axisTop(xClusterCoordScale)
           .tickValues([])
           .tickSize(0),
-        yClusterAxis = gClusterPlot
+        xClusterAxis = gClusterPlot
           .append('g')
-          .call(yClusterAxisSetting)
-          .attr('class', 'g_cluster_y_axis')
-          .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+          .call(xClusterAxisSetting)
+          .attr('class', 'g_cluster_x_axis')
+          .attr(
+            'transform',
+            'translate(' + 0 + ',' + lCom.clusterPlot.maxR * 2 + ')'
+          );
 
       const drawTweetLine = d3
         .line()
@@ -585,102 +590,195 @@ const FeaturePlotView = React.memo(
         .y((d, i) => features[d[0]].scale(d[1]));
 
       // prettier-ignore
-      const clusterCircles = gClusterPlot
+      // const clusterCircles = gClusterPlot
+      //   .selectAll('.cluster_circle')
+      //   .data(clusters)
+      //   .enter()
+      //   .append('circle')
+      //   .attr('class', (d, i) => 'cluster_circle cluster_circle_' + i)
+      //   .attr('cx', d => xClusterCoordScale(d.clusterId) + xClusterCoordScale.bandwidth()/2)
+      //   .attr('cy', d => 0)
+      //   .attr('r', d => numTweetClusterScale(d.numTweets))
+      //   .style('fill', d => groupRatioScale(d.groupRatio.lib))
+      //   .style('fill-opacity', 0.5)
+      //   .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
+      //   .on('mouseover', function(d) {
+      //       d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
+      //   })
+      //   .on('mouseout', function(d) {
+      //       d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
+      //   })
+      //   .on('click', updateOnClickCluster);
+
+      const gClusterCircles = gClusterPlot
         .selectAll('.cluster_circle')
         .data(clusters)
         .enter()
-        .append('circle')
-        .attr('class', (d, i) => 'cluster_circle cluster_circle_' + i)
-        .attr('cx', 0)
-        .attr('cy', d => yClusterCoordScale(d.clusterId) + yClusterCoordScale.bandwidth()/2)
-        .attr('r', d => numTweetClusterScale(d.numTweets))
-        .style('fill', d => groupRatioScale(d.groupRatio.lib))
-        .style('fill-opacity', 0.5)
-        .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
-        .on('mouseover', function(d) {
-            d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
-        })
-        .on('mouseout', function(d) {
-            d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
-        })
-        .on('click', updateOnClickCluster);
+        .append('g')
+        .attr('class', (d, i) => 'g_cluster_circles g_cluster_circles_' + i);
+
+      const yGroupCoordScale = d3
+        .scaleBand()
+        .domain([0, 1])
+        .range([lCom.clusterPlot.maxR * 2, lCom.clusterPlot.h]);
+
+      gClusterCircles.each(function(d, i) {
+        const currentCl = d3.select(this);
+
+        // Cluster circles as a whole
+        currentCl
+          .append('circle')
+          .attr('class', (d, i) => 'cluster_circles cluster_circles_' + i)
+          .attr(
+            'cx',
+            d =>
+              xClusterCoordScale(d.clusterId) +
+              xClusterCoordScale.bandwidth() / 2
+          )
+          .attr('cy', d => 0)
+          .attr('r', d => numTweetClusterScale(d.numTweets))
+          .style('fill', d => groupRatioScale(d.groupRatio.con))
+          .style('fill-opacity', 0.5)
+          .style('stroke', d =>
+            d3.rgb(groupRatioScale(d.groupRatio.con)).darker()
+          )
+          .on('mouseover', function(d) {
+            d3.select(this).style(
+              'fill',
+              d3.rgb(d3.select(this).style('fill')).darker()
+            );
+          })
+          .on('mouseout', function(d) {
+            d3.select(this).style(
+              'fill',
+              d3.rgb(d3.select(this).style('fill')).brighter()
+            );
+          })
+          .on('click', updateOnClickCluster);
+
+        // Cluster circles for each group
+        groups.forEach((group, group_idx) => {
+          currentCl
+            .append('circle')
+            .attr(
+              'cx',
+              d =>
+                xClusterCoordScale(d.clusterId) +
+                xClusterCoordScale.bandwidth() / 2
+            )
+            .attr(
+              'cy',
+              d =>
+                yGroupCoordScale(group_idx) + yGroupCoordScale.bandwidth() / 2
+            )
+            .attr('r', d =>
+              group_idx == 0
+                ? numTweetClusterScale(d.numTweets * d.groupRatio.con)
+                : numTweetClusterScale(d.numTweets * d.groupRatio.lib)
+            )
+            .style('fill', d => {
+              console.log('d');
+              return globalColors.groups[group_idx].color;
+            })
+            .style('fill-opacity', 0.5)
+            .style('stroke', d =>
+              group_idx == 0
+                ? d3.rgb(groupColorScales[group_idx](d.groupRatio.lib)).darker()
+                : d3.rgb(groupColorScales[group_idx](d.groupRatio.con)).darker()
+            )
+            .on('mouseover', function(d) {
+              d3.select(this).style(
+                'fill',
+                d3.rgb(d3.select(this).style('fill')).darker()
+              );
+            })
+            .on('mouseout', function(d) {
+              d3.select(this).style(
+                'fill',
+                d3.rgb(d3.select(this).style('fill')).brighter()
+              );
+            })
+            .on('click', updateOnClickCluster);
+        });
+      });
 
       const clusterTitle = gClusterPlot
         .append('text')
         .text('Cluster')
-        .attr('y', 10);
+        .attr('x', -60)
+        .attr('y', 0);
 
-      if (globalMode !== 0) {
-        //* Render Partial dependent plot (PDP)
-        const gPDP = gLevel2
-          .append('g')
-          .attr('class', 'g_pdp')
-          .attr(
-            'transform',
-            'translate(' + (lCom.pdpPlot.l + lCom.clusterPlot.maxR * 2) + ',0)'
-          );
+      // if (globalMode !== 0) {
+      //   //* Render Partial dependent plot (PDP)
+      //   const gPDP = gLevel2
+      //     .append('g')
+      //     .attr('class', 'g_pdp')
+      //     .attr(
+      //       'transform',
+      //       'translate(' + (lCom.pdpPlot.l + lCom.clusterPlot.maxR * 2) + ',0)'
+      //     );
 
-        const yClusterCoordpdScale = d3
-          .scaleBand()
-          .domain(clusters.map(d => d.clusterId))
-          .range([lCom.clusterPlot.t, lCom.clusterPlot.h]);
+      //   const yClusterCoordpdScale = d3
+      //     .scaleBand()
+      //     .domain(clusters.map(d => d.clusterId))
+      //     .range([lCom.clusterPlot.t, lCom.clusterPlot.h]);
 
-        const xPdScale = d3
-          .scaleLinear()
-          .domain([0, 1])
-          .range([0, lCom.pdpPlot.w]);
+      //   const xPdScale = d3
+      //     .scaleLinear()
+      //     .domain([0, 1])
+      //     .range([0, lCom.pdpPlot.w]);
 
-        const colorpdScale = d3
-          .scaleLinear()
-          .domain([0, 0.5, 1]) // 0 (prob of being con) --- >>> --- 1 (prob of being lib)
-          .range([
-            globalColors.group.con,
-            'whitesmoke',
-            globalColors.group.lib
-          ]);
+      //   const colorpdScale = d3
+      //     .scaleLinear()
+      //     .domain([0, 0.5, 1]) // 0 (prob of being con) --- >>> --- 1 (prob of being lib)
+      //     .range([
+      //       globalColors.group.con,
+      //       'whitesmoke',
+      //       globalColors.group.lib
+      //     ]);
 
-        const yPDPAxisSetting = d3.axisLeft(yClusterCoordpdScale).tickSize(0),
-          yPDPAxis = gPDP
-            .append('g')
-            .call(yPDPAxisSetting)
-            .attr('class', 'g_pdp_y_axis')
-            .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
+      //   const yPDPAxisSetting = d3.axisLeft(yClusterCoordpdScale).tickSize(0),
+      //     yPDPAxis = gPDP
+      //       .append('g')
+      //       .call(yPDPAxisSetting)
+      //       .attr('class', 'g_pdp_y_axis')
+      //       .attr('transform', 'translate(' + 0 + ',' + 0 + ')');
 
-        const pdpBars = gPDP
-          .selectAll('.cluster_circle')
-          .data(
-            clusters.map(d => {
-              const clusterId = d.clusterId,
-                tweetPDPValuesInCluster = tweets
-                  .filter(e => e.clusterId === clusterId)
-                  .map(f => f.prob);
-              const avgPDPValuesForCluster = _.mean(tweetPDPValuesInCluster);
+      //   const pdpBars = gPDP
+      //     .selectAll('.cluster_circle')
+      //     .data(
+      //       clusters.map(d => {
+      //         const clusterId = d.clusterId,
+      //           tweetPDPValuesInCluster = tweets
+      //             .filter(e => e.clusterId === clusterId)
+      //             .map(f => f.prob);
+      //         const avgPDPValuesForCluster = _.mean(tweetPDPValuesInCluster);
 
-              return {
-                clusterId: clusterId,
-                avgPDPValue: avgPDPValuesForCluster
-              };
-            })
-          )
-          .enter()
-          .append('rect')
-          .attr(
-            'class',
-            (d, i) =>
-              'cluster_output_prob_rect cluster_output_prob_rect_' + d.clusterId
-          )
-          .attr('x', 0)
-          .attr('y', d => yClusterCoordpdScale(d.clusterId))
-          .attr('width', d => xPdScale(d.avgPDPValue))
-          .attr('height', yClusterCoordpdScale.bandwidth() - 3)
-          .style('fill', d => colorpdScale(d.avgPDPValue))
-          .style('opacity', 0.5);
+      //         return {
+      //           clusterId: clusterId,
+      //           avgPDPValue: avgPDPValuesForCluster
+      //         };
+      //       })
+      //     )
+      //     .enter()
+      //     .append('rect')
+      //     .attr(
+      //       'class',
+      //       (d, i) =>
+      //         'cluster_output_prob_rect cluster_output_prob_rect_' + d.clusterId
+      //     )
+      //     .attr('x', 0)
+      //     .attr('y', d => yClusterCoordpdScale(d.clusterId))
+      //     .attr('width', d => xPdScale(d.avgPDPValue))
+      //     .attr('height', yClusterCoordpdScale.bandwidth() - 3)
+      //     .style('fill', d => colorpdScale(d.avgPDPValue))
+      //     .style('opacity', 0.5);
 
-        const pdpTitle = gPDP
-          .append('text')
-          .text('Output Prob')
-          .attr('y', 10);
-      }
+      //   const pdpTitle = gPDP
+      //     .append('text')
+      //     .text('Output Prob')
+      //     .attr('y', 10);
+      // }
 
       function updateOnClickCluster(d, i) {
         const selectedCluster = d3.select(this),
@@ -1383,7 +1481,7 @@ const FeaturePlotView = React.memo(
               alignItems: 'center',
               display: 'flex',
               flexDirection: 'column',
-              flex: 0.5
+              width: '80px'
             }}
           >
             <Indicator

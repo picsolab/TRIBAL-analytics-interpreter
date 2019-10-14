@@ -78,6 +78,7 @@ const Generator = props => {
   const forceUpdate = useForceUpdate();
   const {
     globalMode,
+    goals,
     tweets,
     tweetsWithPredFeatures,
     features,
@@ -108,6 +109,8 @@ const Generator = props => {
     </div>
   ));
 
+  const goalDivs = goals.map(goal => <div>{goal}</div>);
+
   return (
     <GeneratorWrapper>
       {/* <SubsectionTitle>Aggregate</SubsectionTitle>
@@ -135,7 +138,11 @@ const Generator = props => {
       >
         {/* </Feature table> */}
         <SubsectionTitle>Features</SubsectionTitle>
+        <SubsectionTitle>Goal-level</SubsectionTitle>
+        {goalDivs}
+        <SubsectionTitle>Coarse-grained level</SubsectionTitle>
         {featureDivs}
+        <SubsectionTitle>Fine-grained level</SubsectionTitle>
         {/* </FormField> */}
         <SubsectionTitle>Select a method</SubsectionTitle>
         <div style={{ backgroundColor: 'rgb(190, 255, 231)', fontWeight: 600 }}>

@@ -1,9 +1,11 @@
 import _ from 'lodash';
 import axios from 'axios';
+import { stat } from 'fs';
 
 // Action type
 const FETCH_CLUSTERS = 'FETCH_CLUSTERS';
 const RUN_CLUSTERING = 'RUN_CLUSTERING';
+const RUN_CLUSTERING_FOR_GOALS = 'RUN_CLUSTERING_FOR_GOALS';
 const RUN_CL_N_CAL_PD = 'RUN_CL_N_CAL_PD';
 
 export const runClusteringAndPartialDependenceForClusters = ({
@@ -23,23 +25,24 @@ export const runClusteringAndPartialDependenceForClusters = ({
         groups: groups
       })
     }).then(res => {
+      console.log('runClusteringAndPartialDependenceForClusters: ', res.data);
       dispatch({ type: 'RUN_CL_N_CAL_PD', payload: res.data });
       dispatch({ type: 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES', payload: res.data });
       dispatch({ type: 'RUN_CL_N_CAL_PD_FOR_TWEETS', payload: res.data });
+      dispatch({ type: 'RUN_CLUSTERING_FOR_GOALS', payload: res.data });
     });
   };
 };
 
-export const runClustering = () => {
+export const runClusteringForGoals = () => {
   return (dispatch, getState) => {
     var saveState;
     axios({
       method: 'get',
-      url: '/tweets/runClustering/'
+      url: '/tweets/runClusteringForGoals/'
     }).then(res => {
-      const res_tweets = JSON.parse(res.data.tweets);
-      dispatch({ type: 'RUN_CLUSTERING', payload: res.data });
-      dispatch({ type: 'RUN_CLUSTERING_FOR_TWEETS', payload: res.data });
+      console.log('res data for runClusteringForGoals: ', res.data);
+      dispatch({ type: 'RUN_CLUSTERING_FOR_GOALS', payload: res.data });
     });
 
     return saveState;
@@ -49,7 +52,8 @@ export const runClustering = () => {
 // initial value for state
 const initialState = {
   clusters: [],
-  clusterIdsForTweets: []
+  clusterIdsForTweets: [],
+  clustersForGoals: []
 };
 
 // Reducers
@@ -67,6 +71,15 @@ const cluster = (state = initialState, action) => {
           ...d,
           groupRatio: { lib: d.groupRatio, con: 1 - d.groupRatio }
         }))
+      };
+    case RUN_CLUSTERING_FOR_GOALS:
+      console.log(
+        'RUN_CLUSTERING_FOR_GOALS: ',
+        action.payload.clustersForGoals
+      );
+      return {
+        ...state,
+        clustersForGoals: action.payload.clustersForGoals
       };
     case RUN_CL_N_CAL_PD:
       const orderedCluster = _.orderBy(

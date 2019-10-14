@@ -16,6 +16,8 @@ const RetrievalViewWrapper = styled(SectionWrapper).attrs({
   className: 'RetrievalView'
 })`
   grid-area: rt;
+  background-color: white;
+  margin: 5px;
 `;
 
 const LocalButton = styled(Button)`
@@ -43,19 +45,6 @@ const SearchComponentWrapper = styled.div.attrs({
   width: 20%;
   margin-left: 15px;
 `;
-
-// const FeatureView = () => {
-//   const renderThings = () => {
-//     return <div>renderInside</div>;
-//   };
-
-//   return (
-//     <div>
-//       {renderThings()}
-//       <g />
-//     </div>
-//   );
-// };
 
 const RetrievalView = ({ numRetrievedTweets }) => {
   const dispatch = useDispatch();

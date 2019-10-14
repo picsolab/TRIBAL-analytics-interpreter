@@ -64,7 +64,6 @@ const OutputInstance = ({ model, idx }) => {
 };
 
 const ResultView = ({ models }) => {
-  console.log('models in ResultView: ', models);
   return (
     <ResultViewWrapper>
       <SubsectionTitle>Models</SubsectionTitle>

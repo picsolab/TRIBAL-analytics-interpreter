@@ -12,7 +12,11 @@ export const globalColors = {
       con: '#8eabd0'
     }
   },
-  feature: 'mediumaquamarine',
+  groups: [
+    { name: 'lib', color: 'rgb(25, 12, 226)', colorForWrong: '#8eabd0' },
+    { name: 'con', color: 'rgb(255, 34, 34)', colorForWrong: 'rosybrown' }
+  ],
+  feature: '#00ffa8',
   userFeature: 'LIGHTSEAGREEN'
 };
 
@@ -24,11 +28,13 @@ level3 | (0.85, 0.00) (0.85, 0.10) (0.85, 0.70) (0.85, 0.75)
 */
 
 export const l = {
-  w: 800,
+  w: 1100,
   h: 450,
   sm: 10,
   mm: 10,
-  lm: 15
+  lm: 15,
+  textHeight: 10,
+  textHeight2: 15
 };
 
 export const ll = {
@@ -60,7 +66,7 @@ export const lCom = {
     // div
     t: 0,
     l: 5,
-    w: l.w * 0.05,
+    w: 70,
     h: l.h * 0.9,
     textHeight: 10
   },
@@ -68,7 +74,7 @@ export const lCom = {
     // in the context of svg
     t: 0,
     l: 25,
-    w: l.w * 0.55,
+    w: l.w * 0.45,
     h: l.h * 0.9,
     goalPlot: {
       t: ll.l1.t,
@@ -92,11 +98,13 @@ export const lCom = {
       h: ll.l2.h,
       titles: {
         t: ll.l2.t - 15,
-        h: ll.l2.h - 15
+        h: ll.l2.h - 15,
+        m: 15
       },
       axis: {
         w: 30,
-        h: ll.l2.h
+        h: ll.l2.h,
+        m: 10
       },
       pdp: {
         w: 20
@@ -107,32 +115,33 @@ export const lCom = {
       h: ll.l2.h,
       word: {
         w: 20,
-        h: 5
+        maxH: 10
       }
     }
   },
   fromFtoO: {
-    l: l.w * 0.45,
-    w: l.w * 0.1
+    l: l.w * 0.48,
+    w: l.w * 0.05
   },
   outputProbPlot: {
     t: ll.l2.t,
     h: ll.l2.h,
-    l: l.w * 0.55,
-    w: l.w * 0.1
+    l: l.w * 0.54,
+    w: 80
   },
   clusterPlot: {
     t: l.h * 0.15,
-    h: l.h * 0.6,
-    l: l.w * 0.7,
-    w: l.w * 0.1,
+    h: ll.l1.h + ll.l2.h,
+    l: l.w * 0.625,
+    w: l.w * 0.325,
+    m: 10,
     minR: 4,
     maxR: 15
   },
   pdpPlot: {
     t: ll.l2.t,
     h: ll.l2.h,
-    l: l.w * 0.8,
+    l: l.w * 0.75,
     w: l.w * 0.1
   }
 };
