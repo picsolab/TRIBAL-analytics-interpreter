@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, {useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 
 import 'antd/dist/antd.css';
 import './App.css';
 // import './index.css';
 import styled from 'styled-components';
 
-import { fetchTweets } from './modules/tweet';
-import { fetchUsers } from './modules/user';
-import { runDT } from './modules/globalInterpreter';
+import {fetchTweets} from './modules/tweet';
+import {fetchUsers} from './modules/user';
+import {runDT} from './modules/globalInterpreter';
 
-import { Button } from 'antd';
-import { SectionTitle, SectionWrapper, globalColors } from './GlobalStyles';
+import {Button} from 'antd';
+import {SectionTitle, SectionWrapper, globalColors} from './GlobalStyles';
 
 import ExplorerContainer from './containers/ExplorerContainer';
 import GlobalInterpreterContainer from './containers/GlobalInterpreterContainer';
@@ -21,15 +21,15 @@ import InstanceViewerContainer from './containers/InstanceViewerContainer';
 import ResultViewContainer from './containers/ResultViewContainer';
 
 const Container = styled.div`
-  width: 90%;
+  width: 80%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 1000px 450px;
-  grid-template-columns: 15% 10% 75%;
+  grid-template-rows: 50px 750px 450px;
+  grid-template-columns: 20% 10% 70%;
   grid-template-areas:
     'h h h'
     'e g g'
-    'e r l';
+    'e l l';
 
   font-size: 0.9rem;
   font-family: sans-serif;
@@ -75,7 +75,7 @@ function App() {
 
   return (
     <Container className={Container}>
-      <Header className={Header} style={{ display: 'flex' }}>
+      <Header className={Header} style={{display: 'flex'}}>
         <Title className=".App-link">TRIBAL</Title>
         {/* <Button
           href="https://docs.google.com/document/d/13oREBJCSthiAUS7uHgkxLXqRIYekNfBvzN_Snt9lIKY/edit?usp=sharing"
@@ -92,7 +92,7 @@ function App() {
       {/* <InstanceViewerContainer /> */}
       <GlobalInterpreterContainer />
       <LocalInterpreterContainer />
-      <ResultViewContainer />
+      {/* <ResultViewContainer /> */}
       <Mockup3 />
       <Mockup />
     </Container>

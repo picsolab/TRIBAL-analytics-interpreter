@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { store } from '../index';
+import {store} from '../index';
 import * as d3 from 'd3';
 
 const CAL_PD = 'CAL_PD';
@@ -10,7 +10,7 @@ const IS_CHECKED = 'IS_CHECKED';
 const SHOW_SEQ_PLOT_FOR_CLUSTER = 'SHOW_SEQ_PLOT_FOR_CLUSTER';
 const RUN_DT = 'RUN_DT';
 
-export const runDT = ({ tweets, selectedFeatures }) => {
+export const runDT = ({tweets, selectedFeatures}) => {
   return async dispatch => {
     await axios({
       method: 'post',
@@ -20,8 +20,8 @@ export const runDT = ({ tweets, selectedFeatures }) => {
         selectedFeatures: selectedFeatures
       })
     }).then(res => {
-      dispatch({ type: 'RUN_DT', payload: res.data });
-      dispatch({ type: 'UPDATE_TWEETS_AFTER_RUNNING_ML', payload: res.data });
+      dispatch({type: 'RUN_DT', payload: res.data});
+      dispatch({type: 'UPDATE_TWEETS_AFTER_RUNNING_ML', payload: res.data});
     });
   };
 };
@@ -31,7 +31,7 @@ export const runDT = ({ tweets, selectedFeatures }) => {
 // (2) calculate pd for a set of features (aggregation)
 // (3) calculate pd for clustering => output: clusters
 //  - It's not actually pd but just averaging the output probability for all features
-export const calculatePartialDependence = ({ tweets, features, modelId }) => {
+export const calculatePartialDependence = ({tweets, features, modelId}) => {
   return async dispatch => {
     await axios({
       method: 'post',
@@ -42,8 +42,8 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
         tweets: tweets
       })
     }).then(res => {
-      dispatch({ type: 'CAL_PD', payload: res.data });
-      dispatch({ type: 'CAL_PD_FOR_TWEETS', payload: res.data }); // output probability
+      dispatch({type: 'CAL_PD', payload: res.data});
+      dispatch({type: 'CAL_PD_FOR_TWEETS', payload: res.data}); // output probability
     });
   };
 };
@@ -51,16 +51,8 @@ export const calculatePartialDependence = ({ tweets, features, modelId }) => {
 // initial value for state
 const initialState = {
   goals: ['emotion', 'moral'],
-  groups: [
-    { idx: 0, name: 'liberal', abbr: 'lib' },
-    { idx: 1, name: 'conservative', abbr: 'con' }
-  ],
-  features: [
-    { key: 'valence', abbr: 'V' },
-    { key: 'dominance', abbr: 'D' },
-    { key: 'care', abbr: 'C' },
-    { key: 'fairness', abbr: 'F' }
-  ],
+  groups: [{idx: 0, name: 'conservative', abbr: 'con'}, {idx: 1, name: 'liberal', abbr: 'lib'}],
+  features: [{key: 'valence', abbr: 'V'}, {key: 'dominance', abbr: 'D'}, {key: 'care', abbr: 'C'}, {key: 'fairness', abbr: 'F'}],
   selectedFeatures: [
     {
       key: 'valence',
@@ -86,32 +78,22 @@ const initialState = {
       key: 'fairness',
       abbr: 'F',
       type: 'categorical',
-      values: [
-        { num: 0, category: 'none' },
-        { num: 1, category: 'virtue' },
-        { num: 2, category: 'vice' },
-        { num: 3, category: 'both' }
-      ],
-      scale: d3.scaleOrdinal(),
-      pdScale: d3.scaleOrdinal(),
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
       domain: [2, 0, 1]
     },
     {
       key: 'care',
       abbr: 'C',
       type: 'categorical',
-      values: [
-        { num: 0, category: 'none' },
-        { num: 1, category: 'virtue' },
-        { num: 2, category: 'vice' },
-        { num: 3, category: 'both' }
-      ],
-      scale: d3.scaleOrdinal(),
-      pdScale: d3.scaleOrdinal(),
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
       domain: [2, 3, 0, 1]
     }
   ],
-  areFeaturesChecked: { valence: false },
+  areFeaturesChecked: {valence: false},
   currentModel: 'dt_0',
   models: [
     // {
@@ -212,7 +194,7 @@ const globalInterpreter = (state = initialState, action) => {
         pdpValues: action.payload.pdpValues,
         pdpValuesForGroups: action.payload.pdpValuesForGroups,
         pdpValuesForCls: action.payload.pdpValuesForCls,
-        pdpvaluesForClsGroups: action.payload.pdpValuesForClsGroups
+        pdpValuesForClsGroups: action.payload.pdpValuesForClsGroups
       };
     case SHOW_SEQ_PLOT_FOR_CLUSTER:
       return {

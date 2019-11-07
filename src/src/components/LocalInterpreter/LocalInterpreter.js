@@ -1,25 +1,20 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React, {useEffect} from 'react';
+import {useDispatch} from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
 import styled from 'styled-components';
-import { Spin, Icon } from 'antd';
-import { Grommet, Button, Select } from 'grommet';
-import { grommet } from 'grommet/themes';
-import { deepMerge } from 'grommet/utils';
+import {Spin, Icon} from 'antd';
+import {Grommet, Button, Select} from 'grommet';
+import {grommet} from 'grommet/themes';
+import {deepMerge} from 'grommet/utils';
 import index from '../../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import {
-  SectionWrapper,
-  SectionTitle,
-  SubTitle,
-  globalColors
-} from '../../GlobalStyles';
+import {StylesContext} from '@material-ui/styles/StylesProvider';
+import {SectionWrapper, SectionTitle, SubTitle, globalColors} from '../../GlobalStyles';
 
 import Document from '../subcomponents/Document';
 
-import { findContrastiveExamples } from '../../modules/localInterpreter';
+import {findContrastiveExamples} from '../../modules/localInterpreter';
 
 const LocalInterpreterWrapper = styled(SectionWrapper).attrs({
   className: 'local_interpreter'
@@ -175,8 +170,6 @@ const QAView = ({
   features
 }) => {
   const dispatch = useDispatch();
-  console.log('selectedTweet: ', selectedTweet);
-  console.log('secondSelectedTweet: ', secondSelectedTweet);
   /*
     contrastiveRule = { FEATURE-1: { 
       subject: 'contTweet' OR 'selectedTweet',
@@ -187,76 +180,50 @@ const QAView = ({
     } 
   */
 
-  const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map(
-    (feature, idx) => {
-      const subject = contrastiveRules[feature].subject;
-      const inequality = contrastiveRules[feature].inequality;
-      const andStr =
-        idx !== Object.keys(contrastiveRules).length - 1 ? ' and' : '';
+  const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map((feature, idx) => {
+    const subject = contrastiveRules[feature].subject;
+    const inequality = contrastiveRules[feature].inequality;
+    const andStr = idx !== Object.keys(contrastiveRules).length - 1 ? ' and' : '';
 
-      var inequalityStr;
-      if (subject === 'selectedTweet') {
-        if (inequality === '>') inequalityStr = 'higher';
-        else inequalityStr = 'lower';
-      } else if (subject === 'contTweet') {
-        if (inequality === '>') inequalityStr = 'lower';
-        else inequalityStr = 'higher';
-      }
-
-      return inequalityStr + ' ' + feature + andStr;
+    var inequalityStr;
+    if (subject === 'selectedTweet') {
+      if (inequality === '>') inequalityStr = 'higher';
+      else inequalityStr = 'lower';
+    } else if (subject === 'contTweet') {
+      if (inequality === '>') inequalityStr = 'lower';
+      else inequalityStr = 'higher';
     }
-  );
 
-  const pTypeAnswerStr =
-    'tweet ' +
-    selectedTweet.tweetId +
-    ' has ' +
-    pTypeAnswerForFeatures.join(' ');
+    return inequalityStr + ' ' + feature + andStr;
+  });
 
-  const { subject, feature, inequality, threshold } = diffRule;
-  const firstSubjectStr =
-    subject == 'first'
-      ? 'tweet ' + selectedTweet.tweetId
-      : 'tweet ' + secondSelectedTweet.tweetId;
-  const secondSubjectStr =
-    subject == 'first'
-      ? 'tweet ' + secondSelectedTweet.tweetId
-      : 'tweet ' + selectedTweet.tweetId;
+  const pTypeAnswerStr = 'tweet ' + selectedTweet.tweetId + ' has ' + pTypeAnswerForFeatures.join(' ');
+
+  const {subject, feature, inequality, threshold} = diffRule;
+  const firstSubjectStr = subject == 'first' ? 'tweet ' + selectedTweet.tweetId : 'tweet ' + secondSelectedTweet.tweetId;
+  const secondSubjectStr = subject == 'first' ? 'tweet ' + secondSelectedTweet.tweetId : 'tweet ' + selectedTweet.tweetId;
   const inequalityStr = inequality === '>' ? 'higher' : 'lower';
-  const oTypeAnswerStr =
-    firstSubjectStr +
-    ' has ' +
-    inequalityStr +
-    ' ' +
-    feature +
-    ' while ' +
-    secondSubjectStr +
-    ' does not';
+  const oTypeAnswerStr = firstSubjectStr + ' has ' + inequalityStr + ' ' + feature + ' while ' + secondSubjectStr + ' does not';
 
   const idArray = _.range(0, 3097, 1),
-    idWithTweetArray = idArray.map(id => (
-      <div style={{ fontSize: '0.8rem' }}>{'tweet ' + id}</div>
-    ));
+    idWithTweetArray = idArray.map(id => <div style={{fontSize: '0.8rem'}}>{'tweet ' + id}</div>);
 
   if (qType === 'p-mode')
     return (
       <div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{display: 'flex', alignItems: 'center'}}>
           <IndicatorWrapper>Q:</IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <QuestionWrapper>
             Why &nbsp;
             <Grommet theme={customDropdownTheme}>
               <Select
-                style={{ width: '100px', height: '10px', margin: '0 10px' }}
+                style={{width: '100px', height: '10px', margin: '0 10px'}}
                 multiple={true}
                 value={'tweet ' + selectedTweet.tweetId}
                 onChange={e => {
                   const selectedIdForFirstTweet = e.selected[0],
-                    tweetForFirstTweet = tweets.filter(
-                      d => selectedIdForFirstTweet === d.tweetId
-                    )[0];
+                    tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetId)[0];
 
-                  console.log('selectedIdForFirstTweet: ', tweetForFirstTweet);
                   dispatch({
                     type: 'SELECT_TWEET',
                     payload: tweetForFirstTweet
@@ -280,10 +247,7 @@ const QAView = ({
             &nbsp;
             <CampIndicator
               style={{
-                backgroundColor:
-                  selectedTweet.pred === '1'
-                    ? globalColors.group.lib
-                    : globalColors.group.con
+                backgroundColor: selectedTweet.pred === '1' ? globalColors.group.lib : globalColors.group.con
               }}
             >
               {selectedTweet.pred === '1' ? 'blue camp' : 'red camp'}
@@ -293,10 +257,7 @@ const QAView = ({
             &nbsp;
             <CampIndicator
               style={{
-                backgroundColor:
-                  selectedTweet.pred === '1'
-                    ? globalColors.group.con
-                    : globalColors.group.lib
+                backgroundColor: selectedTweet.pred === '1' ? globalColors.group.con : globalColors.group.lib
               }}
             >
               {selectedTweet.pred === '1' ? 'red camp' : 'blue camp'}
@@ -304,22 +265,20 @@ const QAView = ({
             &nbsp; ?
           </QuestionWrapper>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{display: 'flex', alignItems: 'center'}}>
           <IndicatorWrapper>A: </IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <AnswerWrapper>Because {pTypeAnswerStr}</AnswerWrapper>
         </div>
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Selected</div>
+            <div style={{fontSize: '0.8rem', fontWeight: 600}}>Selected</div>
             <Document tweet={selectedTweet} />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
           <ContrastiveInstanceWrapper>
             {contrastiveEXs.map(contEX => (
               <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  {contEX.contFeature + '-contrastive example'}
-                </div>
+                <div style={{fontSize: '0.8rem', fontWeight: 600}}>{contEX.contFeature + '-contrastive example'}</div>
                 <Document tweet={contEX} />
               </div>
             ))}
@@ -330,27 +289,21 @@ const QAView = ({
   else if (qType === 'o-mode')
     return (
       <div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{display: 'flex', alignItems: 'center'}}>
           <IndicatorWrapper>Q:</IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <QuestionWrapper>
             {/* first line of question */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{display: 'flex', alignItems: 'center'}}>
               Why &nbsp;
               <Grommet theme={customDropdownTheme}>
                 <Select
-                  style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                  style={{width: '80px', height: '10px', margin: '0 10px'}}
                   multiple={true}
                   value={'tweet ' + selectedTweet.tweetId}
                   onChange={e => {
                     const selectedIdForFirstTweet = e.selected[0],
-                      tweetForFirstTweet = tweets.filter(
-                        d => selectedIdForFirstTweet === d.tweetId
-                      )[0];
+                      tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetId)[0];
 
-                    console.log(
-                      'selectedIdForFirstTweet: ',
-                      tweetForFirstTweet
-                    );
                     dispatch({
                       type: 'SELECT_TWEET',
                       payload: tweetForFirstTweet
@@ -375,39 +328,26 @@ const QAView = ({
               &nbsp;
               <CampIndicator
                 style={{
-                  backgroundColor:
-                    selectedTweet.pred === '1'
-                      ? globalColors.group.lib
-                      : globalColors.group.con
+                  backgroundColor: selectedTweet.pred === '1' ? globalColors.group.lib : globalColors.group.con
                 }}
               >
                 {selectedTweet.pred === '1' ? 'blue camp' : 'red camp'}
               </CampIndicator>
             </div>
             {/* second line of question */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{display: 'flex', alignItems: 'center'}}>
               &nbsp;&nbsp;
               {'while'}
               &nbsp;&nbsp;
               <Grommet theme={customDropdownTheme}>
                 <Select
-                  style={{ width: '80px', height: '10px', margin: '0 10px' }}
+                  style={{width: '80px', height: '10px', margin: '0 10px'}}
                   multiple={true}
-                  value={
-                    typeof secondSelectedTweet.tweetId != 'undefined'
-                      ? 'tweet ' + secondSelectedTweet.tweetId
-                      : ' '
-                  }
+                  value={typeof secondSelectedTweet.tweetId != 'undefined' ? 'tweet ' + secondSelectedTweet.tweetId : ' '}
                   onChange={e => {
                     const selectedIdForSecondTweet = e.selected[0],
-                      tweetForSecondTweet = tweets.filter(
-                        d => selectedIdForSecondTweet === d.tweetId
-                      )[0];
+                      tweetForSecondTweet = tweets.filter(d => selectedIdForSecondTweet === d.tweetId)[0];
 
-                    console.log(
-                      'selectedIdForSecondTweet: ',
-                      tweetForSecondTweet
-                    );
                     dispatch({
                       type: 'SELECT_SECOND_TWEET',
                       payload: tweetForSecondTweet.tweetId
@@ -439,28 +379,24 @@ const QAView = ({
                       : 'gray'
                 }}
               >
-                {secondSelectedTweet.pred === '1'
-                  ? 'blue camp'
-                  : secondSelectedTweet.pred === '0'
-                  ? 'red camp'
-                  : ' '}
+                {secondSelectedTweet.pred === '1' ? 'blue camp' : secondSelectedTweet.pred === '0' ? 'red camp' : ' '}
               </CampIndicator>
               &nbsp; ?
             </div>
           </QuestionWrapper>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{display: 'flex', alignItems: 'center'}}>
           <IndicatorWrapper>A: </IndicatorWrapper>&nbsp;&nbsp;&nbsp;
           <AnswerWrapper>Because {oTypeAnswerStr}</AnswerWrapper>
         </div>
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>First</div>
+            <div style={{fontSize: '0.8rem', fontWeight: 600}}>First</div>
             <Document tweet={selectedTweet} />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
           <SelectedInstanceWrapper>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Second</div>
+            <div style={{fontSize: '0.8rem', fontWeight: 600}}>Second</div>
             <Document tweet={secondSelectedTweet} />
           </SelectedInstanceWrapper>
         </ContrastiveExplanationWrapper>
@@ -482,7 +418,6 @@ const LocalInterpreter = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log('qType in localInterpreter: ', qType);
     dispatch(
       findContrastiveExamples({
         qType: qType,
@@ -495,7 +430,7 @@ const LocalInterpreter = ({
     );
   }, [selectedTweet]);
 
-  const loadingIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
+  const loadingIcon = <Icon type="loading" style={{fontSize: 24}} spin />;
 
   if (!contrastiveEXs || contrastiveEXs.length === 0)
     return (
@@ -512,15 +447,13 @@ const LocalInterpreter = ({
       <div>
         <SectionTitle>Local Interpretability</SectionTitle>
       </div>
-      <span style={{ fontWeight: 600 }}>
-        Select a contrastive question type:{' '}
-      </span>
+      <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
       &nbsp;
       <Select
         multiple={false}
         value={qType}
         onChange={e => {
-          dispatch({ type: 'CHANGE_QTYPE', payload: e.option });
+          dispatch({type: 'CHANGE_QTYPE', payload: e.option});
         }}
         options={['p-mode', 'o-mode']}
         size={'small'}

@@ -27,11 +27,11 @@ urlpatterns = [
         view=views.RunDecisionTree.as_view(),
         name='run_dt'
     ),
-    url(
-        regex=r'^runClustering/$',
-        view=views.RunClustering.as_view(),
-        name='run_clustering'
-    ),
+    # url(
+    #     regex=r'^runClustering/$',
+    #     view=views.RunClustering.as_view(),
+    #     name='run_clustering'
+    # ),
     url(
         regex=r'^calculatePartialDependence/$',
         view=views.CalculatePartialDependence.as_view(),

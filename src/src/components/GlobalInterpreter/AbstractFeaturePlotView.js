@@ -1,16 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
-import { Button, Select } from 'grommet';
+import {Button, Select} from 'grommet';
 import index from '../../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import {
-  SectionWrapper,
-  SectionTitle,
-  SubsectionTitle,
-  SubTitle
-} from '../../GlobalStyles';
+import {StylesContext} from '@material-ui/styles/StylesProvider';
+import {SectionWrapper, SectionTitle, SubsectionTitle, SubTitle} from '../../GlobalStyles';
 
 const AbstractFeaturePlotViewWrapper = styled(SectionWrapper).attrs({
   className: 'abstract_feature_plot_view_wrapper'
@@ -32,18 +27,14 @@ const AggregationBar = styled.div.attrs({
 `;
 
 const layout = {
-  margin: { top: 20, right: 110, bottom: 20, left: 30 },
+  margin: {top: 20, right: 110, bottom: 20, left: 30},
   width: 400,
   height: 5,
   innerHeight: 340 - 2
 };
 
-const AbstractFeaturePlotView = ({ numAbstractFeatures, globalMode }) => {
-  return (
-    <div>
-      <AggregationBar />
-    </div>
-  );
+const AbstractFeaturePlotView = ({numAbstractFeatures, globalMode}) => {
+  return <div>{/* <AggregationBar /> */}</div>;
 };
 
 export default AbstractFeaturePlotView;

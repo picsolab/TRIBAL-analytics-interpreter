@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import {Button} from 'grommet';
 
 export const globalColors = {
   system: 'mediumpurple',
@@ -13,8 +13,8 @@ export const globalColors = {
     }
   },
   groups: [
-    { name: 'lib', color: 'rgb(25, 12, 226)', colorForWrong: '#8eabd0' },
-    { name: 'con', color: 'rgb(255, 34, 34)', colorForWrong: 'rosybrown' }
+    {name: 'con', color: 'rgb(255, 34, 34)', colorForWrong: 'rosybrown'},
+    {name: 'lib', color: 'rgb(25, 12, 226)', colorForWrong: '#8eabd0'}
   ],
   feature: '#00ffa8',
   userFeature: 'LIGHTSEAGREEN'
@@ -29,7 +29,7 @@ level3 | (0.85, 0.00) (0.85, 0.10) (0.85, 0.70) (0.85, 0.75)
 
 export const l = {
   w: 1100,
-  h: 450,
+  h: 250,
   sm: 10,
   mm: 10,
   lm: 15,
@@ -40,24 +40,24 @@ export const l = {
 export const ll = {
   l1: {
     t: 5,
-    h: l.h * 0.1,
+    h: l.h * 0.15,
     l: 5
   },
   l1ToL2: {
-    t: l.h * 0.1,
-    h: l.h * 0.1
+    t: l.h * 0.15,
+    h: l.h * 0.15
   },
   l2: {
-    t: l.h * 0.2,
-    h: l.h * 0.4
+    t: l.h * 0.3,
+    h: l.h * 0.6
   },
   l2ToL3: {
-    t: l.h * 0.6,
+    t: l.h * 0.9,
     h: l.h * 0.1
   },
   l3: {
     t: l.h * 0.7,
-    h: l.h * 0.3
+    h: l.h * 1.1
   }
 };
 
@@ -104,7 +104,11 @@ export const lCom = {
       axis: {
         w: 30,
         h: ll.l2.h,
-        m: 10
+        m: 10,
+        cat: {
+          // Additional axis for categories
+          m: 20
+        }
       },
       pdp: {
         w: 20
@@ -131,7 +135,8 @@ export const lCom = {
   },
   clusterPlot: {
     t: l.h * 0.15,
-    h: ll.l1.h + ll.l2.h,
+    //h: ll.l1.h + ll.l2.h,
+    h: ll.l2.h,
     l: l.w * 0.625,
     w: l.w * 0.325,
     m: 10,
@@ -172,7 +177,21 @@ export const SubsectionTitle = styled.div.attrs({
   padding-bottom: 2px;
   margin-top: 20px;
   margin-bottom: 10px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: gray;
+`;
+
+export const SubsubsectionTitle = styled.div.attrs({
+  className: 'subsubsection_title'
+})`
+  display: inline-block;
+  font-weight: 550;
+  // border-bottom: 2px solid gray;
+  padding-bottom: 2px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 0.7rem;
   text-transform: uppercase;
   color: gray;
 `;
@@ -194,7 +213,7 @@ export const ComponentSubTitle = styled(SubTitle)`
 `;
 
 export const ListViewStyle = styled.div`
-  height: 70%;
+  height: 65%;
   padding: 3px 7px;
   background-color: whitesmoke;
 `;

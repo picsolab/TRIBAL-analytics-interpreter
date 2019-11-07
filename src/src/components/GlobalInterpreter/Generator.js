@@ -23,6 +23,7 @@ import {
   SectionWrapper,
   SectionTitle,
   SubsectionTitle,
+  SubsubsectionTitle,
   SubTitle,
   Button1
 } from '../../GlobalStyles';
@@ -138,13 +139,23 @@ const Generator = props => {
       >
         {/* </Feature table> */}
         <SubsectionTitle>Features</SubsectionTitle>
-        <SubsectionTitle>Goal-level</SubsectionTitle>
+        <SubsubsectionTitle>Goal-level</SubsubsectionTitle>
         {goalDivs}
-        <SubsectionTitle>Coarse-grained level</SubsectionTitle>
-        {featureDivs}
-        <SubsectionTitle>Fine-grained level</SubsectionTitle>
+        <SubsubsectionTitle>Coarse-grained level</SubsubsectionTitle>
+        {/* {featureDivs} */}
+        <div>emotion</div>
+        <div>&emsp;&emsp;valence</div>
+        <div>&emsp;&emsp;dominance</div>
+        <div>moral</div>
+        <div>&emsp;&emsp;care</div>
+        <div>&emsp;&emsp;fairness</div>
+        <SubsubsectionTitle>Fine-grained level</SubsubsectionTitle>
         {/* </FormField> */}
-        <SubsectionTitle>Select a method</SubsectionTitle>
+        <div>Selected words</div>
+        <div sylte={{ fontSize: '0.8rem', fontStyle: 'italic' }}>
+          from a seperate model
+        </div>
+        <SubsectionTitle>Method</SubsectionTitle>
         <div style={{ backgroundColor: 'rgb(190, 255, 231)', fontWeight: 600 }}>
           Decision Tree
         </div>

@@ -1,12 +1,12 @@
-import React, { useDispatch } from 'react';
+import React, {useDispatch} from 'react';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import {Button} from 'grommet';
 import CustomizedInputBase from '../subcomponents/SearchBar';
 import index from '../../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import { SectionTitle, SubTitle } from '../../GlobalStyles';
+import {StylesContext} from '@material-ui/styles/StylesProvider';
+import {SectionTitle, SubTitle} from '../../GlobalStyles';
 
 import RetrievalView from './RetrievalView';
 import DocumentView from './DocumentView';
@@ -17,7 +17,7 @@ const ExplorerWrapper = styled.div.attrs({
 })`
   grid-area: e;
   display: grid;
-  grid-template-rows: 150px 650px 300px;
+  grid-template-rows: 150px 750px 300px;
   grid-template-columns: 100%;
   grid-template-areas:
     'rt'
@@ -26,15 +26,7 @@ const ExplorerWrapper = styled.div.attrs({
   background-color: whitesmoke;
 `;
 
-const Explorer = ({
-  tweets,
-  tweetList,
-  filteredTweetList,
-  users,
-  userList,
-  selectedUser,
-  selectedTweet
-}) => {
+const Explorer = ({tweets, tweetList, filteredTweetList, users, userList, selectedUser, selectedTweet}) => {
   // const dispatch = useDispatch();
   const numRetrievedTweets = tweetList.length;
 
@@ -42,9 +34,7 @@ const Explorer = ({
     <ExplorerWrapper>
       <RetrievalView tweets={tweets} numRetrievedTweets={numRetrievedTweets} />
       <DocumentView
-        tweetList={
-          Object.keys(selectedUser).length === 0 ? tweetList : filteredTweetList
-        }
+        tweetList={Object.keys(selectedUser).length === 0 ? tweetList : filteredTweetList}
         selectedTweet={selectedTweet}
       />
       <ListView userList={userList} selectedUser={selectedUser} />

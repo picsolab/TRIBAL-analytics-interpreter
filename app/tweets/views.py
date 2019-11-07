@@ -187,17 +187,13 @@ class LoadWords(APIView):
         
         df_word_list = pd.DataFrame(list(word_count_dict.keys()), columns=['word'])
         df_word_count_per_group = pd.DataFrame.from_dict(list(word_count_dict.values()))
-        print('df_word_list: ', df_word_list.head())
-        print('df_word_count_per_group: ', df_word_count_per_group.head())
 
         df_word_count = pd.concat([ df_word_list, df_word_count_per_group ], axis=1)
-        print('df_word_count: ', df_word_count)
 
         df_word_count['word'] = df_word_count['word'].map(lambda x: x.encode('unicode-escape').decode('utf-8'))
         df_word_count.to_csv('word_count.csv', sep='\t', encoding = 'utf-8', index_label='idx')
         # Filter out words with threshold
         df_filtered_word_count = df_word_count.loc[df_word_count['count_total'] > 10]
-        print(df_filtered_word_count.head())
         
 
         return Response(df_filtered_word_count.to_dict(orient='records')) # [{ 'word': 'dog', 'count': 2 }, { ... }, ...]
@@ -268,71 +264,72 @@ class RunDecisionTree(APIView):
         })
 
 
-class RunClustering(APIView):
+# class RunClustering(APIView):
 
-    def get(self, request, format=None):
-        selected_features = ['valence', 'dominance', 'care', 'fairness']
-        tweet_objects = models.Tweet.objects.all()
-        # serializer return string, so convert it to list with eval()
-        tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
-        tweets_json = [tweet['fields'] for tweet in tweet_objects_json]
+#     def get(self, request, format=None):
+#         selected_features = ['valence', 'dominance', 'care', 'fairness']
+#         tweet_objects = models.Tweet.objects.all()
+#         # serializer return string, so convert it to list with eval()
+#         tweet_objects_json = eval(serializers.serialize('json', tweet_objects))
+#         tweets_json = [tweet['fields'] for tweet in tweet_objects_json]
 
-        df_tweets = pd.DataFrame(tweets_json)
+#         df_tweets = pd.DataFrame(tweets_json)
 
-        # Clustering all together
-        df_tweets_selected = df_tweets[selected_features]
-        fit_cls = AgglomerativeClustering(n_clusters=10).fit(df_tweets_selected)
-        cls_labels = fit_cls.labels_
-        df_tweets['clusterId'] = cls_labels
+#         # Clustering all together
+#         df_tweets_selected = df_tweets[selected_features]
+#         fit_cls = AgglomerativeClustering(n_clusters=10).fit(df_tweets_selected)
+#         cls_labels = fit_cls.labels_
+#         df_tweets['clusterId'] = cls_labels
 
-        df_tweets_by_cluster = df_tweets.groupby(['clusterId'])
-        num_tweets_per_group = df_tweets_by_cluster.size()
+#         df_tweets_by_cluster = df_tweets.groupby(['clusterId'])
+#         num_tweets_per_group = df_tweets_by_cluster.size()
 
-        df_group_ratio = df_tweets_by_cluster.agg({
-            'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
-        }).rename(columns={'grp': 'group_lib_ratio'})
+#         df_group_ratio = df_tweets_by_cluster.agg({
+#             'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
+#         }).rename(columns={'grp': 'group_lib_ratio'})
 
-        # Clustering per each goal's features
-        goals_features = [
-            { 'goal': 'emotion', 'features': ['valence', 'dominance'] },
-            { 'goal': 'moral', 'features': ['care', 'fairness'] }
-        ]
+#         # Clustering per each goal's features
+#         goals_features = [
+#             { 'goal': 'emotion', 'features': ['valence', 'dominance'] },
+#             { 'goal': 'moral', 'features': ['care', 'fairness'] }
+#         ]
 
-        clusters_per_goals = []
-        for goal_features in goals_features:
-            df_tweets_per_goal = df_tweets_selected[goal_feature['features']]
-            fit_cls = AgglomerativeClustering(n_clusters=4).fit(df_tweets_selected)
-            cls_labels = fit_cls.labels_
-            df_tweets_per_goal['clusterId'] = cls_labels
+#         clusters_per_goals = []
+#         for goal_features in goals_features:
+#             goal = goal_features['goal']
+#             df_tweets_per_goal = df_tweets_selected[goal_feature['features']]
+#             fit_cls = AgglomerativeClustering(n_clusters=4).fit(df_tweets_selected)
+#             cls_labels = fit_cls.labels_
+#             df_tweets_per_goal['clusterIdFor' + capitalize(goal)] = cls_labels
 
-            df_clusters_per_goal = df_tweets_per_goal.agg({
-                'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
-            }).rename(columns={'grp': 'group_lib_ratio'})
+#             df_clusters_per_goal = df_tweets_per_goal.agg({
+#                 'grp': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
+#             }).rename(columns={'grp': 'group_lib_ratio'})
 
-            clusters_per_goal = { 
-                'goal': 'emotion', 
-                'clusters': df_clusters_per_goal.to_json(orient='records')
-            }
-            clusters_per_goal.append(clusters_per_goal)
+#             clusters_per_goal = { 
+#                 'goal': 'emotion', 
+#                 'clusters': df_clusters_per_goal.to_json(orient='records')
+#             }
+#             clusters_per_goal.append(clusters_per_goal)
 
-        print('clusters_per_goal')
-        print(clusters_per_goal)
-        # Save all results for clustering-all
-        df_clusters = pd.DataFrame({
-            'clusterId': list(df_tweets_by_cluster.groups),
-            'numTweets': num_tweets_per_group,
-            'groupRatio': df_group_ratio['group_lib_ratio'],
-            'pdpValue': 0.2
-            # 'tweetIds': tweet_ids_per_cluster_list
-        })
+#         print('clusters_per_goal')
+#         print(clusters_per_goal)
+#         # Save all results for clustering-all
+#         df_clusters = pd.DataFrame({
+#             'clusterId': list(df_tweets_by_cluster.groups),
+#             'numTweets': num_tweets_per_group,
+#             'groupRatio': df_group_ratio['group_lib_ratio'],
+#             'pdpValue': 0.2
+#             # 'tweetIds': tweet_ids_per_cluster_list
+#         })
 
-        cluster_ids = cls_labels
+#         cluster_ids = cls_labels
 
-        return Response({
-            'clusterIdsForTweets': cluster_ids,
-            'clusters': df_clusters.to_json(orient='records'),
-            'clustersPerGoal': clusters_per_goal
-        })
+#         return Response({
+#             'clusterIdsForTweets': cluster_ids,
+#             'clusters': df_clusters.to_json(orient='records'),
+#             'clustersPerGoal': clusters_per_goal
+#         })
 
 
 class CalculatePartialDependence(APIView):
@@ -411,8 +408,8 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             features_in_goal = goal_features['features']
             df_tweets_per_goal = df_tweets[goal_features['features'] + ['group']]
             fit_cls = AgglomerativeClustering(n_clusters=4).fit(df_tweets_per_goal)
-            cls_labels = fit_cls.labels_
-            df_tweets_per_goal['clusterId'] = cls_labels
+            cls_labels_for_goal = fit_cls.labels_
+            df_tweets_per_goal['clusterId'] = cls_labels_for_goal
             df_tweets_per_goal_by_cluster = df_tweets_per_goal.groupby(['clusterId'])
             print('df_tweets_per_goal')
             print(df_tweets_per_goal)
@@ -505,6 +502,8 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
 
         # Results
         cluster_ids = cls_labels
+        print('pdp_values_for_groups: ', pdp_values_for_groups)
+        print('pdp_values_for_cls_and_groups: ', pdp_values_for_cls_and_groups)
 
         df_clusters = pd.DataFrame({
             'clusterId': list(df_tweets_by_cluster.groups),

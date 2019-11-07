@@ -1,29 +1,18 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, {useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import * as d3 from 'd3';
 
 import styled from 'styled-components';
-import { Spin, Icon } from 'antd';
-import { Grommet, Button, Select } from 'grommet';
-import { grommet } from 'grommet/themes';
-import { deepMerge } from 'grommet/utils';
+import {Spin, Icon} from 'antd';
+import {Grommet, Button, Select} from 'grommet';
+import {grommet} from 'grommet/themes';
+import {deepMerge} from 'grommet/utils';
 import index from '../../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import {
-  globalColors,
-  SectionWrapper,
-  SectionTitle,
-  SubsectionTitle,
-  SubTitle
-} from '../../GlobalStyles';
+import {StylesContext} from '@material-ui/styles/StylesProvider';
+import {globalColors, SectionWrapper, SectionTitle, SubsectionTitle, SubTitle} from '../../GlobalStyles';
 
-import {
-  runDTThenRunClandPD,
-  fetchWords,
-  calculateTFIDFAndCooc,
-  fetchWordsThenCalTFIDFAndCooc
-} from '../../modules/tweet';
-import { runDT } from '../../modules/globalInterpreter';
+import {runDTThenRunClandPD, fetchWords, calculateTFIDFAndCooc, fetchWordsThenCalTFIDFAndCooc} from '../../modules/tweet';
+import {runDT} from '../../modules/globalInterpreter';
 
 import Generator from './Generator';
 import AbstrctFeaturePlotView from './AbstractFeaturePlotView';
@@ -35,14 +24,19 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
 })`
   grid-area: g;
   display: grid;
-  grid-template-columns: 10% 90%;
-  grid-template-rows: 40px 60px 20px 550px 250px;
+  grid-template-columns: 100%;
+  grid-template-rows: 40px 5px 20px 550px;
+  //grid-template-columns: 10% 90%;
+  // grid-template-areas:
+  //   't t'
+  //   'ge md'
+  //   'ge ab'
+  //   'ge f';
   grid-template-areas:
-    't t'
-    'ge md'
-    'ge ab'
-    'ge f'
-    'ge w';
+    't'
+    'md'
+    'ab'
+    'f';
 `;
 
 const ModeViewWrapper = styled.div.attrs({
@@ -125,8 +119,7 @@ const globalModes = [
     type: 1,
     feature: 'True',
     target: 'True',
-    question:
-      'Are groups predictable by their tendency in expressing emotion and moral values?',
+    question: 'Are groups predictable by their tendency in expressing emotion and moral values?',
     display: ''
   },
   {
@@ -140,16 +133,14 @@ const globalModes = [
     type: 3,
     feature: 'Predicted',
     target: 'Predicted',
-    question:
-      'How well can construct values be predicted by (shallow) machine?',
+    question: 'How well can construct values be predicted by (shallow) machine?',
     display: ''
   },
   {
     type: 4,
     feature: 'Predicted',
     target: 'Predicted',
-    question:
-      'How well can groups be predicted by DL machine with low-level and theory-informed features?',
+    question: 'How well can groups be predicted by DL machine with low-level and theory-informed features?',
     display: ''
   }
 ];
@@ -180,7 +171,7 @@ const customDropdownTheme = {
 const globalModesWithDisplay = globalModes.map(d => ({
   ...d,
   display: (
-    <div style={{ padding: '5px', margin: '5px' }}>
+    <div style={{padding: '5px', margin: '5px'}}>
       <div
         style={{
           display: 'flex',
@@ -257,34 +248,29 @@ const GlobalInterpreter = props => {
     );
   }, []);
 
-  const loadingIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
+  const loadingIcon = <Icon type="loading" style={{fontSize: 24}} spin />;
 
-  if (
-    !clusters ||
-    clusters.length === 0 ||
-    isLoaded === false ||
-    cooc.length === 0
-  )
+  if (!clusters || clusters.length === 0 || isLoaded === false || cooc.length === 0)
     return (
       <GlobalInterpreterWrapper>
-        <div style={{ gridArea: 't' }}>
+        <div style={{gridArea: 't'}}>
           <SectionTitle>Global Interpretability</SectionTitle>
           <Spin indicator={loadingIcon} />
         </div>
-        <Generator
+        {/* <Generator
           globalMode={globalMode}
           goals={goals}
           tweets={tweets}
           tweetsWithPredFeatures={tweetsWithPredFeatures}
           features={features}
           selectedFeatures={selectedFeatures}
-        />
+        /> */}
       </GlobalInterpreterWrapper>
     );
 
   return (
     <GlobalInterpreterWrapper>
-      <div style={{ gridArea: 't' }}>
+      <div style={{gridArea: 't'}}>
         <SectionTitle>Global Interpretability</SectionTitle>
       </div>
       <div
@@ -299,11 +285,11 @@ const GlobalInterpreter = props => {
           // border: '0.5px solid #e6e6e6'
         }}
       >
-        &nbsp;&nbsp;&nbsp;&nbsp;
+        {/* &nbsp;&nbsp;&nbsp;&nbsp;
         <SubsectionTitle>Mode: </SubsectionTitle>
-        &nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp; */}
         {/* <Grommet theme={deepMerge(grommet, customDropdownTheme)}> */}
-        <ModeDropdown
+        {/* <ModeDropdown
           multiple={false}
           value={globalModesWithDisplay[globalMode].display}
           onChange={(e, i) => {
@@ -341,24 +327,21 @@ const GlobalInterpreter = props => {
           }}
           options={globalModesWithDisplay.map(d => d.display)}
           size={'small'}
-        />
+        /> */}
         {/* </Grommet> */}
         {/* <QuestionDiv>
           {'How well can (shallow) machine predict ideological groups?'}
         </QuestionDiv> */}
       </div>
-      <Generator
+      {/* <Generator
         globalMode={globalMode}
         goals={goals}
         tweets={tweets}
         tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
         selectedFeatures={selectedFeatures}
-      />
-      <AbstrctFeaturePlotView
-        numAbstractFeatures={numAbstractFeatures}
-        globalMode={globalMode}
-      />
+      /> */}
+      <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} globalMode={globalMode} />
       <FeaturePlotView
         globalMode={globalMode}
         currentModel={currentModel}
@@ -374,19 +357,22 @@ const GlobalInterpreter = props => {
         pdpValues={pdpValues}
         pdpValuesForGroups={pdpValuesForGroups}
         pdpValuesForCls={pdpValuesForCls}
-        pdpValuesForCls={pdpValuesForClsGroups}
+        pdpValuesForClsGroups={pdpValuesForClsGroups}
         isLoaded={isLoaded}
         tfidf={tfidf}
         cooc={cooc}
+        wordsInTweets={tweets}
+        isClusterSelected={isClusterSelected}
+        tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
       />
-      <SeqPlotView
+      {/* <SeqPlotView
         globalMode={globalMode}
         numFeatures={numFeatures}
         wordsInTweets={tweets}
         selectedFeatures={selectedFeatures}
         isClusterSelected={isClusterSelected}
         tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
-      />
+      /> */}
     </GlobalInterpreterWrapper>
   );
 };

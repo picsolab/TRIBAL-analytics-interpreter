@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
 import styled from 'styled-components';
-import { Button, InfiniteScroll } from 'grommet';
+import {Button, InfiniteScroll} from 'grommet';
 import {
   globalColors,
   SectionWrapper,
@@ -28,7 +28,7 @@ const UserListWrapper = styled(ListViewStyle).attrs({
   className: 'user_list'
 })`
   grid-area: u;
-  height: 85%;
+  height: 75%;
   margin-right: 5px;
   overflow-y: scroll;
   background-color: white;
@@ -58,13 +58,7 @@ const layout = {
 };
 
 const UserAvgScoreView = props => {
-  const {
-    avgUserScores,
-    yNumFollowersScale,
-    yNumFreindsScale,
-    yNumRetweetedScale,
-    yNumTweetsScale
-  } = props;
+  const {avgUserScores, yNumFollowersScale, yNumFreindsScale, yNumRetweetedScale, yNumTweetsScale} = props;
 
   const ref = useRef(null);
 
@@ -76,20 +70,12 @@ const UserAvgScoreView = props => {
   const yScoreScale = d3
     .scaleLinear()
     .domain([0, 1])
-    .range([
-      layout.userScoreView.svg.height - layout.userScoreView.marginBottom,
-      0
-    ]);
+    .range([layout.userScoreView.svg.height - layout.userScoreView.marginBottom, 0]);
 
   useEffect(() => {
     // Use avgScores up there temporarily
-    const { users } = props;
-    const userFeatures = [
-        'numFollowers',
-        'numFreinds',
-        'numRetweeted',
-        'numTweets'
-      ],
+    const {users} = props;
+    const userFeatures = ['numFollowers', 'numFreinds', 'numRetweeted', 'numTweets'],
       numScores = avgUserScores.length;
 
     const featureRecData = d3
@@ -110,30 +96,10 @@ const UserAvgScoreView = props => {
       })
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => {
-        if (i === 0)
-          return (
-            layout.userScoreView.svg.height -
-            layout.userScoreView.marginBottom -
-            yNumFollowersScale(d)
-          );
-        else if (i === 1)
-          return (
-            layout.userScoreView.svg.height -
-            layout.userScoreView.marginBottom -
-            yNumFreindsScale(d)
-          );
-        else if (i === 2)
-          return (
-            layout.userScoreView.svg.height -
-            layout.userScoreView.marginBottom -
-            yNumRetweetedScale(d)
-          );
-        else if (i === 3)
-          return (
-            layout.userScoreView.svg.height -
-            layout.userScoreView.marginBottom -
-            yNumTweetsScale(d)
-          );
+        if (i === 0) return layout.userScoreView.svg.height - layout.userScoreView.marginBottom - yNumFollowersScale(d);
+        else if (i === 1) return layout.userScoreView.svg.height - layout.userScoreView.marginBottom - yNumFreindsScale(d);
+        else if (i === 2) return layout.userScoreView.svg.height - layout.userScoreView.marginBottom - yNumRetweetedScale(d);
+        else if (i === 3) return layout.userScoreView.svg.height - layout.userScoreView.marginBottom - yNumTweetsScale(d);
       })
       .style('fill', globalColors.userFeature);
 
@@ -162,51 +128,34 @@ const UserAvgScoreView = props => {
   );
 };
 
-const UserListView = ({ userList, selectedUser }) => {
+const UserListView = ({userList, selectedUser}) => {
   const numFollowersData = userList.map(d => d.numFollowers),
     numFriendsData = userList.map(d => d.numFriends),
     numRetweetedData = userList.map(d => d.numRetweeted),
     numTweetsData = userList.map(d => d.numTweets);
 
-  const avgUserScores = [
-    _.mean(numFollowersData),
-    _.mean(numFriendsData),
-    _.mean(numRetweetedData),
-    _.mean(numTweetsData)
-  ];
+  const avgUserScores = [_.mean(numFollowersData), _.mean(numFriendsData), _.mean(numRetweetedData), _.mean(numTweetsData)];
 
   // Calculate the global scale of user scores
   const yNumFollowersScale = d3
     .scaleLinear()
     .domain(d3.extent(numFollowersData))
-    .range([
-      layout.userScoreView.svg.height - layout.userScoreView.marginBottom,
-      0
-    ]);
+    .range([layout.userScoreView.svg.height - layout.userScoreView.marginBottom, 0]);
 
   const yNumFreindsScale = d3
     .scaleLinear()
     .domain(d3.extent(numFriendsData))
-    .range([
-      layout.userScoreView.svg.height - layout.userScoreView.marginBottom,
-      0
-    ]);
+    .range([layout.userScoreView.svg.height - layout.userScoreView.marginBottom, 0]);
 
   const yNumRetweetedScale = d3
     .scaleLinear()
     .domain(d3.extent(numRetweetedData))
-    .range([
-      layout.userScoreView.svg.height - layout.userScoreView.marginBottom,
-      0
-    ]);
+    .range([layout.userScoreView.svg.height - layout.userScoreView.marginBottom, 0]);
 
   const yNumTweetsScale = d3
     .scaleLinear()
     .domain(d3.extent(numTweetsData))
-    .range([
-      layout.userScoreView.svg.height - layout.userScoreView.marginBottom,
-      0
-    ]);
+    .range([layout.userScoreView.svg.height - layout.userScoreView.marginBottom, 0]);
 
   return (
     <div>
@@ -240,12 +189,12 @@ const UserListView = ({ userList, selectedUser }) => {
   );
 };
 
-const ListView = ({ userList, selectedUser }) => {
+const ListView = ({userList, selectedUser}) => {
   if (!userList || userList.length === 0) return <div />;
 
   return (
     <ListViewWrapper>
-      <div style={{ height: '50%' }}>
+      <div style={{height: '100%'}}>
         <SubsectionTitle>Tweet users</SubsectionTitle>
         <UserListWrapper>
           <UserListView userList={userList} selectedUser={selectedUser} />

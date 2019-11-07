@@ -1,23 +1,18 @@
-import React, { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import React, {useEffect, useRef} from 'react';
+import {useDispatch} from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
-import { searchTweets } from '../../modules/explorer';
+import {searchTweets} from '../../modules/explorer';
 
 import styled from 'styled-components';
-import { Button } from 'grommet';
+import {Button} from 'grommet';
 import index from '../../index.css';
-import { StylesContext } from '@material-ui/styles/StylesProvider';
-import {
-  SectionWrapper,
-  SectionTitle,
-  SubTitle,
-  globalColors
-} from '../../GlobalStyles';
+import {StylesContext} from '@material-ui/styles/StylesProvider';
+import {SectionWrapper, SectionTitle, SubTitle, globalColors} from '../../GlobalStyles';
 
 const layout = {
-  margin: { top: 20, right: 110, bottom: 20, left: 30 },
+  margin: {top: 20, right: 110, bottom: 20, left: 15},
   width: 600,
   height: 200,
   leftMargin: 30,
@@ -39,7 +34,8 @@ const numFeatures = 4;
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
 })`
-  width: 70%;
+  width: 65%;
+  height: 270px;
   grid-area: w;
   display: flex;
   margin-top: 10px;
@@ -63,7 +59,7 @@ const WordListWrapper = styled.div.attrs({
   overflow-y: scroll;
   padding: 3px;
   margin-bottom: 5px;
-  background-color: whitesmoke;
+  // background-color: whitesmoke;
 `;
 
 const FeatureIndicator = styled.div.attrs({
@@ -83,7 +79,7 @@ const ValueIndicator = styled.div.attrs({
   text-transform: uppercase;
   font-weight: 600;
   font-size: 0.7rem;
-  background-color: mediumaquamarine;
+  background-color: whitesmoke;
 `;
 
 const WordWrapper = styled.div.attrs({
@@ -91,8 +87,7 @@ const WordWrapper = styled.div.attrs({
 })`
   font-size: 0.7rem;
   border-radius: 5px;
-  background-color: gray;
-  color: white;
+  font-weight: 600;
   // text-align: center;
   display: inline-block;
   margin: 2px 1px;
@@ -114,7 +109,7 @@ const WordGroupPlot = styled.div.attrs({
 //   return <WordListWrapper>{divWords}</WordListWrapper>;
 // };
 
-const Word = ({ word }) => {
+const Word = ({word}) => {
   const dispatch = useDispatch();
   const seqDivColorScale = d3
     .scaleLinear()
@@ -123,7 +118,10 @@ const Word = ({ word }) => {
 
   return (
     <WordWrapper
-      style={{ backgroundColor: seqDivColorScale(word.libRatio) }}
+      style={{
+        border: '2px solid ' + seqDivColorScale(word.libRatio),
+        color: seqDivColorScale(word.libRatio)
+      }}
       onClick={function(e) {
         dispatch(
           searchTweets({
@@ -137,10 +135,7 @@ const Word = ({ word }) => {
   );
 };
 
-const SeqListForCluster = ({
-  isClusterSelected,
-  tweetsInClusterForSeqPlot
-}) => {
+const SeqListForCluster = ({isClusterSelected, tweetsInClusterForSeqPlot}) => {
   const features = ['valence', 'fairness', 'dominance', 'care'];
   if (isClusterSelected === false)
     return (
@@ -148,7 +143,7 @@ const SeqListForCluster = ({
         style={{
           marginLeft: '15px',
           marginTop: '10px',
-          width: '20%'
+          width: '30%'
         }}
       >
         <div
@@ -160,15 +155,11 @@ const SeqListForCluster = ({
         >
           Sequences in cluster
         </div>
-        <div
-          style={{ background: 'whitesmoke', padding: '10px', height: '100%' }}
-        />
+        <div style={{background: 'whitesmoke', padding: '10px', height: '90%'}} />
       </div>
     );
   else if (isClusterSelected === true) {
-    const corrTweetsInCluster = tweetsInClusterForSeqPlot.filter(
-      d => parseInt(d.group) == d.pred
-    );
+    const corrTweetsInCluster = tweetsInClusterForSeqPlot.filter(d => parseInt(d.group) == d.pred);
 
     const seqsInCluster = corrTweetsInCluster.map(tweet => {
       var corrSeqs = [];
@@ -184,10 +175,7 @@ const SeqListForCluster = ({
       return corrSeqs;
     });
 
-    const groupBySeqInCluster = _.groupBy(
-      _.flattenDeep(seqsInCluster, 2),
-      'seq'
-    );
+    const groupBySeqInCluster = _.groupBy(_.flattenDeep(seqsInCluster, 2), 'seq');
 
     const uniqueSeqsInCluster = Object.keys(groupBySeqInCluster).map(seq => {
       const seqRanks = groupBySeqInCluster[seq].map(d => d.seqRank),
@@ -198,16 +186,11 @@ const SeqListForCluster = ({
         seq: seq,
         avgRank: _.mean(seqRanks),
         count: seqCount,
-        libRatio:
-          libSeqs.length === 0 || seqCount === 0 ? 0 : libSeqs.length / seqCount
+        libRatio: libSeqs.length === 0 || seqCount === 0 ? 0 : libSeqs.length / seqCount
       };
     });
 
-    const top20SeqsForCluster = _.orderBy(
-      uniqueSeqsInCluster,
-      ['avgRank', 'count'],
-      ['asc', 'desc']
-    ).slice(0, 20);
+    const top20SeqsForCluster = _.orderBy(uniqueSeqsInCluster, ['avgRank', 'count'], ['asc', 'desc']).slice(0, 20);
 
     return (
       <div
@@ -226,9 +209,7 @@ const SeqListForCluster = ({
         >
           Sequences in cluster
         </div>
-        <div
-          style={{ background: 'whitesmoke', padding: '10px', height: '100%' }}
-        >
+        <div style={{background: 'whitesmoke', padding: '10px', height: '100%'}}>
           {top20SeqsForCluster.map(uniqueSeq => (
             <Word word={uniqueSeq} />
           ))}
@@ -238,11 +219,9 @@ const SeqListForCluster = ({
   }
 };
 
-const WordList = ({ feature, wordsInTweets }) => {
+const WordList = ({feature, wordsInTweets}) => {
   const featureName = feature.key;
-  const wordsInCorrTweets = wordsInTweets.filter(
-    d => parseInt(d.group) == d[featureName + 'GrpPred']
-  );
+  const wordsInCorrTweets = wordsInTweets.filter(d => parseInt(d.group) == d[featureName + 'GrpPred']);
   // const wordsOrderByFeature = _.orderBy(uniqueWordsFromCorrTweets, [
   //   featureName + 'SeqRank'
   // ]);
@@ -264,53 +243,37 @@ const WordList = ({ feature, wordsInTweets }) => {
 
   var WordLists;
   if (feature.type === 'continuous') {
-    const wordsAboveThreshold = wordsInCorrTweets.filter(
-        d => d[featureName] > 0.5
-      ),
-      wordsBelowThreshold = wordsInCorrTweets.filter(
-        d => d[featureName] <= 0.5
-      );
-    const groupBySeqAboveThreshold = _.groupBy(
-      wordsAboveThreshold,
-      featureName + 'Seq'
-    );
-    const groupBySeqBelowThreshold = _.groupBy(
-      wordsBelowThreshold,
-      featureName + 'Seq'
-    );
-    const uniqueWordsAboveThreshold = Object.keys(groupBySeqAboveThreshold).map(
-      seq => {
-        const tweets = groupBySeq[seq];
-        const tweetRanks = tweets.map(d => d[featureName + 'SeqRank']);
-        const featureValues = tweets.map(d => d[featureName]);
-        const libTweets = tweets.filter(d => d.group === '1');
-        return {
-          seq: seq,
-          tweets: tweets,
-          importance: _.mean(tweetRanks),
-          avgFeature: _.mean(featureValues),
-          libRatio:
-            libTweets.length === 0 ? 0 : libTweets.length / tweets.length
-        };
-      }
-    );
+    const wordsAboveThreshold = wordsInCorrTweets.filter(d => d[featureName] > 0.5),
+      wordsBelowThreshold = wordsInCorrTweets.filter(d => d[featureName] <= 0.5);
+    const groupBySeqAboveThreshold = _.groupBy(wordsAboveThreshold, featureName + 'Seq');
+    const groupBySeqBelowThreshold = _.groupBy(wordsBelowThreshold, featureName + 'Seq');
+    const uniqueWordsAboveThreshold = Object.keys(groupBySeqAboveThreshold).map(seq => {
+      const tweets = groupBySeq[seq];
+      const tweetRanks = tweets.map(d => d[featureName + 'SeqRank']);
+      const featureValues = tweets.map(d => d[featureName]);
+      const libTweets = tweets.filter(d => d.group === '1');
+      return {
+        seq: seq,
+        tweets: tweets,
+        importance: _.mean(tweetRanks),
+        avgFeature: _.mean(featureValues),
+        libRatio: libTweets.length === 0 ? 0 : libTweets.length / tweets.length
+      };
+    });
 
-    const uniqueWordsBelowThreshold = Object.keys(groupBySeqBelowThreshold).map(
-      seq => {
-        const tweets = groupBySeq[seq];
-        const tweetRanks = tweets.map(d => d[featureName + 'SeqRank']);
-        const featureValues = tweets.map(d => d[featureName]);
-        const libTweets = tweets.filter(d => d.group === '1');
-        return {
-          seq: seq,
-          tweets: tweets,
-          importance: _.mean(tweetRanks),
-          avgFeature: _.mean(featureValues),
-          libRatio:
-            libTweets.length === 0 ? 0 : libTweets.length / tweets.length
-        };
-      }
-    );
+    const uniqueWordsBelowThreshold = Object.keys(groupBySeqBelowThreshold).map(seq => {
+      const tweets = groupBySeq[seq];
+      const tweetRanks = tweets.map(d => d[featureName + 'SeqRank']);
+      const featureValues = tweets.map(d => d[featureName]);
+      const libTweets = tweets.filter(d => d.group === '1');
+      return {
+        seq: seq,
+        tweets: tweets,
+        importance: _.mean(tweetRanks),
+        avgFeature: _.mean(featureValues),
+        libRatio: libTweets.length === 0 ? 0 : libTweets.length / tweets.length
+      };
+    });
     WordLists = (
       <div>
         <ValueIndicator>{'HIGH'}</ValueIndicator>
@@ -329,17 +292,10 @@ const WordList = ({ feature, wordsInTweets }) => {
     );
   } else if (feature.type === 'categorical') {
     WordLists = feature.values.map(value => {
-      const wordsWithFeatureValue = wordsInCorrTweets.filter(
-        d => d[featureName] === value.num
-      );
+      const wordsWithFeatureValue = wordsInCorrTweets.filter(d => d[featureName] === value.num);
 
-      const groupBySeqWithFeatureValue = _.groupBy(
-        wordsWithFeatureValue,
-        featureName + 'Seq'
-      );
-      const uniqueWordsWithFeatureValue = Object.keys(
-        groupBySeqWithFeatureValue
-      ).map(seq => {
+      const groupBySeqWithFeatureValue = _.groupBy(wordsWithFeatureValue, featureName + 'Seq');
+      const uniqueWordsWithFeatureValue = Object.keys(groupBySeqWithFeatureValue).map(seq => {
         const tweets = groupBySeq[seq];
         const tweetRanks = tweets.map(d => d[featureName + 'SeqRank']);
         const featureValues = tweets.map(d => d[featureName]);
@@ -349,8 +305,7 @@ const WordList = ({ feature, wordsInTweets }) => {
           tweets: tweets,
           importance: _.mean(tweetRanks),
           avgFeature: _.mean(featureValues),
-          libRatio:
-            libTweets.length === 0 ? 0 : libTweets.length / tweets.length
+          libRatio: libTweets.length === 0 ? 0 : libTweets.length / tweets.length
         };
       });
       return (
@@ -368,27 +323,19 @@ const WordList = ({ feature, wordsInTweets }) => {
   return <div>{WordLists}</div>;
 };
 
-const SeqPlotView = ({
-  wordsInTweets,
-  selectedFeatures,
-  globalMode,
-  isClusterSelected,
-  tweetsInClusterForSeqPlot
-}) => {
+const SeqPlotView = ({wordsInTweets, features, globalMode, isClusterSelected, tweetsInClusterForSeqPlot}) => {
   const ref = useRef(null);
 
   useEffect(() => {
     //* For the word group view
     const svg = d3.select(ref.current);
-
-    console.log('wordsInTweets: ', wordsInTweets);
   });
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{display: 'flex'}}>
       <SeqPlotViewWrapper>
-        {selectedFeatures.map(feature => (
-          <div style={{ marginLeft: '10px' }}>
+        {features.map(feature => (
+          <div style={{marginLeft: '10px'}}>
             <FeatureIndicator>{feature.key}</FeatureIndicator>
             <WordList feature={feature} wordsInTweets={wordsInTweets} />
           </div>
@@ -401,10 +348,7 @@ const SeqPlotView = ({
           />
         </WordGroupPlot> */}
       </SeqPlotViewWrapper>
-      <SeqListForCluster
-        isClusterSelected={isClusterSelected}
-        tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
-      />
+      <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} />
     </div>
   );
 };
