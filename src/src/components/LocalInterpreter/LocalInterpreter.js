@@ -418,20 +418,21 @@ const LocalInterpreter = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(
-      findContrastiveExamples({
-        qType: qType,
-        tweets: tweets,
-        selectedTweet: selectedTweet,
-        secondSelectedTweet: secondSelectedTweet,
-        currentModel: currentModel,
-        features: features
-      })
-    );
+    // dispatch(
+    //   findContrastiveExamples({
+    //     qType: qType,
+    //     tweets: tweets,
+    //     selectedTweet: selectedTweet,
+    //     secondSelectedTweet: secondSelectedTweet,
+    //     currentModel: currentModel,
+    //     features: features
+    //   })
+    // );
+    
   }, [selectedTweet]);
 
   const loadingIcon = <Icon type="loading" style={{fontSize: 24}} spin />;
-
+  contrastiveEXs = [{}]
   if (!contrastiveEXs || contrastiveEXs.length === 0)
     return (
       <LocalInterpreterWrapper>

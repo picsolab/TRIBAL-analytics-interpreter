@@ -209,7 +209,7 @@ function Level2Plot() {
     // tweetLibHistForWrongPred
     gOutputProbPlot
       .append('g')
-      .attr('class', 'g_output_prob_con_hist_for_lib_wrong_pred')
+      .attr('class', 'g_output_prob_hist_for_lib_wrong_pred')
       .attr('transform', d => {
         return 'translate(' + 0 + ',' + 0 + ')';
       })
@@ -225,10 +225,10 @@ function Level2Plot() {
       .style('fill', d => globalColors.group.wrong.lib)
       .style('opacity', 0.5);
 
-    // tweetLibHistForWrongPred
+    // tweetConHistForWrongPred
     gOutputProbPlot
       .append('g')
-      .attr('class', 'g_output_prob_con_hist_for_con_wrong_pred')
+      .attr('class', 'g_output_prob_hist_for_con_wrong_pred')
       .attr('transform', d => {
         return 'translate(' + 0 + ',' + 0 + ')';
       })

@@ -123,6 +123,8 @@ const FeaturePlotView = React.memo(
     const ref = useRef(null),
       ref2 = useRef(null);
 
+    console.log('cooc: ', cooc)
+
     // Set group color scale and save to global variable
     globalScales.groupColorScales = groups.map((group, groupIdx) => {
       return d3
@@ -383,6 +385,7 @@ const FeaturePlotView = React.memo(
       const dataFeatureToOutputLines = tweets.map(d => ({
         group: d.group,
         pred: d.pred,
+        clusterId: d.clusterId,
         source: {
           x: xFeatureToOutputScale(0),
           y: lastFeature.scale(d[lastFeature.key]) + lastFeature.scale.bandwidth() / 2
@@ -679,14 +682,12 @@ const FeaturePlotView = React.memo(
       function updateOnClickCluster(d, i) {
         const selectedCluster = d3.select(this),
           clusterId = d.clusterId;
-        console.log('clicked cluster: ', clusterId);
         // When unselecting a selected cluster (going back to the whole)
         if (selectedCluster.classed('cluster_selected') === true) {
           d3.select(this)
             .classed('cluster_selected', false)
             .style('stroke', 'gray')
             .style('stroke-width', '1px');
-          console.log('click already selected cluster: ', clusterId);
 
           // Return back all elements to the normal
           // gFeaturePlot.selectAll('.path_tweet').remove();
@@ -978,24 +979,125 @@ const FeaturePlotView = React.memo(
             dataBinWrongTweetsForGroupsPerCl.push(dataBinWrongPredTweets);
           });
 
-          groups.forEach((group, groupIdx) => {
-            const outputProbCorrRectsPerGroup = d3
-                .selectAll('.rect_output_for_corr_' + group.abbr)
-                .data(dataBinCorrTweetsForGroupsPerCl[groupIdx]),
-              outputProbWrongRectsPerGroup = d3
-                .selectAll('.rect_output_for_wrong_' + group.abbr)
-                .data(dataBinWrongTweetsForGroupsPerCl[groupIdx]);
+          //* For the current version
+          // groups.forEach((group, groupIdx) => {
+          //   const outputProbCorrRectsPerGroup = d3
+          //       .selectAll('.rect_output_for_corr_' + group.abbr)
+          //       .data(dataBinCorrTweetsForGroupsPerCl[groupIdx]),
+          //     outputProbWrongRectsPerGroup = d3
+          //       .selectAll('.rect_output_for_wrong_' + group.abbr)
+          //       .data(dataBinWrongTweetsForGroupsPerCl[groupIdx]);
 
-            outputProbCorrRectsPerGroup.exit().remove();
-            outputProbWrongRectsPerGroup.exit().remove();
+          //   outputProbCorrRectsPerGroup.exit().remove();
+          //   outputProbWrongRectsPerGroup.exit().remove();
 
-            outputProbCorrRectsPerGroup
-              .attr('y', d => yOutputProbHistScale(d.x0))
-              .attr('width', d => xOutputProbHistScale(d.length));
-            outputProbWrongRectsPerGroup
-              .attr('y', d => yOutputProbHistScale(d.x0))
-              .attr('width', d => xOutputProbHistScale(d.length));
-          });
+          //   outputProbCorrRectsPerGroup
+          //     .attr('y', d => yOutputProbHistScale(d.x0))
+          //     .attr('width', d => xOutputProbHistScale(d.length));
+          //   outputProbWrongRectsPerGroup
+          //     .attr('y', d => yOutputProbHistScale(d.x0))
+          //     .attr('width', d => xOutputProbHistScale(d.length));
+          // });
+
+          const tweetsCorrectPredForCluster = tweetsCorrPred.filter(
+            e => e.clusterId === clusterId
+          );
+          const tweetsConWrongPredForCluster = tweetsWrongPred.filter(
+            e => (e.clusterId === clusterId && e.group === '0')
+          );
+          const tweetsLibWrongPredForCluster = tweetsWrongPred.filter(
+            e => (e.clusterId === clusterId && e.group === '1')
+          );
+
+          const dataBinCorrPredTweets = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsCorrPred),
+                dataBinConWrongPredTweets = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPred),
+                dataBinLibWrongPredTweets = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
+
+          const dataBinCorrPredTweetsForCluster = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPredForCluster),
+                dataBinConWrongPredTweetsForCluster = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPredForCluster),
+                dataBinLibWrongPredTweetsForCluster = d3
+                  .histogram()
+                  .domain([0, 1])
+                  .value(d => d.prob)
+                  .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPredForCluster);
+
+
+          const maxFreq = _.max(dataBinCorrPredTweets.map(d => d.length)),
+            maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
+            maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
+
+          const xOutputProbWrongHistScale = d3
+            .scaleLinear()
+            .domain([0, _.max([maxFreqConWrong, maxFreqLibWrong])])
+            .range([0, lCom.outputProbPlot.w / 2]);
+
+          const yOutputProbHistBinScale = d3
+            .scaleBand()
+            .domain(dataBinCorrPredTweetsForCluster.map(d => d.x0).reverse()) // From 1 to 0
+            .range([l.sm, lCom.outputProbPlot.h]);
+
+          // tweetHistForCorrectPred
+          const outputProbForCorrPred = d3.select('.g_output_prob_hist_for_correct_pred')
+            .selectAll('.rect_output_prob_hist_for_correct_pred')
+            .data(dataBinCorrPredTweetsForCluster);
+
+          outputProbForCorrPred.exit().remove();
+
+          outputProbForCorrPred
+            .attr('y', d => yOutputProbHistBinScale(d.x0))
+            .attr('width', d => xOutputProbHistScale(d.length));
+
+          // tweetLibHistForWrongPred
+          const outputProbForLibWrongPred = d3.select('.g_output_prob_hist_for_lib_wrong_pred')
+            .selectAll('.rect_output_prob_hist_for_lib_wrong_pred')
+            .data(dataBinLibWrongPredTweetsForCluster);
+
+            outputProbForLibWrongPred.exit().remove();
+
+            outputProbForLibWrongPred
+              .attr(
+                'x',
+                d =>
+                  layout.outputProbPlot.width / 2 -
+                  xOutputProbWrongHistScale(d.length)
+              )
+              .attr('width', d => xOutputProbWrongHistScale(d.length));
+
+          // tweetConHistForWrongPred
+          const outputProbForConWrongPred = d3.select('.g_output_prob_hist_for_con_wrong_pred')
+            .selectAll('.rect_output_prob_hist_for_con_wrong_pred')
+            .data(dataBinConWrongPredTweetsForCluster);
+
+            outputProbForConWrongPred.exit().remove();
+
+            outputProbForConWrongPred
+                .attr(
+                  'x',
+                  d =>
+                    layout.outputProbPlot.width / 2 -
+                    xOutputProbWrongHistScale(d.length)
+                )
+                .attr('width', d => xOutputProbWrongHistScale(d.length));
 
           // For cluster-specific PDPs
           d3.selectAll('.g_axis').each(function(feature, featureIdx) {
