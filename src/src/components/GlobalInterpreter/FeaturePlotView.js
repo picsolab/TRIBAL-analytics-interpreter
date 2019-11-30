@@ -388,7 +388,7 @@ const FeaturePlotView = React.memo(
         clusterId: d.clusterId,
         source: {
           x: xFeatureToOutputScale(0),
-          y: lastFeature.scale(d[lastFeature.key]) + lastFeature.scale.bandwidth() / 2
+          y: lastFeature.scale(d[lastFeature.key])
         },
         target: {
           x: xFeatureToOutputScale(1),

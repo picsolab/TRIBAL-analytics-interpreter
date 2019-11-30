@@ -526,6 +526,7 @@ class FindContrastiveExamples(APIView):
     def post(self, request, format=None):
         features = ['valence', 'dominance', 'care', 'fairness']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        # print('request_json in findcontrastiveexamples:', request_json)
         q_type = request_json['qType']
         selected_tweet = request_json['selectedTweet']
         second_selected_tweet = request_json['secondSelectedTweet']
@@ -539,6 +540,8 @@ class FindContrastiveExamples(APIView):
         y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
         y = np.ravel(y)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+        print('here1')
         
         clf = load_model(model_id)
         clf.fit(X_train, y_train)
@@ -586,10 +589,11 @@ class FindContrastiveExamples(APIView):
         for entries, leaf in zip(entry_idx, leaves_index):
             for entry in entries:
                 entry_leaf_idx[entry] = leaf
-        df_leaves.to_csv('df_leaves.csv')
+
         # Start to retrieve the example, given the selected tweet
         #-- Detect where the selected tweet belongs (by index and what node the index resides in)
         
+        print('here2')
 
         if q_type == 'p-mode':
             selected_tweet_idx = selected_tweet['tweetId']
@@ -668,9 +672,11 @@ class FindContrastiveExamples(APIView):
 
                 cont_example_dict = df_correct_pred_tweets_in_cont_leaf.iloc[optimal_tweet_idx].to_dict()
                 cont_example_dict['contFeature'] = cont_feature
+                cont_example_dict['pdpValue'] = 0
                 cont_examples_list.append(cont_example_dict)
                 
-            print(cont_examples_list)
+            print('cont_example_dict[pdp]: ', cont_example_dict['pdpValue'])
+            print('here3')
         elif q_type == 'o-mode':
             # detect where the selected tweet belongs (by index and what node the index resides in)
             print('tweets: ', selected_tweet['tweetId'], second_selected_tweet['tweetId'])
@@ -739,6 +745,9 @@ class FindContrastiveExamples(APIView):
             print(diff_rule)
             
         if q_type == 'p-mode':
+            print('q_type: ', q_type)
+            print('cont_examples_list: ', cont_examples_list)
+            print('cont_rules_dict: ', cont_rules_dict)
             return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })

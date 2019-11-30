@@ -9,15 +9,16 @@ import {
   Grommet,
   Button,
   Form,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
   CheckBox
 } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { deepMerge } from 'grommet/utils';
+
+import {
+  TreeSelect,
+  Table
+} from 'antd';
+
 import index from '../../index.css';
 import {
   SectionWrapper,
@@ -112,6 +113,42 @@ const Generator = props => {
 
   const goalDivs = goals.map(goal => <div>{goal}</div>);
 
+  const TreeNode = TreeSelect.TreeNode;
+  const featureNames = features.map(feature => feature.key),
+      selectedRowKeys = features
+        .map((d, idx) => {
+          const isFeatureSelected = featureNames.filter(e => d === e);
+          if (isFeatureSelected.length !== 0) return idx + 1;
+          return 'notSelected';
+        })
+        .filter(f => f !== 'notSelected');
+
+    const featureSelectionColumns = [
+      { title: 'Feature', dataIndex: 'key', key: 1, width: 100 }
+    ];
+    const dataFeatureTable = features.map((feature, idx) => {
+      return {
+        id: idx + 1,
+        key: feature.key
+      }
+    });
+    const featureSelection = {
+      selectedRowKeys,
+      onChange: (selectedRowKeys, selectedRows) => {
+        const selectedFeatureNames = selectedRows.map(d =>
+          d.feature.split(' ').join('_')
+        );
+        console.log('selectedFeatureNames: ', selectedFeatureNames);
+        //return _self.handleSelectFeatures(selectedFeatureNames);
+      },
+      getCheckboxProps: record => {
+        const isSelected = currentlySelectedFeatures.filter(d => d !== record.key);
+        return {
+          disabled: isSelected.length === 0
+        };
+      }
+    };
+
   return (
     <GeneratorWrapper>
       {/* <SubsectionTitle>Aggregate</SubsectionTitle>
@@ -120,28 +157,27 @@ const Generator = props => {
       <div>Moral</div> */}
       <Form
         onSubmit={({ value }) => {
-          const selectedTweetsByMode =
-            globalMode === 2 ? tweetsWithPredFeatures : tweets;
-          dispatch(
-            runDT({
-              tweets: selectedTweetsByMode,
-              selectedFeatures: selectedFeatures
-            })
-          );
+          // const selectedTweetsByMode =
+          //   globalMode === 2 ? tweetsWithPredFeatures : tweets;
+          // dispatch(
+          //   runDT({
+          //     tweets: selectedTweetsByMode,
+          //     selectedFeatures: selectedFeatures
+          //   })
+          // );
+          const selectedFeatures = [];
+          currentlySelectedFeatures.forEach((selectedFeatureName) => {
+            const selectedFeature = features.filter(feature => feature.key === selectedFeatureName)[0];
+            selectedFeatures.push(selectedFeature);
+          })
           dispatch({
             type: 'SET_SELECTED_FEATURES',
-            payload: currentlySelectedFeatures.map(d => ({
-              key: d,
-              abbr: d.substring(0, 1).toUpperCase()
-            }))
+            payload: selectedFeatures
           });
         }}
       >
         {/* </Feature table> */}
         <SubsectionTitle>Features</SubsectionTitle>
-        <SubsubsectionTitle>Goal-level</SubsubsectionTitle>
-        {goalDivs}
-        <SubsubsectionTitle>Coarse-grained level</SubsubsectionTitle>
         {/* {featureDivs} */}
         <div>emotion</div>
         <div>&emsp;&emsp;valence</div>
@@ -149,17 +185,35 @@ const Generator = props => {
         <div>moral</div>
         <div>&emsp;&emsp;care</div>
         <div>&emsp;&emsp;fairness</div>
-        <SubsubsectionTitle>Fine-grained level</SubsubsectionTitle>
-        {/* </FormField> */}
-        <div>Selected words</div>
-        <div sylte={{ fontSize: '0.8rem', fontStyle: 'italic' }}>
-          from a seperate model
-        </div>
-        <SubsectionTitle>Method</SubsectionTitle>
-        <div style={{ backgroundColor: 'rgb(190, 255, 231)', fontWeight: 600 }}>
-          Decision Tree
-        </div>
-        <div>Logistic Regression</div>
+
+        <TreeSelect
+          // className={styles.featureSelector}
+          showSearch
+          style={{ width: 100 }}
+          value={currentlySelectedFeatures}
+          dropdownStyle={{ maxHeight: 100, overflow: 'auto' }}
+          placeholder="Please select"
+          allowClear
+          multiple
+          treeDefaultExpandAll
+          onChange={(selectedFeatures) => { 
+            console.log('selectedFeatures: ', selectedFeatures);
+            currentlySelectedFeatures = selectedFeatures;
+            forceUpdate();
+          }}
+        >
+          {features.map((feature, idx) => (
+            <TreeNode value={feature.key} title={feature.key} key={idx} />
+          ))}
+        </TreeSelect>
+        <Table
+          rowSelection={featureSelection}
+          columns={featureSelectionColumns}
+          dataSource={dataFeatureTable}
+          scroll={{ y: 250 }}
+          pagination={false}
+        />
+        
         <Button1
           style={{ marginTop: '30px' }}
           size="xsmall"

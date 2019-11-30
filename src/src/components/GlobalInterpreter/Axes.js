@@ -57,6 +57,9 @@ function Axes() {
               : (d, i) => d
           )
           .tickSize(0);
+
+        console.log('check axes.js: ', d3.select(this));
+        console.log('check axes.js: ', d3.select(this));
         d3.select(this).call(yAxisSetting);
 
         // Feature titles

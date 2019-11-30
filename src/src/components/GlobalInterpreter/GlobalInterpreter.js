@@ -24,19 +24,19 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
 })`
   grid-area: g;
   display: grid;
-  grid-template-columns: 100%;
+  // grid-template-columns: 100%;
   grid-template-rows: 40px 5px 20px 550px;
-  //grid-template-columns: 10% 90%;
-  // grid-template-areas:
-  //   't t'
-  //   'ge md'
-  //   'ge ab'
-  //   'ge f';
+  grid-template-columns: 20% 80%;
   grid-template-areas:
-    't'
-    'md'
-    'ab'
-    'f';
+    't t'
+    'ge md'
+    'ge ab'
+    'ge f';
+  // grid-template-areas:
+  //   't'
+  //   'md'
+  //   'ab'
+  //   'f';
 `;
 
 const ModeViewWrapper = styled.div.attrs({
@@ -333,14 +333,14 @@ const GlobalInterpreter = props => {
           {'How well can (shallow) machine predict ideological groups?'}
         </QuestionDiv> */}
       </div>
-      {/* <Generator
+      <Generator
         globalMode={globalMode}
         goals={goals}
         tweets={tweets}
         tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
         selectedFeatures={selectedFeatures}
-      /> */}
+      />
       <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} globalMode={globalMode} />
       <FeaturePlotView
         globalMode={globalMode}

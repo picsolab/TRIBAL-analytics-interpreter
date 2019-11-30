@@ -34,7 +34,7 @@ const numFeatures = 4;
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
 })`
-  width: 65%;
+  width: 60%;
   height: 270px;
   grid-area: w;
   display: flex;
@@ -143,7 +143,7 @@ const SeqListForCluster = ({isClusterSelected, tweetsInClusterForSeqPlot}) => {
         style={{
           marginLeft: '15px',
           marginTop: '10px',
-          width: '30%'
+          width: '20%'
         }}
       >
         <div

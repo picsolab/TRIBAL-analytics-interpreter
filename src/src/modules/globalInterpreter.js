@@ -52,7 +52,46 @@ export const calculatePartialDependence = ({tweets, features, modelId}) => {
 const initialState = {
   goals: ['emotion', 'moral'],
   groups: [{idx: 0, name: 'conservative', abbr: 'con'}, {idx: 1, name: 'liberal', abbr: 'lib'}],
-  features: [{key: 'valence', abbr: 'V'}, {key: 'dominance', abbr: 'D'}, {key: 'care', abbr: 'C'}, {key: 'fairness', abbr: 'F'}],
+  features: [
+    {
+      key: 'valence',
+      abbr: 'V',
+      type: 'continuous',
+      threshold: 0.5,
+      values: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      scale: d3.scaleLinear(),
+      pdScale: d3.scaleLinear(),
+      domain: [0, 1]
+    },
+    {
+      key: 'dominance',
+      abbr: 'D',
+      type: 'continuous',
+      threshold: 0.5,
+      values: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      scale: d3.scaleLinear(),
+      pdScale: d3.scaleLinear(),
+      domain: [0, 1]
+    },
+    {
+      key: 'fairness',
+      abbr: 'F',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
+    },
+    {
+      key: 'care',
+      abbr: 'C',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 3, 0, 1]
+    }
+  ],
   selectedFeatures: [
     {
       key: 'valence',
@@ -152,9 +191,10 @@ const globalInterpreter = (state = initialState, action) => {
           };
       }
     case SET_SELECTED_FEATURES:
+      const selectedFeatures = action.payload;
       return {
         ...state,
-        selectedFeatures: action.payload
+        selectedFeatures: selectedFeatures
       };
     case IS_CHECKED:
       return {

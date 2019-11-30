@@ -356,8 +356,6 @@ function Level2Plot() {
         else if (currFeature.type == 'categorical' && nextFeature.type == 'categorical') drawLinesFromCatToCat();
 
         function drawLinesFromContToCat() {
-          // Groupby data and Count the number of tweets in each feature
-
           // Go over categories in its expected order [3,0,1,2]
           const catsInFeature = nextFeature.domain,
             catScales = calculateScalesForCats(tweets, nextFeature);
@@ -429,7 +427,78 @@ function Level2Plot() {
             .style('stroke-width', 2);
         }
 
-        function drawLinesFromCatToCont() {}
+        function drawLinesFromCatToCont() {
+          // Go over categories in its expected order [3,0,1,2]
+          const catsInFeature = currFeature.domain,
+            catScales = calculateScalesForCats(tweets, currFeature);
+
+          // Then each category areas should have their own scale
+          const tweetsOrderByContFeatures = _.orderBy(tweets, tweet => tweet[nextFeature.key], ['desc']);
+          let dataForLines = [];
+          catsInFeature.forEach(catNext => {
+            const tweetsPerCat = tweetsOrderByContFeatures.filter(d => d[currFeature.key] === catNext),
+              numTweetsPerCat = tweetsPerCat.length;
+            const catStartY = catScales[catNext].range()[0],
+              catEndY = catScales[catNext].range()[1],
+              catHeight = catEndY - catStartY;
+            const dataForLinesForCat = tweetsPerCat.map((d, i) => ({
+              group: d.group,
+              tweetId: d.tweetId,
+              source: {
+                x: lCom.hPlot.featurePlot.axis.cat.m - 2, 
+                y: catStartY + (catHeight / numTweetsPerCat) * i
+              },
+              target: {
+                x: xFeatureScaleBandwidth,
+                y: nextFeatureScale(d[nextFeature.key])
+              }
+            }));
+            dataForLines.push(...dataForLinesForCat);
+          });
+
+          // Add lines from previous feature to cat axes of next features
+          gFeatureSelected
+            .selectAll('.tweet_line')
+            .data(dataForLines)
+            .enter()
+            .append('path')
+            .attr('class', d => 'tweet_line tweet_line_' + d.tweetId)
+            .attr('d', drawTweetLine)
+            .style('fill', 'none')
+            .style('stroke', d => groupColorScale(d.group))
+            .style('opacity', 0.2)
+            .on('click', function(d, i) {});
+
+          const tweetsGrpByFeature = _.groupBy(tweets, d => d[currFeature.key]);
+
+          // Add auxilary axis
+          gFeaturePlot
+            .selectAll('.aux_axis_for_cat_features')
+            .data(catsInFeature)
+            .enter()
+            .append('rect')
+            .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature + '_' + cat)
+            .attr('x', xFeatureScale(currFeature.key) + lCom.hPlot.featurePlot.axis.w/2 + lCom.hPlot.featurePlot.axis.cat.m)
+            .attr('y', cat => catScales[cat].range()[0])
+            .attr('width', 5)
+            .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
+            .style('fill', cat => {
+              const numTweetsInCat = tweetsGrpByFeature[cat].length;
+              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+              return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
+            })
+            .style('fill-opacity', 0.5)
+            .style('stroke', cat => {
+              const numTweetsInCat = tweetsGrpByFeature[cat].length;
+              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+              return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
+            })
+            .style('stroke-width', 2);
+        }
 
         function drawLinesFromCatToCat() {
           const catsInCurrFeature = currFeature.domain,
