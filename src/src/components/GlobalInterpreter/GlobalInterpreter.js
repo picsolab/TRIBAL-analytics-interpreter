@@ -26,7 +26,7 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   display: grid;
   // grid-template-columns: 100%;
   grid-template-rows: 40px 5px 20px 550px;
-  grid-template-columns: 20% 80%;
+  grid-template-columns: 15% 85%;
   grid-template-areas:
     't t'
     'ge md'
@@ -271,7 +271,7 @@ const GlobalInterpreter = props => {
   return (
     <GlobalInterpreterWrapper>
       <div style={{gridArea: 't'}}>
-        <SectionTitle>Global Interpretability</SectionTitle>
+        <SectionTitle>Group-level Comparison</SectionTitle>
       </div>
       <div
         style={{

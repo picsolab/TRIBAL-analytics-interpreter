@@ -25,7 +25,7 @@ const Container = styled.div`
   margin: 10px auto;
   display: grid;
   grid-template-rows: 50px 750px 450px;
-  grid-template-columns: 20% 15% 70%;
+  grid-template-columns: 15% 15% 70%;
   grid-template-areas:
     'h h h'
     'e g g'
@@ -76,7 +76,12 @@ function App() {
   return (
     <Container className={Container}>
       <Header className={Header} style={{display: 'flex'}}>
-        <Title className=".App-link">TRIBAL</Title>
+        <Title className=".App-link">TRIBAL:::&nbsp;
+          <span style={{ 
+            'font-size': '1.5rem',
+            'color': 'white' 
+            }}>Group Contrast Viewer</span>
+        </Title>
         {/* <Button
           href="https://docs.google.com/document/d/13oREBJCSthiAUS7uHgkxLXqRIYekNfBvzN_Snt9lIKY/edit?usp=sharing"
           target="_blank"

@@ -88,7 +88,7 @@ const Generator = props => {
   } = props;
 
   // to be a props... updated by the layout below, then update states then come back as props
-
+  currentlySelectedFeatures = selectedFeatures.map(d => d.key);
   const featureDivs = selectedFeatures.map(featureObj => (
     <div>
       <div />
@@ -178,18 +178,11 @@ const Generator = props => {
       >
         {/* </Feature table> */}
         <SubsectionTitle>Features</SubsectionTitle>
-        {/* {featureDivs} */}
-        <div>emotion</div>
-        <div>&emsp;&emsp;valence</div>
-        <div>&emsp;&emsp;dominance</div>
-        <div>moral</div>
-        <div>&emsp;&emsp;care</div>
-        <div>&emsp;&emsp;fairness</div>
 
         <TreeSelect
           // className={styles.featureSelector}
           showSearch
-          style={{ width: 100 }}
+          // style={{ width: 100 }}
           value={currentlySelectedFeatures}
           dropdownStyle={{ maxHeight: 100, overflow: 'auto' }}
           placeholder="Please select"

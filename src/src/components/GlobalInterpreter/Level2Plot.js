@@ -68,7 +68,7 @@ function Level2Plot() {
       .attr(
         'transform',
         'translate(' +
-          (layout.featurePlot.width + layout.outputProbPlot.leftMargin + layout.outputProbPlot.maxRadius * 2 + 40) +
+          lCom.outputProbPlot.l +
           ',0)'
       );
 

@@ -170,6 +170,9 @@ class LoadWords(APIView):
             word_tokens.append({ 'word': tweet_json['dominance_seq'], 'group': tweet_json['grp'] })
             word_tokens.append({ 'word': tweet_json['fairness_seq'], 'group': tweet_json['grp'] })
             word_tokens.append({ 'word': tweet_json['care_seq'], 'group': tweet_json['grp'] })
+            # word_tokens.append({ 'word': tweet_json['loyalty_seq'], 'group': tweet_json['grp'] })
+            # word_tokens.append({ 'word': tweet_json['authority_seq'], 'group': tweet_json['grp'] })
+            # word_tokens.append({ 'word': tweet_json['purity_seq'], 'group': tweet_json['grp'] })
         
         # Orgainze word tokens as unique words and their frequencies
         word_count_dict = {}
@@ -399,7 +402,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         # Clustering per each goal's features
         goals_features = [
             { 'goal': 'emotion', 'features': ['valence', 'dominance'] },
-            { 'goal': 'moral', 'features': ['care', 'fairness'] }
+            { 'goal': 'moral', 'features': ['care', 'fairness', 'loyalty', 'authority', 'purity'] }
         ]
 
         clusters_per_goals = []
@@ -524,7 +527,7 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
 class FindContrastiveExamples(APIView):
 
     def post(self, request, format=None):
-        features = ['valence', 'dominance', 'care', 'fairness']
+        features = ['valence', 'dominance', 'care', 'fairness', 'loyalty', 'authority', 'purity']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
         # print('request_json in findcontrastiveexamples:', request_json)
         q_type = request_json['qType']

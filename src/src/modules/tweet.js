@@ -45,7 +45,19 @@ export const fetchTweets = () => {
         fairness: d.fairness,
         fairnessGrpPred: d.fairness_grp_pred,
         fairnessSeq: d.fairness_seq,
-        fairnessSeqRank: d.fairness_seq_rank
+        fairnessSeqRank: d.fairness_seq_rank,
+        loyalty: d.fairness,
+        loyaltyGrpPred: d.fairness_grp_pred,
+        loyaltySeq: d.fairness_seq,
+        loyaltySeqRank: d.fairness_seq_rank,
+        authority: d.fairness,
+        authorityGrpPred: d.fairness_grp_pred,
+        authoritySeq: d.fairness_seq,
+        authoritySeqRank: d.fairness_seq_rank,
+        purity: d.fairness,
+        purityGrpPred: d.fairness_grp_pred,
+        puritySeq: d.fairness_seq,
+        puritySeqRank: d.fairness_seq_rank,
       }));
 
       const tweetsWithPredFeatures = res.data.map(d => ({

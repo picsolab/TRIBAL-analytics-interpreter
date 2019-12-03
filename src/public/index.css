@@ -13,3 +13,12 @@
   margin-top: 10px;
   margin-left: 5px;
 }
+
+.ant-table-row > td,
+.ant-table-thead > tr > th {
+  padding: 10px 2px !important;
+  font-size: 0.9rem !important;
+}
+.ant-table-thead > tr > th {
+  background-color: #f2f2f2 !important;
+}

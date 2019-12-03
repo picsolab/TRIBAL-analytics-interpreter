@@ -16,7 +16,7 @@ export const globalColors = {
     {name: 'con', color: 'rgb(255, 34, 34)', colorForWrong: 'rosybrown'},
     {name: 'lib', color: 'rgb(25, 12, 226)', colorForWrong: '#8eabd0'}
   ],
-  feature: '#00ffa8',
+  feature: '#4cc59c',
   userFeature: 'LIGHTSEAGREEN'
 };
 
@@ -74,7 +74,7 @@ export const lCom = {
     // in the context of svg
     t: 0,
     l: 25,
-    w: l.w * 0.45,
+    w: l.w * 0.55,
     h: l.h * 0.9,
     goalPlot: {
       t: ll.l1.t,
@@ -102,7 +102,7 @@ export const lCom = {
         m: 15
       },
       axis: {
-        w: 30,
+        w: 20,
         h: ll.l2.h,
         m: 10,
         cat: {
@@ -124,21 +124,21 @@ export const lCom = {
     }
   },
   fromFtoO: {
-    l: l.w * 0.48,
+    l: l.w * 0.575,
     w: l.w * 0.05
   },
   outputProbPlot: {
     t: ll.l2.t,
     h: ll.l2.h,
-    l: l.w * 0.54,
+    l: l.w * 0.625,
     w: 80
   },
   clusterPlot: {
     t: l.h * 0.15,
     //h: ll.l1.h + ll.l2.h,
     h: ll.l2.h,
-    l: l.w * 0.625,
-    w: l.w * 0.325,
+    l: l.w * 0.725,
+    w: l.w * 0.225,
     m: 10,
     minR: 4,
     maxR: 15

@@ -278,7 +278,7 @@ const FeaturePlotView = React.memo(
       // For level 1
       const xGoalScale = d3
         .scaleBand()
-        .domain(goals)
+        .domain(features.map(d => d.key))
         .range([0, lCom.hPlot.w + lCom.hPlot.featurePlot.axis.w]);
 
       const xClusterPerGoalScale = d3
@@ -1260,7 +1260,13 @@ const FeaturePlotView = React.memo(
             </Indicator>
           </div>
           <div>
-            <svg width={l.w} height={l.h} viewBox={'0 0 ' + l.w + ' ' + l.h} preserveAspectRatio="xMinYMin" ref={ref2} />
+            <svg 
+              width={l.w} 
+              height={l.h} 
+              viewBox={'0 0 ' + l.w + ' ' + l.h} 
+              preserveAspectRatio="xMinYMin" 
+              ref={ref2}
+              style={{ 'overflow-x': 'scroll' }} />
             <SeqPlotView
               globalMode={globalMode}
               wordsInTweets={tweets}

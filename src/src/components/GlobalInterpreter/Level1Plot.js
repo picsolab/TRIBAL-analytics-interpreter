@@ -37,11 +37,20 @@ function Level1Plot() {
       .enter()
       .append('rect')
       .attr('class', 'goal_rect')
-      .attr('x', (d, i) => xGoalScale(d))
+      .attr('x', (goalObj, i) => {
+        // Filter the features to figure out the selected features
+        const selectedFeatureNames = xGoalScale.domain();
+        const numSelectedFeatures = selectedFeatureNames.length;
+        const numFeaturesInGoal = goalObj.relevantFeatures.filter(feature => selectedFeatureNames.includes(feature.key)).length;
+        return i == dataForGoals.length - 1 ? xGoalScale.bandwidth()*(numSelectedFeatures - numFeaturesInGoal) + lCom.hPlot.goalPlot.m : 0
+      })
       .attr('y', lCom.hPlot.goalPlot.goalRect.t)
-      .attr('width', (d, i) =>
-        i == dataForGoals.length - 1 ? xGoalScale.bandwidth() : xGoalScale.bandwidth() - lCom.hPlot.goalPlot.m
-      )
+      .attr('width', (goalObj, i) => {
+        // Filter the features to figure out the selected features
+        const selectedFeatureNames = xGoalScale.domain();
+        const numFeaturesInGoal = goalObj.relevantFeatures.filter(feature => selectedFeatureNames.includes(feature.key)).length;
+        return i == dataForGoals.length - 1 ? xGoalScale.bandwidth()*numFeaturesInGoal : xGoalScale.bandwidth()*numFeaturesInGoal - lCom.hPlot.goalPlot.m
+      })
       .attr('height', lCom.hPlot.goalPlot.goalRect.h)
       .style('fill', 'black')
       .style('fill-opacity', 0.5)
@@ -53,8 +62,14 @@ function Level1Plot() {
       .enter()
       .append('text')
       .attr('class', 'goal_title')
-      .text(d => d)
-      .attr('x', (d, i) => xGoalScale(d))
+      .text(d => d.goal)
+      .attr('x', (goalObj, i) => {
+        // Filter the features to figure out the selected features
+        const selectedFeatureNames = xGoalScale.domain();
+        const numSelectedFeatures = selectedFeatureNames.length;
+        const numFeaturesInGoal = goalObj.relevantFeatures.filter(feature => selectedFeatureNames.includes(feature.key)).length;
+        return i == dataForGoals.length - 1 ? xGoalScale.bandwidth()*(numSelectedFeatures - numFeaturesInGoal) + lCom.hPlot.goalPlot.m : 0
+      })
       .attr('y', lCom.hPlot.goalPlot.goalTitle.t + lCom.hPlot.goalPlot.goalTitle.textHeight)
       .style('font-style', 'italic');
 

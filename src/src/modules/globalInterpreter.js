@@ -50,7 +50,23 @@ export const calculatePartialDependence = ({tweets, features, modelId}) => {
 
 // initial value for state
 const initialState = {
-  goals: ['emotion', 'moral'],
+  goals: [ 
+    { goal: 'emotion',
+      relevantFeatures: [
+        { key: 'valence' },
+        { key: 'dominance' }
+      ]
+    },
+    { goal: 'moral',
+      relevantFeatures: [
+        { key: 'fairness' },
+        { key: 'care' },
+        { key: 'loyalty' },
+        { key: 'authority' },
+        { key: 'purity' }
+      ]
+    }
+  ],
   groups: [{idx: 0, name: 'conservative', abbr: 'con'}, {idx: 1, name: 'liberal', abbr: 'lib'}],
   features: [
     {
@@ -90,6 +106,33 @@ const initialState = {
       scale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 3, 0, 1]
+    },
+    {
+      key: 'loyalty',
+      abbr: 'F',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
+    },
+    {
+      key: 'authority',
+      abbr: 'A',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
+    },
+    {
+      key: 'purity',
+      abbr: 'P',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
     }
   ],
   selectedFeatures: [
@@ -130,6 +173,33 @@ const initialState = {
       scale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 3, 0, 1]
+    },
+    {
+      key: 'loyalty',
+      abbr: 'F',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
+    },
+    {
+      key: 'authority',
+      abbr: 'A',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
+    },
+    {
+      key: 'purity',
+      abbr: 'P',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
+      scale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 0, 1]
     }
   ],
   areFeaturesChecked: {valence: false},
