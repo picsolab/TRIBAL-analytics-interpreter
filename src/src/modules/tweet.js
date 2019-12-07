@@ -27,6 +27,7 @@ export const fetchTweets = () => {
     await axios.get('/tweets/loadData').then(res => {
       const tweets = res.data.map(d => ({
         tweetId: d.tweet_id,
+        tweetIdx: d.tweet_idx,
         group: d.grp,
         content: d.content,
         screenName: d.screen_name,
@@ -46,18 +47,18 @@ export const fetchTweets = () => {
         fairnessGrpPred: d.fairness_grp_pred,
         fairnessSeq: d.fairness_seq,
         fairnessSeqRank: d.fairness_seq_rank,
-        loyalty: d.fairness,
-        loyaltyGrpPred: d.fairness_grp_pred,
-        loyaltySeq: d.fairness_seq,
-        loyaltySeqRank: d.fairness_seq_rank,
-        authority: d.fairness,
-        authorityGrpPred: d.fairness_grp_pred,
-        authoritySeq: d.fairness_seq,
-        authoritySeqRank: d.fairness_seq_rank,
-        purity: d.fairness,
-        purityGrpPred: d.fairness_grp_pred,
-        puritySeq: d.fairness_seq,
-        puritySeqRank: d.fairness_seq_rank,
+        loyalty: d.loyalty,
+        loyaltyGrpPred: d.loyalty_grp_pred,
+        loyaltySeq: d.loyalty_seq,
+        loyaltySeqRank: d.loyalty_seq_rank,
+        authority: d.authority,
+        authorityGrpPred: d.authority_grp_pred,
+        authoritySeq: d.authority_seq,
+        authoritySeqRank: d.authority_seq_rank,
+        purity: d.purity,
+        purityGrpPred: d.purity_grp_pred,
+        puritySeq: d.purity_seq,
+        puritySeqRank: d.purity_seq_rank
       }));
 
       const tweetsWithPredFeatures = res.data.map(d => ({

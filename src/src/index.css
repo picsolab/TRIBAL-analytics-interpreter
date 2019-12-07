@@ -1,14 +1,14 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
@@ -44,6 +44,11 @@ code {
 .g_feature_axis line {
   stroke: gray;
   stroke-width: 2px;
+}
+.g_feature_axis text {
+  stroke: white;
+  stroke-width: 0.4;
+  font-weight: bolder;
 }
 
 .g_word_x_axis line {
@@ -106,7 +111,7 @@ code {
 
 /* Northward tooltips */
 .d3-tooltip.n:after {
-  content: '\25BC';
+  content: "\25BC";
   margin: -1px 0 0 0;
   top: 100%;
   left: 0;
@@ -115,7 +120,7 @@ code {
 
 /* Eastward tooltips */
 .d3-tooltip.e:after {
-  content: '\25C0';
+  content: "\25C0";
   margin: -4px 0 0 0;
   top: 50%;
   left: -8px;
@@ -123,7 +128,7 @@ code {
 
 /* Southward tooltips */
 .d3-tooltip.s:after {
-  content: '\25B2';
+  content: "\25B2";
   margin: 0 0 1px 0;
   top: -8px;
   left: 0;
@@ -132,7 +137,7 @@ code {
 
 /* Westward tooltips */
 .d3-tooltip.w:after {
-  content: '\25B6';
+  content: "\25B6";
   margin: -4px 0 0 -1px;
   top: 50%;
   left: 100%;

@@ -66,10 +66,11 @@ function Axes() {
         d3.select('.g_feature_axis_' + featureName)
           .append('text')
           .attr('class', 'feature_title')
-          .text(feature.abbr)
-          .attr('x', lCom.hPlot.featurePlot.titles.m - 5)
+          .text(feature.key)
+          .attr("transform", "rotate(-30 5 -20)")
+          .attr('x', lCom.hPlot.featurePlot.titles.m - 10)
           .attr('y', -lCom.hPlot.featurePlot.titles.m)
-          .attr('font-size', '1rem')
+          .attr('font-size', '0.7rem')
           .attr('font-weight', 600);
 
         d3.select('.g_feature_axis_' + featureName)

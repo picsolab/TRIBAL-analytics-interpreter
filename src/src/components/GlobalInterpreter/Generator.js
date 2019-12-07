@@ -73,7 +73,7 @@ const customCheckBoxTheme = {
   }
 };
 
-var currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness'];
+var currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness', 'purity', 'authority', 'loyalty'];
 
 const Generator = props => {
   const dispatch = useDispatch();
@@ -88,7 +88,7 @@ const Generator = props => {
   } = props;
 
   // to be a props... updated by the layout below, then update states then come back as props
-  currentlySelectedFeatures = selectedFeatures.map(d => d.key);
+  //currentlySelectedFeatures = selectedFeatures.map(d => d.key);
   const featureDivs = selectedFeatures.map(featureObj => (
     <div>
       <div />
@@ -117,37 +117,35 @@ const Generator = props => {
   const featureNames = features.map(feature => feature.key),
       selectedRowKeys = features
         .map((d, idx) => {
-          const isFeatureSelected = featureNames.filter(e => d === e);
-          if (isFeatureSelected.length !== 0) return idx + 1;
-          return 'notSelected';
-        })
-        .filter(f => f !== 'notSelected');
+          if (currentlySelectedFeatures.includes(d.key)) 
+            return (idx + 1).toString()
+        });
 
-    const featureSelectionColumns = [
-      { title: 'Feature', dataIndex: 'key', key: 1, width: 100 }
-    ];
-    const dataFeatureTable = features.map((feature, idx) => {
-      return {
-        id: idx + 1,
-        key: feature.key
-      }
-    });
-    const featureSelection = {
-      selectedRowKeys,
-      onChange: (selectedRowKeys, selectedRows) => {
-        const selectedFeatureNames = selectedRows.map(d =>
-          d.feature.split(' ').join('_')
-        );
-        console.log('selectedFeatureNames: ', selectedFeatureNames);
-        //return _self.handleSelectFeatures(selectedFeatureNames);
-      },
-      getCheckboxProps: record => {
-        const isSelected = currentlySelectedFeatures.filter(d => d !== record.key);
-        return {
-          disabled: isSelected.length === 0
-        };
-      }
-    };
+  const featureSelectionColumns = [
+    { title: 'Feature', dataIndex: 'featureName', key: 1, width: 100 }
+  ];
+  const dataFeatureTable = features.map((feature, idx) => {
+    return {
+      key: (idx + 1).toString(),
+      featureName: feature.key
+    }
+  });
+  const featureSelection = {
+    selectedRowKeys,
+    onChange: (selectedRowKeys, selectedRows) => {
+      const selectedFeatureNames = selectedRows.map(d => d.featureName);
+      console.log('selectedFeatureNames: ', selectedFeatureNames);
+      
+      return currentlySelectedFeatures = selectedFeatureNames;
+    },
+    getCheckboxProps: record => {
+      // console.log('selectedRowKeys: ', selectedRowKeys);
+      // const isSelected = currentlySelectedFeatures.filter(d => d !== record.key);
+      // return {
+      //   disabled: isSelected.length === 0
+      // };
+    }
+  };
 
   return (
     <GeneratorWrapper>
@@ -170,6 +168,7 @@ const Generator = props => {
             const selectedFeature = features.filter(feature => feature.key === selectedFeatureName)[0];
             selectedFeatures.push(selectedFeature);
           })
+          console.log('selectedFeatures to send to api: ', selectedFeatures)
           dispatch({
             type: 'SET_SELECTED_FEATURES',
             payload: selectedFeatures
@@ -190,6 +189,7 @@ const Generator = props => {
           multiple
           treeDefaultExpandAll
           onChange={(selectedFeatures) => { 
+            console.log('currentlySelectedFeatures: ', currentlySelectedFeatures);
             console.log('selectedFeatures: ', selectedFeatures);
             currentlySelectedFeatures = selectedFeatures;
             forceUpdate();

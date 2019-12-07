@@ -26,7 +26,16 @@ const ExplorerWrapper = styled.div.attrs({
   background-color: whitesmoke;
 `;
 
-const Explorer = ({tweets, tweetList, filteredTweetList, users, userList, selectedUser, selectedTweet}) => {
+const Explorer = ({
+  tweets, 
+  tweetList, 
+  filteredTweetList, 
+  users, 
+  userList, 
+  selectedUser, 
+  selectedTweet,
+  features
+}) => {
   // const dispatch = useDispatch();
   const numRetrievedTweets = tweetList.length;
 
@@ -36,6 +45,7 @@ const Explorer = ({tweets, tweetList, filteredTweetList, users, userList, select
       <DocumentView
         tweetList={Object.keys(selectedUser).length === 0 ? tweetList : filteredTweetList}
         selectedTweet={selectedTweet}
+        features={features}
       />
       <ListView userList={userList} selectedUser={selectedUser} />
     </ExplorerWrapper>

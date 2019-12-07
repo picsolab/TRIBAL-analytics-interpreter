@@ -197,11 +197,11 @@ const QAView = ({
     return inequalityStr + ' ' + feature + andStr;
   });
 
-  const pTypeAnswerStr = 'tweet ' + selectedTweet.tweetId + ' has ' + pTypeAnswerForFeatures.join(' ');
+  const pTypeAnswerStr = 'tweet ' + selectedTweet.tweetIdx + ' has ' + pTypeAnswerForFeatures.join(' ');
 
   const {subject, feature, inequality, threshold} = diffRule;
-  const firstSubjectStr = subject == 'first' ? 'tweet ' + selectedTweet.tweetId : 'tweet ' + secondSelectedTweet.tweetId;
-  const secondSubjectStr = subject == 'first' ? 'tweet ' + secondSelectedTweet.tweetId : 'tweet ' + selectedTweet.tweetId;
+  const firstSubjectStr = subject == 'first' ? 'tweet ' + selectedTweet.tweetIdx : 'tweet ' + secondSelectedTweet.tweetIdx;
+  const secondSubjectStr = subject == 'first' ? 'tweet ' + secondSelectedTweet.tweetIdx : 'tweet ' + selectedTweet.tweetIdx;
   const inequalityStr = inequality === '>' ? 'higher' : 'lower';
   const oTypeAnswerStr = firstSubjectStr + ' has ' + inequalityStr + ' ' + feature + ' while ' + secondSubjectStr + ' does not';
 
@@ -219,10 +219,10 @@ const QAView = ({
               <Select
                 style={{width: '100px', height: '10px', margin: '0 10px'}}
                 multiple={true}
-                value={'tweet ' + selectedTweet.tweetId}
+                value={'tweet ' + selectedTweet.tweetIdx}
                 onChange={e => {
                   const selectedIdForFirstTweet = e.selected[0],
-                    tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetId)[0];
+                    tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
                   dispatch({
                     type: 'SELECT_TWEET',
@@ -273,14 +273,19 @@ const QAView = ({
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
             <div style={{fontSize: '0.8rem', fontWeight: 600}}>Selected</div>
-            <Document tweet={selectedTweet} />
+            <Document 
+              tweet={selectedTweet}
+              features={features} 
+            />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
           <ContrastiveInstanceWrapper>
             {contrastiveEXs.map(contEX => (
               <div>
                 <div style={{fontSize: '0.8rem', fontWeight: 600}}>{contEX.contFeature + '-contrastive example'}</div>
-                <Document tweet={contEX} />
+                <Document 
+                  tweet={contEX}
+                  features={features} />
               </div>
             ))}
           </ContrastiveInstanceWrapper>
@@ -300,10 +305,10 @@ const QAView = ({
                 <Select
                   style={{width: '80px', height: '10px', margin: '0 10px'}}
                   multiple={true}
-                  value={'tweet ' + selectedTweet.tweetId}
+                  value={'tweet ' + selectedTweet.tweetIdx}
                   onChange={e => {
                     const selectedIdForFirstTweet = e.selected[0],
-                      tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetId)[0];
+                      tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
                     dispatch({
                       type: 'SELECT_TWEET',
@@ -344,14 +349,14 @@ const QAView = ({
                 <Select
                   style={{width: '80px', height: '10px', margin: '0 10px'}}
                   multiple={true}
-                  value={typeof secondSelectedTweet.tweetId != 'undefined' ? 'tweet ' + secondSelectedTweet.tweetId : ' '}
+                  value={typeof secondSelectedTweet.tweetIdx != 'undefined' ? 'tweet ' + secondSelectedTweet.tweetIdx : ' '}
                   onChange={e => {
                     const selectedIdForSecondTweet = e.selected[0],
-                      tweetForSecondTweet = tweets.filter(d => selectedIdForSecondTweet === d.tweetId)[0];
+                      tweetForSecondTweet = tweets.filter(d => selectedIdForSecondTweet === d.tweetIdx)[0];
 
                     dispatch({
                       type: 'SELECT_SECOND_TWEET',
-                      payload: tweetForSecondTweet.tweetId
+                      payload: tweetForSecondTweet.tweetIdx
                     });
                     dispatch(
                       findContrastiveExamples({
@@ -393,12 +398,18 @@ const QAView = ({
         <ContrastiveExplanationWrapper>
           <SelectedInstanceWrapper>
             <div style={{fontSize: '0.8rem', fontWeight: 600}}>First</div>
-            <Document tweet={selectedTweet} />
+            <Document 
+              tweet={selectedTweet}
+              features={features} 
+            />
           </SelectedInstanceWrapper>
           <BetweenInstances>{'< >'}</BetweenInstances>
           <SelectedInstanceWrapper>
             <div style={{fontSize: '0.8rem', fontWeight: 600}}>Second</div>
-            <Document tweet={secondSelectedTweet} />
+            <Document 
+              tweet={secondSelectedTweet}
+              features={features} 
+            />
           </SelectedInstanceWrapper>
         </ContrastiveExplanationWrapper>
       </div>

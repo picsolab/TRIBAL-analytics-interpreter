@@ -29,12 +29,12 @@ const layout = {
   }
 };
 
-const numFeatures = 4;
+const numFeatures = 7;
 
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
 })`
-  width: 65%;
+  width: 75%;
   height: 270px;
   grid-area: w;
   display: flex;
@@ -310,7 +310,7 @@ const WordList = ({feature, wordsInTweets}) => {
       });
       return (
         <div>
-          <ValueIndicator>{value.real}</ValueIndicator>
+          <ValueIndicator>{value.category}</ValueIndicator>
           <WordListWrapper>
             {uniqueWordsWithFeatureValue.slice(0, 10).map(word => (
               <Word word={word} />

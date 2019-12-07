@@ -374,7 +374,7 @@ function Level2Plot() {
               tweetId: d.tweetId,
               source: {x: 0, y: currentFeatureScale(d[currFeature.key])},
               target: {
-                x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w - lCom.hPlot.featurePlot.axis.cat.m - 2,
+                x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w - lCom.hPlot.featurePlot.axis.cat.m,
                 y: catStartY + (catHeight / numTweetsPerCat) * i
               }
             }));
@@ -394,37 +394,35 @@ function Level2Plot() {
             .style('opacity', 0.2)
             .on('click', function(d, i) {});
 
-          const tweetsGrpByFeature = _.groupBy(tweets, d => d[nextFeature.key]);
+          // Add auxilary axis for categorical feature
+          renderAuxAxisForCats(tweets, nextFeature, catScales, 'right');
+        //   gFeaturePlot
+        //     .selectAll('.aux_axis_for_cat_features')
+        //     .data(catsInFeature)
+        //     .enter()
+        //     .append('rect')
+        //     .attr('class', cat => 'aux_axis_for_cat_features_' + nextFeature + '_' + cat)
+        //     .attr('x', xFeatureScale(nextFeature.key) - lCom.hPlot.featurePlot.axis.cat.m)
+        //     .attr('y', cat => catScales[cat].range()[0])
+        //     .attr('width', 5)
+        //     .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
+        //     .style('fill', cat => {
+        //       const numTweetsInCat = tweetsGrpByFeature[cat].length;
+        //       const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+        //       const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
 
-          // Add lines for groups
+        //       return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
+        //     })
+        //     .style('fill-opacity', 0.5)
+        //     .style('stroke', cat => {
+        //       const numTweetsInCat = tweetsGrpByFeature[cat].length;
+        //       const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+        //       const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
 
-          // Add auxilary axis
-          gFeaturePlot
-            .selectAll('.aux_axis_for_cat_features')
-            .data(catsInFeature)
-            .enter()
-            .append('rect')
-            .attr('class', cat => 'aux_axis_for_cat_features_' + nextFeature + '_' + cat)
-            .attr('x', xFeatureScale(nextFeature.key) - lCom.hPlot.featurePlot.axis.cat.m)
-            .attr('y', cat => catScales[cat].range()[0])
-            .attr('width', 5)
-            .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
-            .style('fill', cat => {
-              const numTweetsInCat = tweetsGrpByFeature[cat].length;
-              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-              return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
-            })
-            .style('fill-opacity', 0.5)
-            .style('stroke', cat => {
-              const numTweetsInCat = tweetsGrpByFeature[cat].length;
-              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-              return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
-            })
-            .style('stroke-width', 2);
+        //       return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
+        //     })
+        //     .style('stroke-width', 1);
+        // }
         }
 
         function drawLinesFromCatToCont() {
@@ -471,33 +469,34 @@ function Level2Plot() {
 
           const tweetsGrpByFeature = _.groupBy(tweets, d => d[currFeature.key]);
 
-          // Add auxilary axis
-          gFeaturePlot
-            .selectAll('.aux_axis_for_cat_features')
-            .data(catsInFeature)
-            .enter()
-            .append('rect')
-            .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature + '_' + cat)
-            .attr('x', xFeatureScale(currFeature.key) + lCom.hPlot.featurePlot.axis.w/2 + lCom.hPlot.featurePlot.axis.cat.m)
-            .attr('y', cat => catScales[cat].range()[0])
-            .attr('width', 5)
-            .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
-            .style('fill', cat => {
-              const numTweetsInCat = tweetsGrpByFeature[cat].length;
-              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+          // Add auxilary axis for categorical feature
+          renderAuxAxisForCats(tweets, currFeature, catScales, 'left');
+          // gFeaturePlot
+          //   .selectAll('.aux_axis_for_cat_features')
+          //   .data(catsInFeature)
+          //   .enter()
+          //   .append('rect')
+          //   .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature + '_' + cat)
+          //   .attr('x', xFeatureScale(currFeature.key) + lCom.hPlot.featurePlot.axis.w/2 + lCom.hPlot.featurePlot.axis.cat.m)
+          //   .attr('y', cat => catScales[cat].range()[0])
+          //   .attr('width', 5)
+          //   .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
+          //   .style('fill', cat => {
+          //     const numTweetsInCat = tweetsGrpByFeature[cat].length;
+          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
 
-              return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
-            })
-            .style('fill-opacity', 0.5)
-            .style('stroke', cat => {
-              const numTweetsInCat = tweetsGrpByFeature[cat].length;
-              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+          //     return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
+          //   })
+          //   .style('fill-opacity', 0.5)
+          //   .style('stroke', cat => {
+          //     const numTweetsInCat = tweetsGrpByFeature[cat].length;
+          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
 
-              return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
-            })
-            .style('stroke-width', 2);
+          //     return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
+          //   })
+          //   .style('stroke-width', 2);
         }
 
         function drawLinesFromCatToCat() {
@@ -506,6 +505,10 @@ function Level2Plot() {
 
           const catScalesForCurr = calculateScalesForCats(tweets, currFeature);
           const catScalesForNext = calculateScalesForCats(tweets, nextFeature);
+
+          const tweetsGrpByCurrFeature = _.groupBy(tweets, d => d[currFeature.key]);
+          const tweetsGrpByNextFeature = _.groupBy(tweets, d => d[nextFeature.key]);
+          
 
           // { catInCurr: 0, catInNext: 0, catIdxInCurr: 0, catIdxInNext: 0, numTweets: 50 }
           let catIdxInCurr = 0;
@@ -561,11 +564,11 @@ function Level2Plot() {
               tweetsInCurr: d.tweetsInCurr,
               tweetsInCatToCat: d.tweetsInCatToCat,
               source: {
-                x: 0,
+                x: lCom.hPlot.featurePlot.axis.cat.m,
                 y: catScalesForCurr[d.catCurr](d.cumNumTweetsRatioInCurr) + lineHeight / 2
               },
               target: {
-                x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w,
+                x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w - lCom.hPlot.featurePlot.axis.cat.m,
                 y: catScalesForNext[d.catNext](d.cumNumTweetsRatioInNext) + lineHeight / 2
               }
             };
@@ -581,7 +584,7 @@ function Level2Plot() {
             .style('fill', 'none')
             .style('stroke', d => groupRatioScale(d.groupRatio))
             .style('stroke-width', d => d.lineHeight)
-            .style('opacity', 0.5)
+            .style('opacity', 0.8)
             .on('mouseover', function(d, i) {
               d3.select(this).style('opacity', 0.8);
               const catToCatLineHtml =
@@ -604,6 +607,36 @@ function Level2Plot() {
               d3.select(this).style('opacity', 0.5);
               tooltip.hide();
             });
+
+          // Add auxilary axis for categorical feature
+          renderAuxAxisForCats(tweets, currFeature, catScalesForCurr, 'left');
+          renderAuxAxisForCats(tweets, nextFeature, catScalesForNext, 'right');
+          // gFeaturePlot
+          //   .selectAll('.aux_axis_for_cat_features')
+          //   .data(catsInCurrFeature)
+          //   .enter()
+          //   .append('rect')
+          //   .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature.key + '_' + cat)
+          //   .attr('x', xFeatureScale(currFeature.key) - lCom.hPlot.featurePlot.axis.cat.m)
+          //   .attr('y', cat => catScalesForCurr[cat].range()[0])
+          //   .attr('width', 5)
+          //   .attr('height', cat => catScalesForCurr[cat].range()[1] - catScalesForCurr[cat].range()[0])
+          //   .style('fill', cat => {
+          //     const numTweetsInCat = tweetsGrpByCurrFeature[cat].length;
+          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByCurrFeature[cat], d => d.group);
+          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+          //     return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
+          //   })
+          //   .style('fill-opacity', 0.5)
+          //   .style('stroke', cat => {
+          //     const numTweetsInCat = tweetsGrpByCurrFeature[cat].length;
+          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByCurrFeature[cat], d => d.group);
+          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+          //     return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
+          //   })
+          //   .style('stroke-width', 1);
         }
 
         function drawLinesFromContToCont() {
@@ -641,6 +674,40 @@ function Level2Plot() {
             });
         }
 
+        function renderAuxAxisForCats(tweets, catFeature, catScales, direction) {  // auxilary axis on the left? or right?
+          const tweetsGrpByFeature = _.groupBy(tweets, d => d[catFeature.key]);
+          const catsInFeature = catFeature.domain;
+
+          gFeaturePlot
+            .selectAll('.aux_axis_for_cat_features')
+            .data(catsInFeature)
+            .enter()
+            .append('rect')
+            .attr('class', cat => 'aux_axis_for_cat_features_' + catFeature.key + '_' + cat)
+            .attr('x', direction === 'right' 
+                        ? xFeatureScale(catFeature.key) - lCom.hPlot.featurePlot.axis.cat.m - 1
+                        : xFeatureScale(catFeature.key) - xFeatureScale.bandwidth() + lCom.hPlot.featurePlot.axis.w + lCom.hPlot.featurePlot.axis.cat.m - 5 - 1)
+            .attr('y', cat => catScales[cat].range()[0])
+            .attr('width', 5)
+            .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
+            .style('fill', cat => {
+              const numTweetsInCat = tweetsGrpByFeature[cat].length;
+              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+              return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
+            })
+            .style('fill-opacity', 0.5)
+            .style('stroke', cat => {
+              const numTweetsInCat = tweetsGrpByFeature[cat].length;
+              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+              return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
+            })
+            .style('stroke-width', 1);
+        }
+
         function calculateScalesForCats(tweets, catFeature) {
           // Get scales for each category
           // - get the height of each category
@@ -660,7 +727,7 @@ function Level2Plot() {
             const numTweetsInCat = tweetsGrpByFeature[cat],
               numTweetRatioPerCat = numTweetsInCat.length / tweets.length,
               catHeight = catHeightScale(numTweetRatioPerCat),
-              catStartY = ll.l2.h - cumulativeCatHeight - 10,
+              catStartY = ll.l2.h - cumulativeCatHeight,
               catEndY = ll.l2.h - (cumulativeCatHeight + catHeight);
             cumulativeCatHeight += catHeight; // Reflect it for the next loop
 

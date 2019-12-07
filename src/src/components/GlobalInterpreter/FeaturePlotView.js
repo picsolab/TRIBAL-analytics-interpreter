@@ -238,8 +238,13 @@ const FeaturePlotView = React.memo(
           pdScale = feature.pdScale;
 
         if (feature.type == 'continuous') {
-          featureScale.domain(feature.domain).range([lCom.hPlot.featurePlot.h, 0]);
-          pdScale.domain([0, 1]).range([0, lCom.hPlot.featurePlot.pdp.w]);
+          featureScale
+            .domain(feature.domain)
+            .range([lCom.hPlot.featurePlot.h, 0]);
+
+          pdScale
+            .domain([0, 1])
+            .range([0, lCom.hPlot.featurePlot.pdp.w]);
         } else if (feature.type == 'categorical') {
           const height = lCom.hPlot.featurePlot.h,
             topMargin = layout.margin.top,
@@ -248,8 +253,13 @@ const FeaturePlotView = React.memo(
           //   idx => height - (height / (numCategory - 1)) * idx // e.g., 100 - (100/3) * 1 - when there are 4 categories
           // );
 
-          featureScale.domain(feature.domain).range([height, 0]);
-          pdScale.domain([0, 1]).range([0, lCom.hPlot.featurePlot.pdp.w]);
+          featureScale
+            .domain(feature.domain)
+            .range([height, 0]);
+
+          pdScale
+            .domain([0, 1])
+            .range([0, lCom.hPlot.featurePlot.pdp.w]);
         }
       });
 
@@ -388,7 +398,9 @@ const FeaturePlotView = React.memo(
         clusterId: d.clusterId,
         source: {
           x: xFeatureToOutputScale(0),
-          y: lastFeature.scale(d[lastFeature.key])
+          y: lastFeature === 'continuous' 
+              ? lastFeature.scale(d[lastFeature.key]) 
+              : lastFeature.scale(d[lastFeature.key]) + lastFeature.scale.bandwidth() / 2
         },
         target: {
           x: xFeatureToOutputScale(1),
@@ -695,8 +707,12 @@ const FeaturePlotView = React.memo(
           d3.selectAll('.tweet_line').style('opacity', 0.3);
 
           // Update categorical lines
-          const catLines = d3.select('.g_tweet_line_2').selectAll('.tweet_cat_line');
-          catLines.style('stroke-width', d => d.lineHeight).style('stroke', d => groupRatioScale(d.groupRatio));
+          const catLines = d3.select('.g_tweet_line_2')
+            .selectAll('.tweet_cat_line');
+
+          catLines
+            .style('stroke-width', d => d.lineHeight)
+            .style('stroke', d => groupRatioScale(d.groupRatio));
 
           d3.selectAll('.cluster_selected')
             .style('stroke', 'gray')
@@ -863,22 +879,26 @@ const FeaturePlotView = React.memo(
             .classed('cluster_selected', false);
 
           // Highlight selected cluster
-          selectedCluster.attr('class', 'cluster_selected');
-          selectedCluster.style('stroke-width', '3px').style('stroke', 'black');
+          selectedCluster
+            .attr('class', 'cluster_selected')
+            .style('stroke-width', '3px')
+            .style('stroke', 'black');
 
           d3.selectAll('.cluster_output_prob_rect_selected')
             .style('stroke', 'gray')
             .style('stroke-width', '1px')
             .classed('cluster_output_prob_rect_selected', false);
 
-          d3.selectAll('.line_feature_to_output').style('opacity', 0);
+          d3.selectAll('.line_feature_to_output')
+            .style('opacity', 0);
 
           d3.select('.cluster_output_prob_rect_' + clusterId)
             .style('stroke', 'black')
             .style('stroke-width', '2px')
             .classed('cluster_output_prob_rect_selected', true);
 
-          d3.selectAll('.line_feature_to_output_' + clusterId).style('opacity', 0.3);
+          d3.selectAll('.line_feature_to_output_' + clusterId)
+            .style('opacity', 0.3);
 
           // To highlight the paths for continous features
           // Highlight the cluster paths by generating svg paths
@@ -898,20 +918,22 @@ const FeaturePlotView = React.memo(
               const tweetIdsInCluster = tweetsInCluster.map(d => d.tweetId);
 
               if (feature.type === 'continuous') {
-                gFeatureSelected.selectAll('.tweet_line').style('opacity', 0);
+                gFeatureSelected
+                  .selectAll('.tweet_line')
+                  .style('opacity', 0);
 
                 const tweetLinesForCluster = gFeatureSelected
                   .selectAll('.tweet_line')
                   .filter(d => _.includes(tweetIdsInCluster, d.tweetId));
 
                 tweetLinesForCluster.exit().remove();
-                tweetLinesForCluster.style('opacity', 0.5);
+                tweetLinesForCluster.style('opacity', 0.7);
               } else if (feature.type === 'categorical') {
                 // To updated aggregated paths for categorical features
-                const dataCatToCat = d3
-                  .select('.g_tweet_line_2')
-                  .selectAll('.tweet_cat_line')
-                  .data();
+                const catLines = d3
+                  .select('.g_feature_plot')
+                  .selectAll('.tweet_cat_line');
+                const dataCatToCat = catLines.data();
 
                 const dataCatToCatForCluster = dataCatToCat.map(d => {
                   const tweetsInCurr = d.tweetsInCurr;
@@ -919,7 +941,9 @@ const FeaturePlotView = React.memo(
                   const tweetsCatToCatForCl = tweetsInCatToCat.filter(t => t.clusterId === clusterId);
                   const libRatio = tweetsCatToCatForCl.filter(d => d.group === '1').length / tweetsCatToCatForCl.length;
                   let numTweetsRatioInCurr = 0;
-                  if (tweetsCatToCatForCl.length !== 0) numTweetsRatioInCurr = tweetsCatToCatForCl.length / tweetsInCurr.length;
+
+                  if (tweetsCatToCatForCl.length !== 0) 
+                    numTweetsRatioInCurr = tweetsCatToCatForCl.length / tweetsInCurr.length;
 
                   return {
                     ...d,
@@ -929,11 +953,11 @@ const FeaturePlotView = React.memo(
                 });
                 console.log('current cluster: ', clusterId);
                 console.log('dataCatToCatForCluster: ', dataCatToCatForCluster);
-                const catLines = d3
-                  .select('.g_tweet_line_2')
-                  .selectAll('.tweet_cat_line')
-                  .data(dataCatToCatForCluster);
-                catLines.style('stroke-width', d => d.lineHeightForCl).style('stroke', d => groupRatioScale(d.groupRatioForCl));
+                
+                catLines.data(dataCatToCatForCluster);
+                catLines
+                  .style('stroke-width', d => d.lineHeightForCl)
+                  .style('stroke', d => groupRatioScale(d.groupRatioForCl));
               }
             }
           });
@@ -1259,14 +1283,14 @@ const FeaturePlotView = React.memo(
               Fine
             </Indicator>
           </div>
-          <div>
+          <div style={{ 'overflow-x': 'scroll' }}>
             <svg 
               width={l.w} 
               height={l.h} 
               viewBox={'0 0 ' + l.w + ' ' + l.h} 
               preserveAspectRatio="xMinYMin" 
               ref={ref2}
-              style={{ 'overflow-x': 'scroll' }} />
+            />
             <SeqPlotView
               globalMode={globalMode}
               wordsInTweets={tweets}

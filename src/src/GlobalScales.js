@@ -17,5 +17,5 @@ export const globalScales = {
   groupRatioScale: d3
     .scaleLinear()
     .domain([0, 0.5, 1])
-    .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib])
+    .range([globalColors.group.con, 'purple', globalColors.group.lib])
 };

@@ -76,6 +76,7 @@ const initialState = {
       threshold: 0.5,
       values: [0, 0.2, 0.4, 0.6, 0.8, 1],
       scale: d3.scaleLinear(),
+      scoreScale: d3.scaleLinear(),
       pdScale: d3.scaleLinear(),
       domain: [0, 1]
     },
@@ -86,6 +87,7 @@ const initialState = {
       threshold: 0.5,
       values: [0, 0.2, 0.4, 0.6, 0.8, 1],
       scale: d3.scaleLinear(),
+      scoreScale: d3.scaleLinear(),
       pdScale: d3.scaleLinear(),
       domain: [0, 1]
     },
@@ -95,6 +97,7 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 0, 1]
     },
@@ -104,26 +107,9 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 3, 0, 1]
-    },
-    {
-      key: 'loyalty',
-      abbr: 'F',
-      type: 'categorical',
-      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
-      scale: d3.scaleBand(),
-      pdScale: d3.scaleLinear(),
-      domain: [2, 0, 1]
-    },
-    {
-      key: 'authority',
-      abbr: 'A',
-      type: 'categorical',
-      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
-      scale: d3.scaleBand(),
-      pdScale: d3.scaleLinear(),
-      domain: [2, 0, 1]
     },
     {
       key: 'purity',
@@ -131,8 +117,29 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 0, 1]
+    },
+    {
+      key: 'authority',
+      abbr: 'A',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 3, 0, 1]
+    },
+    {
+      key: 'loyalty',
+      abbr: 'L',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 3, 0, 1]
     }
   ],
   selectedFeatures: [
@@ -143,6 +150,7 @@ const initialState = {
       threshold: 0.5,
       values: [0, 0.2, 0.4, 0.6, 0.8, 1],
       scale: d3.scaleLinear(),
+      scoreScale: d3.scaleLinear(),
       pdScale: d3.scaleLinear(),
       domain: [0, 1]
     },
@@ -153,6 +161,7 @@ const initialState = {
       threshold: 0.5,
       values: [0, 0.2, 0.4, 0.6, 0.8, 1],
       scale: d3.scaleLinear(),
+      scoreScale: d3.scaleLinear(),
       pdScale: d3.scaleLinear(),
       domain: [0, 1]
     },
@@ -162,6 +171,7 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 0, 1]
     },
@@ -171,26 +181,9 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 3, 0, 1]
-    },
-    {
-      key: 'loyalty',
-      abbr: 'F',
-      type: 'categorical',
-      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
-      scale: d3.scaleBand(),
-      pdScale: d3.scaleLinear(),
-      domain: [2, 0, 1]
-    },
-    {
-      key: 'authority',
-      abbr: 'A',
-      type: 'categorical',
-      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
-      scale: d3.scaleBand(),
-      pdScale: d3.scaleLinear(),
-      domain: [2, 0, 1]
     },
     {
       key: 'purity',
@@ -198,8 +191,29 @@ const initialState = {
       type: 'categorical',
       values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}],
       scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
       pdScale: d3.scaleLinear(),
       domain: [2, 0, 1]
+    },
+    {
+      key: 'authority',
+      abbr: 'A',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 3, 0, 1]
+    },
+    {
+      key: 'loyalty',
+      abbr: 'L',
+      type: 'categorical',
+      values: [{num: 0, category: 'none'}, {num: 1, category: 'virtue'}, {num: 2, category: 'vice'}, {num: 3, category: 'both'}],
+      scale: d3.scaleBand(),
+      scoreScale: d3.scaleBand(),
+      pdScale: d3.scaleLinear(),
+      domain: [2, 3, 0, 1]
     }
   ],
   areFeaturesChecked: {valence: false},

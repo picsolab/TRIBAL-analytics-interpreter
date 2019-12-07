@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import { Button, InfiniteScroll } from 'grommet';
 import {
   globalColors,
+  lDocView,
   SectionWrapper,
   ComponentSubTitle,
   SubsectionTitle,
@@ -31,7 +32,10 @@ const DocumentListWrapper = styled(ListViewStyle).attrs({
   overflow-y: scroll;
 `;
 
-const ScoreView = ({ tweetList }) => {
+const ScoreView = ({ // ScoreView as a whole on top of the list
+  tweetList,
+  features 
+}) => {
   const dispatch = useDispatch();
   const ref = useRef(null);
   const layout = {
@@ -45,10 +49,10 @@ const ScoreView = ({ tweetList }) => {
   };
 
   useEffect(() => {
-    const features = ['valence', 'fairness', 'dominance', 'care'],
-      numFeatures = features.length;
+    const featureNames = features.map(d => d.key),
+      numFeatures = featureNames.length;
 
-    const avgScores = features.map(feature => {
+    const avgScores = featureNames.map(feature => {
       return _.mean(tweetList.map(d => d[feature]));
     });
 
@@ -174,15 +178,48 @@ const ScoreView = ({ tweetList }) => {
   );
 };
 
-const DocumentView = ({ tweetList, filteredTweetList, selectedTweet }) => {
+const DocumentView = ({ 
+  tweetList, 
+  filteredTweetList, 
+  selectedTweet,
+  features
+}) => {
   if (!tweetList || tweetList.length === 0) return <div />;
+
+  // Set the feature scales for scoreView
+  features.forEach(feature => {
+    const featureScale = feature.scoreScale;
+
+    if (feature.type == 'continuous') {
+      featureScale
+        .domain(feature.domain)
+        .range([30, 0]);
+      
+    } else if (feature.type == 'categorical') {
+      // const height = lCom.hPlot.featurePlot.h,
+      //   topMargin = layout.margin.top,
+      //   numCategory = feature.values.length;
+      // rangeList = d3.range(numCategory).map(
+      //   idx => height - (height / (numCategory - 1)) * idx // e.g., 100 - (100/3) * 1 - when there are 4 categories
+      // );
+      featureScale
+        .domain(feature.domain)
+        .range([30, 5]);   
+    }
+  });
 
   return (
     <DocumentViewWrapper>
       <SubsectionTitle>Tweets</SubsectionTitle>
-      <ScoreView tweetList={tweetList} />
+      <ScoreView 
+        features={features}
+        tweetList={tweetList} />
       <div style={{ fontWeight: 600, fontSize: '0.7rem' }}>Selected</div>
-      <Document tweet={selectedTweet} isSelected={true} />
+      <Document 
+        tweet={selectedTweet} 
+        isSelected={true}
+        features={features} 
+      />
       {/* <div style={{ borderBottom: '1px solid gray', height: '1px' }}>
         &nbsp;
       </div> */}
@@ -192,6 +229,7 @@ const DocumentView = ({ tweetList, filteredTweetList, selectedTweet }) => {
             <Document
               tweet={item}
               isSelected={item.tweetId === selectedTweet.tweetId ? true : false}
+              features={features}
             />
           )}
         </InfiniteScroll>

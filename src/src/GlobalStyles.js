@@ -5,8 +5,8 @@ import {Button} from 'grommet';
 export const globalColors = {
   system: 'mediumpurple',
   group: {
-    lib: 'darkblue',
-    con: 'crimson',
+    lib: 'rgb(25, 12, 226)',
+    con: 'rgb(255, 34, 34)',
     wrong: {
       lib: 'rosybrown',
       con: '#8eabd0'
@@ -26,6 +26,18 @@ level1 | (0.00, 0.00) (0.00, 0.10) ------------ (0.00, 0.75)
 level2 | (0.15, 0.00) (0.15, 0.10) (0.15, 0.70) (0.15, 0.75)
 level3 | (0.85, 0.00) (0.85, 0.10) (0.85, 0.70) (0.85, 0.75)
 */
+
+export const lDocView = {
+  scoreView: {
+    w: 40,
+    h: 35,
+    m: { b: 10 },
+    svg: {
+      w: 40,
+      h: 35
+    }
+  }
+}
 
 export const l = {
   w: 1100,
@@ -48,7 +60,7 @@ export const ll = {
     h: l.h * 0.15
   },
   l2: {
-    t: l.h * 0.3,
+    t: l.h * 0.32,
     h: l.h * 0.6
   },
   l2ToL3: {
@@ -107,7 +119,7 @@ export const lCom = {
         m: 10,
         cat: {
           // Additional axis for categories
-          m: 20
+          m: 10
         }
       },
       pdp: {

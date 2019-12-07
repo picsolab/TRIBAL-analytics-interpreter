@@ -599,7 +599,7 @@ class FindContrastiveExamples(APIView):
         print('here2')
 
         if q_type == 'p-mode':
-            selected_tweet_idx = selected_tweet['tweetId']
+            selected_tweet_idx = selected_tweet['tweetIdx']
             selected_tweet = X.loc[selected_tweet_idx]
             leaf_idx = entry_leaf_idx[selected_tweet_idx]
             #-- Identify the predicted class

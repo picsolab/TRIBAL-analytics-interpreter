@@ -7,7 +7,7 @@ const LocalInterpreterContainer = () => {
     state => state.tweet,
     []
   );
-  const { currentModel } = useSelector(state => state.globalInterpreter, []);
+  const { currentModel, features } = useSelector(state => state.globalInterpreter, []);
   const { qType, contrastiveRules, contrastiveEXs, diffRule } = useSelector(
     state => state.localInterpreter,
     []
@@ -20,6 +20,7 @@ const LocalInterpreterContainer = () => {
       tweets={tweets}
       selectedTweet={selectedTweet}
       secondSelectedTweet={secondSelectedTweet}
+      features={features}
       qType={qType}
       contrastiveRules={contrastiveRules}
       contrastiveEXs={contrastiveEXs}

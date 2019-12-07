@@ -26,7 +26,7 @@ const GroupDiv = styled.div.attrs({
   ${({ group }) =>
     group === '1'
       ? `background-color: ` + globalColors.group.lib
-      : `background-color: ` + globalColors.group.con}
+      : `background-color: ` + globalColors.group.con};
 
   opacity: 0.5;
   cursor: pointer;
@@ -65,18 +65,18 @@ const DocumentWrapper = styled.div.attrs({
   background-color: white;
 `;
 
-const ScoreView = ({ tweet }) => {
+const ScoreView = ({ tweet, features }) => {
   const ref = useRef(null);
-  const features = ['valence', 'fairness', 'dominance', 'care'],
-    numFeatures = features.length,
-    tweetScores = Object.values(_.pick(tweet, features));
+  const featureNames = features.map(d => d.key),
+    numFeatures = featureNames.length,
+    tweetScores = Object.values(_.pick(tweet, featureNames));
 
   const layout = {
-    width: 40,
+    width: 50,
     height: 35,
     marginBottom: 10,
     svg: {
-      width: 40,
+      width: 50,
       height: 35
     }
   };
@@ -138,21 +138,14 @@ const ScoreView = ({ tweet }) => {
       .append('rect')
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) =>
-        i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
-      )
+      .attr('height', (d, i) => features[i].scoreScale(d))
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) =>
-        i === 1
-          ? layout.svg.height - layout.marginBottom - yFairnessScale(d)
-          : i === 3
-          ? layout.svg.height - layout.marginBottom - yCareScale(d)
-          : layout.svg.height - layout.marginBottom - yScoreScale(d)
-      )
+      .attr('y', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
       .style('fill', globalColors.feature)
       .on('mouseover', (d, i) => {
+        console.log('mouseovered...');
         const titleHtml = '<div style="font-weight: 600">Features</div>';
-        const scoreHtml = features.map(feature => {
+        const scoreHtml = featureNames.map(feature => {
           return (
             '<div>- ' +
             feature +
@@ -175,20 +168,13 @@ const ScoreView = ({ tweet }) => {
     featureRecData.exit().remove();
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) =>
-        i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
-      )
+      .attr('height', (d, i) => features[i].scoreScale(d))
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) =>
-        i === 1
-          ? layout.svg.height - layout.marginBottom - yFairnessScale(d)
-          : i === 3
-          ? layout.svg.height - layout.marginBottom - yCareScale(d)
-          : layout.svg.height - layout.marginBottom - yScoreScale(d)
-      )
+      .attr('y', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
       .on('mouseover', (d, i) => {
+        console.log('mouseovered...');
         const titleHtml = '<div style="font-weight: 600">Features</div>';
-        const scoreHtml = features.map(feature => {
+        const scoreHtml = featureNames.map(feature => {
           return (
             '<div>- ' +
             feature +
@@ -212,7 +198,7 @@ const ScoreView = ({ tweet }) => {
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(['V', 'F', 'D', 'C'])
+      .data(features.map(d => d.abbr))
       .enter()
       .append('text')
       .text(d => d)
@@ -231,7 +217,11 @@ const ScoreView = ({ tweet }) => {
 };
 
 const Document = props => {
-  const { tweet, isSelected } = props;
+  const { 
+    tweet, 
+    isSelected,
+    features 
+  } = props;
   const dispatch = useDispatch();
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
@@ -339,16 +329,19 @@ const Document = props => {
 
             dispatch({
               type: 'SELECT_SECOND_TWEET',
-              payload: tweet.tweetId
+              payload: tweet.tweetIdx
             });
           }}
         />
         <div>{tweet.screenName}</div>
-        <ScoreView tweet={tweet} />
+        <ScoreView 
+          tweet={tweet}
+          features={features} 
+        />
       </div>
       <div style={{ display: 'flex' }}>
         <ContentDiv>{tweet.content}</ContentDiv>
-        <IndexIndicator>{tweet.tweetId}</IndexIndicator>
+        <IndexIndicator>{tweet.tweetIdx}</IndexIndicator>
       </div>
     </DocumentWrapper>
   );
