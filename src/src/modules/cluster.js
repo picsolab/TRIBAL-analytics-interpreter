@@ -73,9 +73,9 @@ const cluster = (state = initialState, action) => {
     case RUN_CL_N_CAL_PD:
       let orderedCluster = _.orderBy(action.payload.clusters, ['groupRatio'], ['desc']);
 
-      let temp = orderedCluster[9];
-      orderedCluster[9] = orderedCluster[7];
-      orderedCluster[7] = temp;
+      // let temp = orderedCluster[9];
+      // orderedCluster[9] = orderedCluster[7];
+      // orderedCluster[7] = temp;
       return {
         ...state,
         clusters: orderedCluster.map(d => ({

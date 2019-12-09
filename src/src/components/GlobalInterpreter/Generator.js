@@ -134,7 +134,8 @@ const Generator = props => {
     selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
       const selectedFeatureNames = selectedRows.map(d => d.featureName);
-      return currentlySelectedFeatures = selectedFeatureNames;
+      currentlySelectedFeatures = selectedFeatureNames;
+      forceUpdate();
     },
     getCheckboxProps: record => {
       // console.log('selectedRowKeys: ', selectedRowKeys);

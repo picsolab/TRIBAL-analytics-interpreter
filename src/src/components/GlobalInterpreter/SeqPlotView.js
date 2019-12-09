@@ -54,7 +54,7 @@ const WordPlotWrapper = styled.div.attrs({
 const WordListWrapper = styled.div.attrs({
   className: 'word_list_wrapper'
 })`
-  width: ${(layout.wordPlot.width - layout.margin.left) / numFeatures + 'px'};
+  
   height: 100px;
   overflow-y: scroll;
   padding: 3px;
@@ -275,7 +275,7 @@ const WordList = ({feature, wordsInTweets}) => {
       };
     });
     WordLists = (
-      <div>
+      <div style={{ 'width': (layout.wordPlot.width - layout.margin.left) / numFeatures + 'px' }}>
         <ValueIndicator>{'HIGH'}</ValueIndicator>
         <WordListWrapper>
           {uniqueWordsAboveThreshold.slice(0, 10).map(word => (
@@ -309,7 +309,7 @@ const WordList = ({feature, wordsInTweets}) => {
         };
       });
       return (
-        <div>
+        <div style={{ 'width': (layout.wordPlot.width - layout.margin.left) / numFeatures + 'px' }}>
           <ValueIndicator>{value.category}</ValueIndicator>
           <WordListWrapper>
             {uniqueWordsWithFeatureValue.slice(0, 10).map(word => (
