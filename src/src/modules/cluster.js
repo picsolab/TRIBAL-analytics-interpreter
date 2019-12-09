@@ -20,7 +20,6 @@ export const runClusteringAndPartialDependenceForClusters = ({tweets, features, 
         groups: groups
       })
     }).then(res => {
-      console.log('runClusteringAndPartialDependenceForClusters: ', res.data);
       dispatch({type: 'RUN_CL_N_CAL_PD', payload: res.data});
       dispatch({type: 'RUN_CL_N_CAL_PD_FOR_PDP_VALUES', payload: res.data});
       dispatch({type: 'RUN_CL_N_CAL_PD_FOR_TWEETS', payload: res.data});
@@ -36,7 +35,6 @@ export const runClusteringForGoals = () => {
       method: 'get',
       url: '/tweets/runClusteringForGoals/'
     }).then(res => {
-      console.log('res data for runClusteringForGoals: ', res.data);
       dispatch({type: 'RUN_CLUSTERING_FOR_GOALS', payload: res.data});
     });
 
@@ -68,7 +66,6 @@ const cluster = (state = initialState, action) => {
         }))
       };
     case RUN_CLUSTERING_FOR_GOALS:
-      console.log('RUN_CLUSTERING_FOR_GOALS: ', action.payload.clustersForGoals);
       return {
         ...state,
         clustersForGoals: action.payload.clustersForGoals
@@ -76,13 +73,9 @@ const cluster = (state = initialState, action) => {
     case RUN_CL_N_CAL_PD:
       let orderedCluster = _.orderBy(action.payload.clusters, ['groupRatio'], ['desc']);
 
-      console.log('orderedCluster0: ', orderedCluster);
       let temp = orderedCluster[9];
-      console.log('orderedCluster1: ', orderedCluster);
       orderedCluster[9] = orderedCluster[7];
-      console.log('orderedCluster2: ', orderedCluster);
       orderedCluster[7] = temp;
-      console.log('orderedCluster3: ', orderedCluster);
       return {
         ...state,
         clusters: orderedCluster.map(d => ({

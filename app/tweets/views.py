@@ -392,8 +392,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         df_tweets['clusterId'] = cls_labels
         df_tweets_by_cluster = df_tweets.groupby(['clusterId'])
         num_tweets_per_group = df_tweets_by_cluster.size()
-        print('df_tweets_by_cluster')
-        print(df_tweets)
 
         df_group_ratio = df_tweets_by_cluster.agg({
             'group': lambda x: math.ceil((x.loc[x == '1'].shape[0] / x.shape[0]) * 100) / 100
@@ -414,8 +412,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             cls_labels_for_goal = fit_cls.labels_
             df_tweets_per_goal['clusterId'] = cls_labels_for_goal
             df_tweets_per_goal_by_cluster = df_tweets_per_goal.groupby(['clusterId'])
-            print('df_tweets_per_goal')
-            print(df_tweets_per_goal)
 
             # Define aggregated functions
             agg_dict = {}
@@ -434,9 +430,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
                 'clusters': df_clusters_per_goal.to_dict(orient='records')
             }
             clusters_per_goals.append(clusters_per_goal)
-
-        print('clusters_per_goal')
-        print(clusters_per_goals)
 
         # Prepare data for partial dependence (PD)
         lb = preprocessing.LabelBinarizer()
@@ -505,8 +498,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
 
         # Results
         cluster_ids = cls_labels
-        print('pdp_values_for_groups: ', pdp_values_for_groups)
-        print('pdp_values_for_cls_and_groups: ', pdp_values_for_cls_and_groups)
 
         df_clusters = pd.DataFrame({
             'clusterId': list(df_tweets_by_cluster.groups),
@@ -543,8 +534,6 @@ class FindContrastiveExamples(APIView):
         y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
         y = np.ravel(y)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-        print('here1')
         
         clf = load_model(model_id)
         clf.fit(X_train, y_train)
@@ -595,9 +584,6 @@ class FindContrastiveExamples(APIView):
 
         # Start to retrieve the example, given the selected tweet
         #-- Detect where the selected tweet belongs (by index and what node the index resides in)
-        
-        print('here2')
-
         if q_type == 'p-mode':
             selected_tweet_idx = selected_tweet['tweetIdx']
             selected_tweet = X.loc[selected_tweet_idx]
@@ -678,26 +664,18 @@ class FindContrastiveExamples(APIView):
                 cont_example_dict['pdpValue'] = 0
                 cont_examples_list.append(cont_example_dict)
                 
-            print('cont_example_dict[pdp]: ', cont_example_dict['pdpValue'])
-            print('here3')
         elif q_type == 'o-mode':
             # detect where the selected tweet belongs (by index and what node the index resides in)
-            print('tweets: ', selected_tweet['tweetId'], second_selected_tweet['tweetId'])
             first_tweet_idx = selected_tweet['tweetId']
             second_tweet_idx = second_selected_tweet['tweetId']
             first_tweet = X.loc[first_tweet_idx]
             second_tweet = X.loc[second_tweet_idx]
-            print(first_tweet)
-            print(second_tweet)
 
             first_leaf = df_leaves.loc[ df_leaves['idx'] == entry_leaf_idx[first_tweet_idx] ] # identify the predicted class
             second_leaf = df_leaves.loc[ df_leaves['idx'] == entry_leaf_idx[second_tweet_idx] ]
 
             first_leaf_rules = first_leaf['rule'].values[0]
             second_leaf_rules = second_leaf['rule'].values[0]
-
-            print(first_leaf_rules)
-            print(second_leaf_rules)
                 
             num_rules_second_leaf = len(first_leaf_rules)
             num_rules_first_leaf = len(second_leaf_rules)
@@ -716,9 +694,6 @@ class FindContrastiveExamples(APIView):
 
             diff_rule = {}
             for rule_idx in range(num_longer_rules):
-                print('rule_idx: ', rule_idx)
-                print('first_leaf_rules[rule_idx]: ', first_leaf_rules[rule_idx])
-                print('second_leaf_rules[rule_idx]: ', second_leaf_rules[rule_idx])
                 if rule_idx >= num_shorter_rules: # When the length is different and overlapped rules are the same
                     [ feature, inequality, threshold ] = longer_leaf_rules[rule_idx].split(' ')
                     if longer_leaf == 'first':
@@ -734,7 +709,6 @@ class FindContrastiveExamples(APIView):
                     break
                 else:
                     if first_leaf_rules[rule_idx] != second_leaf_rules[rule_idx]:
-                        print('here')
                         [ feature, inequality, threshold ] = first_leaf_rules[rule_idx].split(' ')
                         diff_rule = first_leaf_rules[rule_idx]
                         diff_rule = {
@@ -744,13 +718,8 @@ class FindContrastiveExamples(APIView):
                             'threshold': threshold
                         }
                         break
-
-            print(diff_rule)
             
         if q_type == 'p-mode':
-            print('q_type: ', q_type)
-            print('cont_examples_list: ', cont_examples_list)
-            print('cont_rules_dict: ', cont_rules_dict)
             return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
@@ -783,12 +752,8 @@ class CalculateTFIDFAndCooc(APIView): # Calculate TFIDF and Co-occurrence matrix
 
         # feature_names = tfidf.get_feature_names()
         # df_tfidf = pd.DataFrame(new_tfs.T.todense(), index=feature_names, columns=range(len(tweet_contents)))
-        print('df_tfidf: ')
-        print(df_tfidf.head())
         df_tfidf_for_selected_words = df_tfidf.reindex(unique_words)
         #tfidf_dict = df_tfidf.to_dict(orient='records')
-        print('df_tfidf_selected_words: ', df_tfidf_for_selected_words.shape)
-        print('tfidf shape: ', df_tfidf.shape)
 
         # co-occurrence
         cooccurrence_mat = df_tfidf_for_selected_words.dot(df_tfidf_for_selected_words.T).fillna(0)

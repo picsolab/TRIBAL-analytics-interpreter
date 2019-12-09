@@ -286,7 +286,6 @@ const globalInterpreter = (state = initialState, action) => {
         isValenceChecked: action.payload
       };
     case CAL_PD:
-      console.log('pdpvalues0: ', action.payload.pdpValues);
       return {
         ...state,
         pdpValues: action.payload.pdpValues

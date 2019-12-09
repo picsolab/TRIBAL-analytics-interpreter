@@ -123,8 +123,6 @@ const FeaturePlotView = React.memo(
     const ref = useRef(null),
       ref2 = useRef(null);
 
-    console.log('cooc: ', cooc)
-
     // Set group color scale and save to global variable
     globalScales.groupColorScales = groups.map((group, groupIdx) => {
       return d3
@@ -871,8 +869,6 @@ const FeaturePlotView = React.memo(
           const clusterId = d.clusterId,
             tweetsInCluster = tweets.filter(e => e.clusterId === clusterId);
 
-          console.log('unselected cluster is selected: ', clusterId);
-
           d3.selectAll('.cluster_selected')
             .style('stroke', 'gray')
             .style('stroke-width', '1px')
@@ -909,8 +905,6 @@ const FeaturePlotView = React.memo(
 
             return tweetPathData;
           });
-
-          console.log('catTocatLine data: ', d3.selectAll('.tweet_cat_line').data());
 
           d3.selectAll('.g_tweet_line').each(function(feature, featureIdx) {
             if (featureIdx !== features.length - 1) {
@@ -951,8 +945,6 @@ const FeaturePlotView = React.memo(
                     groupRatioForCl: libRatio
                   };
                 });
-                console.log('current cluster: ', clusterId);
-                console.log('dataCatToCatForCluster: ', dataCatToCatForCluster);
                 
                 catLines.data(dataCatToCatForCluster);
                 catLines

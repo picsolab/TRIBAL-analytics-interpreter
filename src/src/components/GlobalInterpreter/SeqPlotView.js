@@ -29,7 +29,7 @@ const layout = {
   }
 };
 
-const numFeatures = 7;
+var numFeatures = 7;
 
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
@@ -323,8 +323,15 @@ const WordList = ({feature, wordsInTweets}) => {
   return <div>{WordLists}</div>;
 };
 
-const SeqPlotView = ({wordsInTweets, features, globalMode, isClusterSelected, tweetsInClusterForSeqPlot}) => {
+const SeqPlotView = ({
+  wordsInTweets, 
+  features, 
+  globalMode, 
+  isClusterSelected, 
+  tweetsInClusterForSeqPlot
+}) => {
   const ref = useRef(null);
+  numFeatures = features.length;
 
   useEffect(() => {
     //* For the word group view

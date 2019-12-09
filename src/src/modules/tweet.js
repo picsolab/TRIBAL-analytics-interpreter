@@ -132,7 +132,6 @@ export const calculateTFIDFAndCooc = ({ tweets, words }) => {
         words: words
       })
     }).then(res => {
-      console.log('words: ', res.data);
       dispatch({ type: 'CAL_TFIDF_COOC', payload: res.data });
     });
   };

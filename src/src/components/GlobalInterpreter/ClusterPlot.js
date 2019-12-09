@@ -73,7 +73,6 @@ function ClusterPlot() {
               : numTweetClusterScale(d.numTweets * d.groupRatio.lib)
           )
           .style('fill', d => {
-            console.log('d');
             return globalColors.groups[group_idx].color;
           })
           .style('fill-opacity', 0.5)

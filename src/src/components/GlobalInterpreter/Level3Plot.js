@@ -58,7 +58,6 @@ function Level3Plot() {
       .append('path')
       .attr('class', 'word_arc')
       .attr('d', d => {
-        console.log('d: ', d);
         let wordOnLeft;
         let wordOnRight;
 

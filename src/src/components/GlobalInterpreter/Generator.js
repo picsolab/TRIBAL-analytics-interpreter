@@ -134,8 +134,6 @@ const Generator = props => {
     selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
       const selectedFeatureNames = selectedRows.map(d => d.featureName);
-      console.log('selectedFeatureNames: ', selectedFeatureNames);
-      
       return currentlySelectedFeatures = selectedFeatureNames;
     },
     getCheckboxProps: record => {
@@ -168,7 +166,6 @@ const Generator = props => {
             const selectedFeature = features.filter(feature => feature.key === selectedFeatureName)[0];
             selectedFeatures.push(selectedFeature);
           })
-          console.log('selectedFeatures to send to api: ', selectedFeatures)
           dispatch({
             type: 'SET_SELECTED_FEATURES',
             payload: selectedFeatures
@@ -189,8 +186,6 @@ const Generator = props => {
           multiple
           treeDefaultExpandAll
           onChange={(selectedFeatures) => { 
-            console.log('currentlySelectedFeatures: ', currentlySelectedFeatures);
-            console.log('selectedFeatures: ', selectedFeatures);
             currentlySelectedFeatures = selectedFeatures;
             forceUpdate();
           }}

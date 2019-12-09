@@ -113,15 +113,10 @@ const ScoreView = ({ tweet, features }) => {
       layout.marginBottom
     ]);
 
-  const categoryMappingCareScale = d3
+  const numToCatScale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])
     .range(['None', 'Virtue', 'Vice', 'Both']);
-
-  const categoryMappingFairnessScale = d3
-    .scaleOrdinal()
-    .domain([0, 1, 2])
-    .range(['None', 'Virtue', 'Vice']);
 
   useEffect(() => {
     const svg = d3.select(ref.current);
@@ -133,58 +128,34 @@ const ScoreView = ({ tweet, features }) => {
 
     xFeatureScale.domain(d3.range(numFeatures));
 
+    // Modify this one, and the next one for updating
     featureRecData
       .enter()
       .append('rect')
       .attr('class', 'feature_rect')
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => features[i].scoreScale(d))
+      .attr('height', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
-      .style('fill', globalColors.feature)
-      .on('mouseover', (d, i) => {
-        console.log('mouseovered...');
-        const titleHtml = '<div style="font-weight: 600">Features</div>';
-        const scoreHtml = featureNames.map(feature => {
-          return (
-            '<div>- ' +
-            feature +
-            ': ' +
-            (feature === 'fairness'
-              ? categoryMappingFairnessScale(tweet[feature])
-              : feature === 'care'
-              ? categoryMappingCareScale(tweet[feature])
-              : tweet[feature]) +
-            '</div>'
-          );
-        });
-
-        tooltip.html(titleHtml + scoreHtml.join(''));
-        tooltip.show();
-      })
-      .on('mouseout', (d, i) => {
-        tooltip.hide();
-      });
+      .attr('y', (d, i) => features[i].scoreScale(d))
+      .style('fill', globalColors.feature);
+      
     featureRecData.exit().remove();
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => features[i].scoreScale(d))
+      .attr('height', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
+      .attr('y', (d, i) => features[i].scoreScale(d))
       .on('mouseover', (d, i) => {
-        console.log('mouseovered...');
         const titleHtml = '<div style="font-weight: 600">Features</div>';
-        const scoreHtml = featureNames.map(feature => {
+        const scoreHtml = features.map(feature => {
           return (
             '<div>- ' +
-            feature +
+            feature.key +
             ': ' +
-            (feature === 'fairness'
-              ? categoryMappingFairnessScale(tweet[feature])
-              : feature === 'care'
-              ? categoryMappingCareScale(tweet[feature])
-              : tweet[feature]) +
-            '</div>'
+            (feature.type === 'categorical'
+              ? numToCatScale(tweet[feature.key])
+              : tweet[feature.key])
+            + '</div>'
           );
         });
 
@@ -289,7 +260,6 @@ const Document = props => {
           }}
           onContextMenu={e => {
             e.preventDefault();
-            console.log(e.target);
 
             const classList = e.target.className.split(' ');
             const isSelected =
@@ -324,8 +294,6 @@ const Document = props => {
                 .classed('doc_second_selected', true)
                 .style('background-color', 'whitesmoke');
             }
-
-            console.log('second-selected: ', tweet);
 
             dispatch({
               type: 'SELECT_SECOND_TWEET',

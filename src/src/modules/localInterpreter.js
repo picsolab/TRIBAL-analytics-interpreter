@@ -14,7 +14,6 @@ export const findContrastiveExamples = ({
   currentModel
 }) => {
   return async dispatch => {
-    console.log('in findContrastiveExamples: ', tweets);
     await axios({
       method: 'post',
       url: '/tweets/findContrastiveExamples/',
