@@ -30,6 +30,7 @@ import {
 } from '../../GlobalStyles';
 
 import { runDT } from '../../modules/globalInterpreter';
+import { runDTThenRunClandPD } from '../../modules/tweet';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
@@ -84,7 +85,8 @@ const Generator = props => {
     tweets,
     tweetsWithPredFeatures,
     features,
-    selectedFeatures
+    selectedFeatures,
+    groups
   } = props;
 
   // to be a props... updated by the layout below, then update states then come back as props
@@ -171,6 +173,14 @@ const Generator = props => {
             type: 'SET_SELECTED_FEATURES',
             payload: selectedFeatures
           });
+          dispatch(
+            runDTThenRunClandPD({
+              tweets: tweets,
+              selectedFeatures: selectedFeatures,
+              modelId: '',
+              groups: groups
+            })
+          );
         }}
       >
         {/* </Feature table> */}

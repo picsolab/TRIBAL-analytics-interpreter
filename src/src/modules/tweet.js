@@ -63,6 +63,7 @@ export const fetchTweets = () => {
 
       const tweetsWithPredFeatures = res.data.map(d => ({
         tweetId: d.tweet_id,
+        tweetIdx: d.tweet_idx,
         group: d.grp,
         content: d.content,
         screenName: d.screen_name,
@@ -247,7 +248,7 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         secondSelectedTweet: state.tweets.filter(
-          d => d.tweetId === selectedTweetId
+          d => d.tweetIdx === selectedTweetId
         )[0]
       };
     case SEARCH_TWEETS:

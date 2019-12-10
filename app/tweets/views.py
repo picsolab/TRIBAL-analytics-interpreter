@@ -22,6 +22,7 @@ from sklearn.preprocessing import normalize
 
 from collections import Counter
 from io import StringIO
+import time
 
 # A tweet as json
 '''
@@ -236,16 +237,19 @@ class RunDecisionTree(APIView):
         # tweets_json = [ tweet['fields'] for tweet in tweet_objects_json ]
 
         df_tweets = pd.DataFrame(tweets)
-
         lb = preprocessing.LabelBinarizer()
 
         X = df_tweets[features]
         y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
         y = np.ravel(y)
-
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-        clf = DecisionTreeClassifier(max_depth=6, random_state=20)
-        tree = clf.fit(X_train, y_train)
+        
+
+        if len(feature_objs) == 7: # if all features are selected, just load the saved model
+            clf = load_model('dt_all')
+        else:
+            clf = DecisionTreeClassifier(max_depth=6, random_state=20)
+            tree = clf.fit(X_train, y_train)
 
         y_pred_binary = clf.predict(X)
         y_pred_prob = clf.predict_proba(X)
@@ -257,10 +261,8 @@ class RunDecisionTree(APIView):
         accuracy = accuracy_score(y_test, y_pred_for_test)
         scores = cross_validate(clf, X, y, cv=10)['test_score']
 
-        save_model(clf, 'dt_0')
-
         return Response({
-            'modelId': 'dt_0',
+            'modelId': 'dt_all',
             'tweets': df_tweets.to_json(orient='records'),
             'features': features,
             'accuracy': accuracy
@@ -442,7 +444,10 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         y = lb.fit_transform(df_tweets['group'].astype(str))
         y = np.ravel(y)
 
-        model = load_model(model_id)
+        #model = load_model(model_id)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        model = DecisionTreeClassifier(max_depth=6, random_state=20)
+        tree = model.fit(X_train, y_train)
 
         # Calculate PD-all
         pdp_values_for_all = []
@@ -543,10 +548,12 @@ class FindContrastiveExamples(APIView):
         df_tweets['pred'] = y_pred_string
         df_tweets['prob'] = [probs[1] for probs in y_pred_prob]  # Extract the prob of tweet being liberal
 
-        dot_data = StringIO()
-        out = export_graphviz(clf, out_file=dot_data)
-        graph = pydot.graph_from_dot_data(dot_data.getvalue())
+        # visualize the tree
+        # dot_data = StringIO()
+        # out = export_graphviz(clf, out_file=dot_data)
+        # graph = pydot.graph_from_dot_data(dot_data.getvalue())
 
+        time_check1 = time.time()
         # Construct entries and leaves information
         rules_list, values_path, leaves_index = get_rules(clf, X)
         entries = collections.defaultdict(list) # entries are tweets
@@ -554,8 +561,10 @@ class FindContrastiveExamples(APIView):
 
         for d, dec in enumerate(dec_paths):
             for i in range(clf.tree_.node_count):
-                if dec.toarray()[0][i]  == 1:
+                if dec.toarray()[0][i] == 1:
                     entries[i].append(d)
+
+        time_check2 = time.time()
                     
         leaves_class = []
         num_cons = []
@@ -569,6 +578,8 @@ class FindContrastiveExamples(APIView):
             num_libs.append(num_lib)
             entry_idx.append(entries[leaf_idx])
 
+        time_check3 = time.time()
+
         df_leaves = pd.DataFrame({ 
             'idx': leaves_index,
             'rule': rules_list,  
@@ -581,6 +592,8 @@ class FindContrastiveExamples(APIView):
         for entries, leaf in zip(entry_idx, leaves_index):
             for entry in entries:
                 entry_leaf_idx[entry] = leaf
+
+        time_check4 = time.time() - time_check1
 
         # Start to retrieve the example, given the selected tweet
         #-- Detect where the selected tweet belongs (by index and what node the index resides in)
@@ -666,8 +679,8 @@ class FindContrastiveExamples(APIView):
                 
         elif q_type == 'o-mode':
             # detect where the selected tweet belongs (by index and what node the index resides in)
-            first_tweet_idx = selected_tweet['tweetId']
-            second_tweet_idx = second_selected_tweet['tweetId']
+            first_tweet_idx = selected_tweet['tweetIdx']
+            second_tweet_idx = second_selected_tweet['tweetIdx']
             first_tweet = X.loc[first_tweet_idx]
             second_tweet = X.loc[second_tweet_idx]
 
@@ -719,6 +732,8 @@ class FindContrastiveExamples(APIView):
                         }
                         break
             
+        time_check5 = time.time() - time_check1
+        print('time-check: ', time_check1, time_check2, time_check3, time_check4, time_check5)
         if q_type == 'p-mode':
             return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
         elif q_type == 'o-mode':

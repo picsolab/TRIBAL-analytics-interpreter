@@ -230,8 +230,16 @@ const GlobalInterpreter = props => {
     numAbstractFeatures = 1;
 
   useEffect(() => {
+    // dispatch(
+    //   fetchWordsThenCalTFIDFAndCooc({
+    //     groups: groups,
+    //     tweets: tweets,
+    //     words: words
+    //   })
+    // );
+
     dispatch(
-      fetchWordsThenCalTFIDFAndCooc({
+      fetchWords({
         groups: groups,
         tweets: tweets,
         words: words
@@ -250,7 +258,7 @@ const GlobalInterpreter = props => {
 
   const loadingIcon = <Icon type="loading" style={{fontSize: 24}} spin />;
 
-  if (!clusters || clusters.length === 0 || isLoaded === false || cooc.length === 0)
+  if (!clusters || clusters.length === 0 || isLoaded === false)
     return (
       <GlobalInterpreterWrapper>
         <div style={{gridArea: 't'}}>
@@ -336,6 +344,7 @@ const GlobalInterpreter = props => {
       <Generator
         globalMode={globalMode}
         goals={goals}
+        groups={groups}
         tweets={tweets}
         tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
