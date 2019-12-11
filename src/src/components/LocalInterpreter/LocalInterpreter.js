@@ -430,16 +430,16 @@ const LocalInterpreter = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(
-      findContrastiveExamples({
-        qType: qType,
-        tweets: tweets,
-        selectedTweet: selectedTweet,
-        secondSelectedTweet: secondSelectedTweet,
-        currentModel: currentModel,
-        features: features
-      })
-    );
+    // dispatch(
+    //   findContrastiveExamples({
+    //     qType: qType,
+    //     tweets: tweets,
+    //     selectedTweet: selectedTweet,
+    //     secondSelectedTweet: secondSelectedTweet,
+    //     currentModel: currentModel,
+    //     features: features
+    //   })
+    // );
     
   }, [selectedTweet]);
 
@@ -450,8 +450,30 @@ const LocalInterpreter = ({
       <LocalInterpreterWrapper>
         <div>
           <SectionTitle>Instance-level comparison</SectionTitle>
-          <Spin indicator={loadingIcon} />
+          {/* <Spin indicator={loadingIcon} /> */}
         </div>
+        <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
+        &nbsp;
+        <Select
+          multiple={false}
+          value={qType}
+          onChange={e => {
+            dispatch({type: 'CHANGE_QTYPE', payload: e.option});
+          }}
+          options={['p-mode', 'o-mode']}
+          size={'small'}
+        />
+        <QAView
+          qType={qType}
+          selectedTweet={selectedTweet}
+          secondSelectedTweet={secondSelectedTweet}
+          contrastiveRules={contrastiveRules}
+          contrastiveEXs={contrastiveEXs}
+          diffRule={diffRule}
+          tweets={tweets}
+          currentModel={currentModel}
+          features={features}
+        />
       </LocalInterpreterWrapper>
     );
 
