@@ -687,7 +687,7 @@ function Level2Plot() {
             .attr('x', direction === 'right' 
                         ? xFeatureScale(catFeature.key) - lCom.hPlot.featurePlot.axis.cat.m - 1
                         : xFeatureScale(catFeature.key) - xFeatureScale.bandwidth() + lCom.hPlot.featurePlot.axis.w + lCom.hPlot.featurePlot.axis.cat.m - 5 - 1)
-            .attr('y', cat => catScales[cat].range()[0])
+            .attr('y', (cat, i) => catScales[cat].range()[0] - i*2)
             .attr('width', 5)
             .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
             .style('fill', cat => {
@@ -705,7 +705,7 @@ function Level2Plot() {
 
               return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
             })
-            .style('stroke-width', 1);
+            .style('stroke-width', 2);
         }
 
         function calculateScalesForCats(tweets, catFeature) {

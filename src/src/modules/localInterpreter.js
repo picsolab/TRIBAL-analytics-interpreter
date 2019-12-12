@@ -4,6 +4,7 @@ import axios from 'axios';
 const CHANGE_QTYPE = 'CHANGE_QTYPE';
 const SELECT_SECOND_TWEET = 'SELECT_SECOND_TWEET';
 const FIND_CONTRA_EX = 'FIND_CONTRA_EX';
+const IS_CF_LOADING = 'IS_CF_LOADING';
 
 export const findContrastiveExamples = ({
   qType,
@@ -14,6 +15,10 @@ export const findContrastiveExamples = ({
   currentModel
 }) => {
   return async dispatch => {
+    dispatch({ 
+      type: 'IS_CF_LOADING', 
+      payload: true 
+    });
     await axios({
       method: 'post',
       url: '/tweets/findContrastiveExamples/',
@@ -28,6 +33,7 @@ export const findContrastiveExamples = ({
       })
     }).then(res => {
       dispatch({ type: 'FIND_CONTRA_EX', payload: res.data });
+      dispatch({ type: 'IS_CF_LOADING', payload: false });
     });
   };
 };
@@ -54,7 +60,8 @@ const initialState = {
   },
   contrastiveRules: [],
   contrastiveEXs: [],
-  diffRule: ''
+  diffRule: '',
+  isCFLoading: false  // CF == CounterFactual
 };
 
 // Reducers
@@ -72,14 +79,21 @@ const localInterpreter = (state = initialState, action) => {
           ? {
               ...state,
               contrastiveRules: action.payload.contRules,
-              contrastiveEXs: action.payload.contExamples
+              contrastiveEXs: action.payload.contExamples,
+              isCFLoading: false
             }
           : {
               // for 'o-mode'
               ...state,
-              diffRule: action.payload.diffRule
+              diffRule: action.payload.diffRule,
+              isCFLoading: false
             };
       return updatedState;
+    case IS_CF_LOADING:
+      return {
+        ...state,
+        isCFLoading: action.payload
+      }
     default:
       return state;
   }

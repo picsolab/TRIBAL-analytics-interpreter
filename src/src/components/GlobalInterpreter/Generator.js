@@ -206,6 +206,7 @@ const Generator = props => {
           ))}
         </TreeSelect>
         <Table
+          style={{ marginTop: '10px' }}
           rowSelection={featureSelection}
           columns={featureSelectionColumns}
           dataSource={dataFeatureTable}

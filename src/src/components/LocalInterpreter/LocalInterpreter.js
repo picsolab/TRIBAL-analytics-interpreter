@@ -139,6 +139,7 @@ const customDropdownTheme = {
       option: {
         text: {
           font: {
+            color: 'blue',
             size: '10px'
           }
         },
@@ -321,7 +322,8 @@ const QAView = ({
                         selectedTweet: tweetForFirstTweet,
                         secondSelectedTweet: secondSelectedTweet,
                         currentModel: currentModel,
-                        features: features
+                        features: features,
+                        isCFLoading: true
                       })
                     );
                   }}
@@ -364,7 +366,8 @@ const QAView = ({
                         tweets: tweets,
                         selectedTweet: selectedTweet,
                         secondSelectedTweet: tweetForSecondTweet,
-                        currentModel: currentModel
+                        currentModel: currentModel,
+                        isCFLoading: true
                       })
                     );
                   }}
@@ -425,7 +428,8 @@ const LocalInterpreter = ({
   contrastiveEXs,
   currentModel,
   diffRule,
-  features
+  features,
+  isCFLoading
 }) => {
   const dispatch = useDispatch();
 
@@ -444,13 +448,14 @@ const LocalInterpreter = ({
   }, [selectedTweet]);
 
   const loadingIcon = <Icon type="loading" style={{fontSize: 24}} spin />;
-  // contrastiveEXs = [{}]
-  if (!contrastiveEXs || contrastiveEXs.length === 0)
+  console.log('isCFLoading: ', isCFLoading);
+  console.log('loading layout: ');
+  if (isCFLoading === true)
     return (
       <LocalInterpreterWrapper>
         <div>
           <SectionTitle>Instance-level comparison</SectionTitle>
-          {/* <Spin indicator={loadingIcon} /> */}
+          <Spin indicator={loadingIcon} />
         </div>
         <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
         &nbsp;
@@ -476,7 +481,7 @@ const LocalInterpreter = ({
         />
       </LocalInterpreterWrapper>
     );
-
+  console.log('not loading layout: ');
   return (
     <LocalInterpreterWrapper>
       <div>

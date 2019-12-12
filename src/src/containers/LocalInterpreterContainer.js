@@ -3,15 +3,24 @@ import { useSelector, useDispatch } from 'react-redux';
 import LocalInterpreter from '../components/LocalInterpreter/LocalInterpreter';
 
 const LocalInterpreterContainer = () => {
-  const { tweets, selectedTweet, secondSelectedTweet } = useSelector(
-    state => state.tweet,
-    []
-  );
-  const { currentModel, features } = useSelector(state => state.globalInterpreter, []);
-  const { qType, contrastiveRules, contrastiveEXs, diffRule } = useSelector(
-    state => state.localInterpreter,
-    []
-  );
+  const { 
+    tweets, 
+    selectedTweet, 
+    secondSelectedTweet 
+  } = useSelector(state => state.tweet, []);
+
+  const { 
+    currentModel, 
+    features 
+  } = useSelector(state => state.globalInterpreter, []);
+
+  const { 
+    qType, 
+    contrastiveRules, 
+    contrastiveEXs, 
+    diffRule,
+    isCFLoading
+  } = useSelector(state => state.localInterpreter, []);
 
   if (!tweets || tweets.length === 0) return <div />;
 
@@ -26,6 +35,7 @@ const LocalInterpreterContainer = () => {
       contrastiveEXs={contrastiveEXs}
       currentModel={currentModel}
       diffRule={diffRule}
+      isCFLoading={isCFLoading}
     />
   );
 };
