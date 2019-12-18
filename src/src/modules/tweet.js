@@ -30,6 +30,7 @@ export const fetchTweets = () => {
         tweetIdx: d.tweet_idx,
         group: d.grp,
         content: d.content,
+        rawContent: d.raw_content,
         screenName: d.screen_name,
         valence: d.valence,
         valenceGrpPred: d.valence_grp_pred,

@@ -113,10 +113,14 @@ const ScoreView = ({ tweet, features }) => {
       layout.marginBottom
     ]);
 
-  const numToCatScale = d3
+  const numToCat4Scale = d3
     .scaleOrdinal()
     .domain([0, 1, 2, 3])
-    .range(['None', 'Virtue', 'Vice', 'Both']);
+    .range(['Vice', 'Both', 'None', 'Virtue']);
+  const numToCat3Scale = d3
+    .scaleOrdinal()
+    .domain([0, 1, 2])
+    .range(['Vice', 'None', 'Virtue']);
 
   useEffect(() => {
     const svg = d3.select(ref.current);
@@ -153,7 +157,9 @@ const ScoreView = ({ tweet, features }) => {
             feature.key +
             ': ' +
             (feature.type === 'categorical'
-              ? numToCatScale(tweet[feature.key])
+              ? (feature.key === 'fairness') || (feature.key === 'purity')
+                ? numToCat3Scale(tweet[feature.key])
+                : numToCat4Scale(tweet[feature.key])
               : tweet[feature.key])
             + '</div>'
           );
@@ -161,6 +167,7 @@ const ScoreView = ({ tweet, features }) => {
 
         tooltip.html(titleHtml + scoreHtml.join(''));
         tooltip.show();
+        console.log(scoreHtml);
       })
       .on('mouseout', (d, i) => {
         tooltip.hide();
@@ -308,7 +315,7 @@ const Document = props => {
         />
       </div>
       <div style={{ display: 'flex' }}>
-        <ContentDiv>{tweet.content}</ContentDiv>
+        <ContentDiv>{tweet.rawContent}</ContentDiv>
         <IndexIndicator>{tweet.tweetIdx}</IndexIndicator>
       </div>
     </DocumentWrapper>

@@ -15,6 +15,16 @@ export const findContrastiveExamples = ({
   currentModel
 }) => {
   return async dispatch => {
+    const request_str = JSON.stringify({
+      qType: qType,
+      selectedTweet: selectedTweet,
+      secondSelectedTweet: secondSelectedTweet,
+      modelId: currentModel,
+      features: features,
+      tweets: tweets,
+      currentModel: currentModel
+    });
+
     dispatch({ 
       type: 'IS_CF_LOADING', 
       payload: true 
@@ -33,7 +43,7 @@ export const findContrastiveExamples = ({
       })
     }).then(res => {
       dispatch({ type: 'FIND_CONTRA_EX', payload: res.data });
-      dispatch({ type: 'IS_CF_LOADING', payload: false });
+      // dispatch({ type: 'IS_CF_LOADING', payload: false });
     });
   };
 };
@@ -78,6 +88,7 @@ const localInterpreter = (state = initialState, action) => {
         qType === 'p-mode'
           ? {
               ...state,
+              selectedTweet: action.payload.selectedTweet,
               contrastiveRules: action.payload.contRules,
               contrastiveEXs: action.payload.contExamples,
               isCFLoading: false
@@ -85,6 +96,8 @@ const localInterpreter = (state = initialState, action) => {
           : {
               // for 'o-mode'
               ...state,
+              selectedTweet: action.payload.selectedTweet,
+              secondSelectedTweet: action.payload.secondSelectedTweet,
               diffRule: action.payload.diffRule,
               isCFLoading: false
             };

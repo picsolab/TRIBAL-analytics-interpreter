@@ -188,10 +188,10 @@ const QAView = ({
 
     var inequalityStr;
     if (subject === 'selectedTweet') {
-      if (inequality === '>') inequalityStr = 'higher';
+      if (inequality === '>' || inequality == '>=') inequalityStr = 'higher';
       else inequalityStr = 'lower';
     } else if (subject === 'contTweet') {
-      if (inequality === '>') inequalityStr = 'lower';
+      if (inequality === '>' || inequality == '>=') inequalityStr = 'lower';
       else inequalityStr = 'higher';
     }
 
@@ -233,7 +233,7 @@ const QAView = ({
                     findContrastiveExamples({
                       qType: qType,
                       tweets: tweets,
-                      selectedTweet: selectedTweet,
+                      selectedTweet: tweetForFirstTweet,
                       secondSelectedTweet: secondSelectedTweet,
                       currentModel: currentModel,
                       features: features
@@ -259,10 +259,16 @@ const QAView = ({
             &nbsp;
             <CampIndicator
               style={{
-                backgroundColor: selectedTweet.pred === '1' ? globalColors.group.con : globalColors.group.lib
+                backgroundColor: contrastiveEXs.length === 0 
+                  ? globalColors.group.lib
+                  : contrastiveEXs[0].pred === '1' 
+                    ? globalColors.group.lib 
+                    : globalColors.group.con
               }}
             >
-              {selectedTweet.pred === '1' ? 'red camp' : 'blue camp'}
+              {contrastiveEXs.length === 0 
+                ? 'blue camp'
+                : contrastiveEXs[0].pred === '1' ? 'blue camp' : 'red camp'}
             </CampIndicator>{' '}
             &nbsp; ?
           </QuestionWrapper>
@@ -481,7 +487,10 @@ const LocalInterpreter = ({
         />
       </LocalInterpreterWrapper>
     );
-  console.log('not loading layout: ');
+  
+  console.log('selected tweet id: ', selectedTweet.tweetIdx, selectedTweet.pred, selectedTweet);
+  console.log('contrastive tweet id: ', contrastiveEXs.pred, contrastiveEXs);
+  console.log('contrastive rules: ', contrastiveRules);
   return (
     <LocalInterpreterWrapper>
       <div>
