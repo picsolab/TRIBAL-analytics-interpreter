@@ -141,9 +141,32 @@ const ScoreView = ({ tweet, features }) => {
       .attr('height', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => features[i].scoreScale(d))
-      .style('fill', globalColors.feature);
-      
+      .style('fill', globalColors.feature)
+      .on('mouseover', (d, i) => {
+        const titleHtml = '<div style="font-weight: 600">Features</div>';
+        const scoreHtml = features.map(feature => {
+          return (
+            '<div>- ' +
+            feature.key +
+            ': ' +
+            (feature.type === 'categorical'
+              ? (feature.key === 'fairness') || (feature.key === 'purity')
+                ? numToCat3Scale(tweet[feature.key])
+                : numToCat4Scale(tweet[feature.key])
+              : tweet[feature.key])
+            + '</div>'
+          );
+        });
+
+        tooltip.html(titleHtml + scoreHtml.join(''));
+        tooltip.show();
+        console.log(scoreHtml);
+      })
+      .on('mouseout', (d, i) => {
+        tooltip.hide();
+      });
     featureRecData.exit().remove();
+      
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
@@ -168,10 +191,12 @@ const ScoreView = ({ tweet, features }) => {
         tooltip.html(titleHtml + scoreHtml.join(''));
         tooltip.show();
         console.log(scoreHtml);
+        console.log(d3.selectAll('.feature_rect'))
       })
       .on('mouseout', (d, i) => {
         tooltip.hide();
       });
+    
 
     const featureTitle = d3
       .select(ref.current)

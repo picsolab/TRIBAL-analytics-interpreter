@@ -248,7 +248,7 @@ class RunDecisionTree(APIView):
         if len(feature_objs) == 8: # if all features are selected, just load the saved model
             clf = load_model('dt_all')
         else:
-            clf = DecisionTreeClassifier(max_depth=8, random_state=20)
+            clf = DecisionTreeClassifier(max_depth=9, random_state=42)
             tree = clf.fit(X_train, y_train)
 
         y_pred_binary = clf.predict(X)
@@ -261,6 +261,7 @@ class RunDecisionTree(APIView):
         accuracy = accuracy_score(y_test, y_pred_for_test)
         scores = cross_validate(clf, X, y, cv=10)['test_score']
 
+        print('accuracy: ', accuracy)
         save_model(clf, 'dt_all')
 
         return Response({
@@ -536,7 +537,10 @@ class FindContrastiveExamples(APIView):
         model_id = request_json['currentModel']
 
         # Load the model and parse it as decision tree
+        tweets = sorted(tweets, key=lambda k: k['tweetIdx'])
         df_tweets = pd.DataFrame(tweets)
+        df_tweets.to_csv('df_tweets_checking.csv')
+        
         lb = preprocessing.LabelBinarizer()
         X = df_tweets[features]
         y = lb.fit_transform(df_tweets['group'].astype(str))  # con: 0, lib: 1
@@ -616,6 +620,8 @@ class FindContrastiveExamples(APIView):
             leaf_class = leaf['class']
             entries_w_opp_class = df_leaves.loc[df_leaves['class'].astype('int64') != int(leaf['class'])]
             leaf_idx_diff = abs(entries_w_opp_class['idx'] - int(leaf['idx']))
+            print('leaf_idx_diff: ', leaf_idx_diff)
+            leaf_idx_diff.to_csv('leaf_idx_diff.csv')
             cont_leaf_idx = leaf_idx_diff.idxmin()
             cont_leaf = entries_w_opp_class.loc[cont_leaf_idx]
             print('leaf: ', leaf['entriesIdx'])

@@ -187,13 +187,15 @@ const QAView = ({
     const andStr = idx !== Object.keys(contrastiveRules).length - 1 ? ' and' : '';
 
     var inequalityStr;
-    if (subject === 'selectedTweet') {
-      if (inequality === '>' || inequality == '>=') inequalityStr = 'higher';
-      else inequalityStr = 'lower';
-    } else if (subject === 'contTweet') {
-      if (inequality === '>' || inequality == '>=') inequalityStr = 'lower';
-      else inequalityStr = 'higher';
-    }
+    // if (subject === 'selectedTweet') {
+    //   if (inequality === '>' || inequality == '>=') inequalityStr = 'higher';
+    //   else inequalityStr = 'lower';
+    // } else if (subject === 'contTweet') {
+    //   if (inequality === '>' || inequality == '>=') inequalityStr = 'lower';
+    //   else inequalityStr = 'higher';
+    // }
+    if (inequality === '>' || inequality == '>=') inequalityStr = 'higher';
+    else inequalityStr = 'lower';
 
     return inequalityStr + ' ' + feature + andStr;
   });
@@ -225,6 +227,7 @@ const QAView = ({
                   const selectedIdForFirstTweet = e.selected[0],
                     tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
+                  console.log('selectedIdForFirstTweet: ', selectedIdForFirstTweet);
                   dispatch({
                     type: 'SELECT_TWEET',
                     payload: tweetForFirstTweet
@@ -317,6 +320,7 @@ const QAView = ({
                     const selectedIdForFirstTweet = e.selected[0],
                       tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
+                    console.log('selectedIdForFirstTweet: ', selectedIdForFirstTweet);
                     dispatch({
                       type: 'SELECT_TWEET',
                       payload: tweetForFirstTweet
