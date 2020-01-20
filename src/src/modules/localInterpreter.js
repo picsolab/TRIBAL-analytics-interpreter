@@ -12,17 +12,17 @@ export const findContrastiveExamples = ({
   secondSelectedTweet,
   tweets,
   features,
-  currentModel
+  currentModelInfo
 }) => {
   return async dispatch => {
     const request_str = JSON.stringify({
       qType: qType,
       selectedTweet: selectedTweet,
       secondSelectedTweet: secondSelectedTweet,
-      modelId: currentModel,
+      modelId: currentModelInfo.id,
       features: features,
       tweets: tweets,
-      currentModel: currentModel
+      currentModelInfo: currentModelInfo
     });
 
     dispatch({ 
@@ -36,10 +36,10 @@ export const findContrastiveExamples = ({
         qType: qType,
         selectedTweet: selectedTweet,
         secondSelectedTweet: secondSelectedTweet,
-        modelId: currentModel,
+        modelId: currentModelInfo.id,
         features: features,
         tweets: tweets,
-        currentModel: currentModel
+        currentModelInfo: currentModelInfo
       })
     }).then(res => {
       dispatch({ type: 'FIND_CONTRA_EX', payload: res.data });

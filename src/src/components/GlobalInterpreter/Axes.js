@@ -9,6 +9,7 @@ function Axes() {
   let dataForFeatures = [];
   let dataForPdpValues = [];
   let dataForPdpValuesForGroups = [];
+  let dataForFeatureImps = [];
 
   var xFeatureScale = '';
 
@@ -16,6 +17,7 @@ function Axes() {
     const features = dataForFeatures;
     const pdpValues = dataForPdpValues;
     const pdpValuesForGroups = dataForPdpValuesForGroups;
+    const featureImps = dataForFeatureImps;
 
     const featureAxes = selection
       .enter()
@@ -32,6 +34,7 @@ function Axes() {
       .each(function(feature, i) {
         let yAxisSetting;
         const featureName = feature.key;
+        const gfeatureAxis = d3.select('.g_feature_axis_' + featureName)
 
         const drawPDPLine = d3
           .line()
@@ -52,15 +55,15 @@ function Axes() {
           .axisLeft(feature.scale)
           .tickValues(feature.type == 'categorical' ? feature.values.map(e => e.num) : feature.values)
           .tickFormat(
-            feature.type == 'categorical'
-              ? (d, i) => (d === 0 ? 'None' : d === 1 ? 'Virtue' : d === 2 ? 'Vice' : d === 3 ? 'Both' : '')
+            (feature.type == 'categorical') 
+              ? (d, i) => feature.values[d].category
               : (d, i) => d
           )
           .tickSize(0);
         d3.select(this).call(yAxisSetting);
 
         // Feature titles
-        d3.select('.g_feature_axis_' + featureName)
+        gfeatureAxis
           .append('text')
           .attr('class', 'feature_title')
           .text(feature.key)
@@ -70,7 +73,21 @@ function Axes() {
           .attr('font-size', '0.7rem')
           .attr('font-weight', 600);
 
-        d3.select('.g_feature_axis_' + featureName)
+        // Feature importance bar for each feature
+        const featureImpScale = d3.scaleLinear()
+            .domain([0, 1])
+            .range(d3.extent(featureImps[i]));
+        gfeatureAxis
+          .append('rect')
+          .attr('class', 'feature_imp_rect_' + featureName)
+          .attr('x', 0)
+          .attr('y', -lCom.hPlot.featurePlot.axis.m*3)
+          .attr('width', featureImpScale(featureImps[i]))
+          .attr('height', lCom.hPlot.featurePlot.axis.m*2)
+          .style('fill', 'gray');
+
+        // Axis rectangle
+        gfeatureAxis
           .append('rect')
           .attr('class', 'axis_rect_' + featureName)
           .attr('x', 0)
@@ -220,6 +237,12 @@ function Axes() {
   _axes.dataForPdpValuesForGroups = function(value) {
     if (!arguments.length) return dataForPdpValuesForGroups;
     dataForPdpValuesForGroups = value;
+    return _axes;
+  };
+
+  _axes.dataForFeatureImps = function(value) {
+    if (!arguments.length) return dataForFeatureImps;
+    dataForFeatureImps = value;
     return _axes;
   };
 

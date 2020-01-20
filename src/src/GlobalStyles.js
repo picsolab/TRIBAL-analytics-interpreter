@@ -116,7 +116,7 @@ export const lCom = {
       axis: {
         w: 20,
         h: ll.l2.h,
-        m: 10,
+        m: 5,
         cat: {
           // Additional axis for categories
           m: 10

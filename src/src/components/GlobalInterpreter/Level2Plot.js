@@ -52,7 +52,8 @@ function Level2Plot() {
       // dataBinLibWrongPredTweets,
       tweetsCorrPred,
       tweetsConWrongPred,
-      tweetsLibWrongPred
+      tweetsLibWrongPred,
+      currentModelInfo
     ] = dataLoader;
 
     const xFeatureScaleBandwidth = xFeatureScale(features[1].key) - xFeatureScale(features[0].key);
@@ -753,6 +754,7 @@ function Level2Plot() {
           .dataForFeatures(features)
           .dataForPdpValues(pdpValues)
           .dataForPdpValuesForGroups(pdpValuesForGroups)
+          .dataForFeatureImps(currentModelInfo.featureImps)
           .xFeatureScale(xFeatureScale)
           .width(15)
       );

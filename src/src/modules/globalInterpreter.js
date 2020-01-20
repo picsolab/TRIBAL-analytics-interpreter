@@ -217,7 +217,9 @@ const initialState = {
     }
   ],
   areFeaturesChecked: {valence: false},
-  currentModel: 'dt_0',
+  currentModelInfo: {
+    id: 'dt_0'
+  },
   models: [
     // {
     //   id: 'dt_0',
@@ -299,15 +301,21 @@ const globalInterpreter = (state = initialState, action) => {
     case RUN_DT:
       return {
         ...state,
-        currentModel: action.payload.modelId,
-        modelId: action.payload.modelId,
+        currentModelInfo: {
+          id: action.payload.modelId,
+          features: action.payload.features,
+          performance: action.payload.accuracy,
+          mode: state.globalMode,
+          featureImps: action.payload.featureImps
+        },
         models: [
           ...state.models,
           {
             id: action.payload.modelId,
             features: action.payload.features,
             performance: action.payload.accuracy,
-            mode: state.globalMode
+            mode: state.globalMode,
+            featureImps: action.payload.featureImps
           }
         ]
       };

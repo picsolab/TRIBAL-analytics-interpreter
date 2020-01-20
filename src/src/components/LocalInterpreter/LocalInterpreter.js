@@ -166,7 +166,7 @@ const QAView = ({
   contrastiveRules,
   contrastiveEXs,
   tweets,
-  currentModel,
+  currentModelInfo,
   diffRule,
   features
 }) => {
@@ -238,7 +238,7 @@ const QAView = ({
                       tweets: tweets,
                       selectedTweet: tweetForFirstTweet,
                       secondSelectedTweet: secondSelectedTweet,
-                      currentModel: currentModel,
+                      currentModelInfo: currentModelInfo,
                       features: features
                     })
                   );
@@ -331,7 +331,7 @@ const QAView = ({
                         tweets: tweets,
                         selectedTweet: tweetForFirstTweet,
                         secondSelectedTweet: secondSelectedTweet,
-                        currentModel: currentModel,
+                        currentModelInfo: currentModelInfo,
                         features: features,
                         isCFLoading: true
                       })
@@ -376,7 +376,7 @@ const QAView = ({
                         tweets: tweets,
                         selectedTweet: selectedTweet,
                         secondSelectedTweet: tweetForSecondTweet,
-                        currentModel: currentModel,
+                        currentModelInfo: currentModelInfo,
                         isCFLoading: true
                       })
                     );
@@ -436,7 +436,7 @@ const LocalInterpreter = ({
   qType,
   contrastiveRules,
   contrastiveEXs,
-  currentModel,
+  currentModelInfo,
   diffRule,
   features,
   isCFLoading
@@ -486,7 +486,7 @@ const LocalInterpreter = ({
           contrastiveEXs={contrastiveEXs}
           diffRule={diffRule}
           tweets={tweets}
-          currentModel={currentModel}
+          currentModelInfo={currentModelInfo}
           features={features}
         />
       </LocalInterpreterWrapper>
@@ -519,7 +519,7 @@ const LocalInterpreter = ({
         contrastiveEXs={contrastiveEXs}
         diffRule={diffRule}
         tweets={tweets}
-        currentModel={currentModel}
+        currentModelInfo={currentModelInfo}
         features={features}
       />
     </LocalInterpreterWrapper>

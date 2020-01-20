@@ -205,7 +205,7 @@ const GlobalInterpreter = props => {
   const dispatch = useDispatch();
   const {
     globalMode,
-    currentModel,
+    currentModelInfo,
     groups,
     features,
     selectedFeatures,
@@ -250,7 +250,7 @@ const GlobalInterpreter = props => {
       runDTThenRunClandPD({
         tweets: tweets,
         selectedFeatures: selectedFeatures,
-        modelId: currentModel,
+        modelId: currentModelInfo.id,
         groups: groups
       })
     );
@@ -350,10 +350,13 @@ const GlobalInterpreter = props => {
         features={features}
         selectedFeatures={selectedFeatures}
       />
-      <AbstrctFeaturePlotView numAbstractFeatures={numAbstractFeatures} globalMode={globalMode} />
+      <AbstrctFeaturePlotView 
+        numAbstractFeatures={numAbstractFeatures} 
+        globalMode={globalMode} 
+      />
       <FeaturePlotView
         globalMode={globalMode}
-        currentModel={currentModel}
+        currentModelInfo={currentModelInfo}
         groups={groups}
         numFeatures={numFeatures}
         goals={goals}

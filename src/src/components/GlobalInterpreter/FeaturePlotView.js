@@ -112,7 +112,7 @@ const FeaturePlotView = React.memo(
     pdpValuesForGroups,
     pdpValuesForCls,
     pdpValuesForClsGroups,
-    currentModel,
+    currentModelInfo,
     tfidf,
     cooc,
     isClusterSelected,
@@ -335,7 +335,8 @@ const FeaturePlotView = React.memo(
             // dataBinWrongPredTweetsForGroups,
             tweetsCorrPred,
             tweetsConWrongPred,
-            tweetsLibWrongPred
+            tweetsLibWrongPred,
+            currentModelInfo
           ])
           .xFeatureScale(xFeatureScale)
           .xOutputProbHistScale(xOutputProbHistScale)
@@ -393,7 +394,9 @@ const FeaturePlotView = React.memo(
       const dataFeatureToOutputLines = tweets.map(d => ({
         group: d.group,
         pred: d.pred,
+        prob: d.prob,
         clusterId: d.clusterId,
+        tweetId: d.tweetId,
         source: {
           x: xFeatureToOutputScale(0),
           y: lastFeature === 'continuous' 
@@ -447,24 +450,145 @@ const FeaturePlotView = React.memo(
       // ctx.globalAlpha = d3.min([1.15 / Math.pow(tweets.length, 0.3), 1]);
       // render(tweets);
 
-      // // Add and store a brush for each axis.
-      // d3.selectAll('.axis')
-      //   .append('g')
-      //   .attr('class', 'brush')
-      //   .each(function(d) {
-      //     d3.select(this).call(
-      //       (d.brush = d3
-      //         .brushY()
-      //         .extent([[-10, 0], [10, l.h]])
-      //         .on('start', brushstart)
-      //         .on('brush', brush)
-      //         .on('end', brush))
-      //     );
-      //   })
-      //   .selectAll('rect')
-      //   .attr('x', -8)
-      //   .attr('width', 16);
+      // Add and store a brush for each axis.
+      d3.selectAll('.g_axis')
+        .append('g')
+        .attr('class', 'brush')
+        .each(function(d) {
+          d3.select(this).call(
+            (d.brush = d3
+              .brushY()
+              .extent([[-10, 0], [10, l.h]])
+              .on('brush', brush)
+              .on('end', brushended))
+          );
+        })
+        .selectAll('rect')
+        .attr('x', -8)
+        .attr('width', 16)
+        .on('click', function(d){
+          console.log('click in');
+          d3.selectAll('.tweet_line')
+            .style('opacity', 0);
 
+          d3.selectAll('tweet_cat_line')
+            .style('stroke-width', (d) => d.lineHeight);
+
+          d3.select('mean_prob_text').remove();
+        });
+
+      function brush() {
+        const actives = [];
+        svg
+          .selectAll('.g_axis .brush')
+          .filter(function(d) {
+            return d3.brushSelection(this);
+          })
+          .each(function(d) {
+            actives.push({
+              dimension: d,
+              extent: d3.brushSelection(this)
+            });
+          });
+
+        function within(value, extent, dim) {
+          const selectedFeature = features.filter(d => d.key == dim)[0];
+          return (
+            extent[0] <= selectedFeature.scale(value) &&
+            selectedFeature.scale(value) <= extent[1]
+          );
+        }
+
+        const allContLines = d3.selectAll('.tweet_line');
+        const allCatLines = d3.selectAll('.tweet_cat_line');
+        const allLinesToOutput = d3.selectAll('.line_feature_to_output');
+        const filteredTweetIds = tweets
+          .filter(function(d) {
+            let dim = '';
+            if (
+              actives.every(function(active) {
+                console.log(active.extent)
+                dim = active.dimension;
+                
+                return within(d[dim.key], active.extent, dim.key);
+              })
+            ) {
+              return true;
+            }
+          }).map(e => e.tweetId);
+        const filteredLines = allContLines.filter(e => 
+            { return _.includes(filteredTweetIds, e.tweetId) });
+        const filteredOutputLines = allLinesToOutput.filter(e => {
+            return _.includes(filteredTweetIds, e.tweetId)
+          });
+
+        allCatLines.each(function(d, i) {
+          const catLine = d3.select(this);
+          // Adjust the stroke width of cat lines to the ratio of (existing tweets in filtered tweets) / (all tweets in cat line)
+          const numCatLineTweetsInAllTweets = d.tweetsInCatToCat.length;
+          const numCatLineTweetsInFilteredTweets = d.tweetsInCatToCat.filter(d => _.includes(filteredTweetIds, d.tweetId)).length;
+          const selectedTweetRatio = numCatLineTweetsInFilteredTweets / numCatLineTweetsInAllTweets;
+          console.log('selectedTweetRatio: ', selectedTweetRatio);
+          const catLineWidth = d.lineHeight;
+          const LineWidthForSelectedTweets = catLineWidth * selectedTweetRatio;
+          console.log('LineWidthForSelectedTweets: ', catLineWidth, selectedTweetRatio, LineWidthForSelectedTweets);
+          catLine
+            .style('stroke-width', LineWidthForSelectedTweets);
+        });
+        console.log('filteredOutputLines: ', filteredOutputLines);
+        allContLines.style('opacity', 0);
+        allLinesToOutput.style('opacity', 0);
+
+        filteredLines.style('opacity', 0.3);
+        filteredOutputLines.style('opacity', 0.3);
+
+        let avgProbForFilteredTweets = 0;
+        if (filteredOutputLines.length !== 0)
+          avgProbForFilteredTweets = _.mean(filteredOutputLines.data().map(d => d.prob));
+        
+        if (d3.select('.g_output_prob_plot').select('.mean_prob_text').empty()) {
+          d3.select('.g_output_prob_plot')
+            .append('text')
+            .attr('class', 'mean_prob_text')
+            .text('mean-prob: ' + Math.ceil(avgProbForFilteredTweets * 100) / 100);
+        } else {
+          d3.select('.g_output_prob_plot')
+            .select('.mean_prob_text')
+            .text('mean-prob: ' + Math.ceil(avgProbForFilteredTweets * 100) / 100);
+        }
+        
+
+        // For cat-to-cat lines
+        d3.selectAll('.tweet_cat_line').data().filter(d => d.tweetsInCatToCat)
+        
+        console.log('filtered tweet lines: ', filteredLines);
+      }
+
+      function brushended() {
+        // if (!d3.event.sourceEvent) return; // Only transition after input.
+        if (!d3.event.selection) {
+          console.log('click in');
+          d3.selectAll('.tweet_line')
+            .style('opacity', 0.3);
+
+          d3.selectAll('.tweet_cat_line')
+            .style('stroke-width', (d) => d.lineHeight);
+
+          d3.selectAll('.mean_prob_text').remove();
+        }
+        
+        // var d0 = d3.event.selection.map(y.invert),
+        //     d1 = d0.map(d3.timeDay.round);
+      
+        // // If empty when rounded, use floor & ceil instead.
+        // if (d1[0] >= d1[1]) {
+        //   d1[0] = d3.timeDay.floor(d0[0]);
+        //   d1[1] = d3.timeDay.offset(d1[0]);
+        // }
+      
+        // d3.select(this).transition().call(d3.event.target.move, d1.map(x));
+      }
+        
       // function project(d) {
       //   return features.map(function(feature, i) {
       //     // check if data element has property and contains a value
@@ -513,7 +637,7 @@ const FeaturePlotView = React.memo(
       //   d3.event.sourceEvent.stopPropagation();
       // }
 
-      // // Handles a brush event, toggling the display of foreground lines.
+      // Handles a brush event, toggling the display of foreground lines.
       // function brush() {
       //   render.invalidate();
 
@@ -577,8 +701,8 @@ const FeaturePlotView = React.memo(
       //       .style('display', null);
       // */
 
-      //   ctx.clearRect(0, 0, l.w, l.h);
-      //   ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
+      //   // ctx.clearRect(0, 0, l.w, l.h);
+      //   // ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
       //   render(selected);
       // } // end of brush()
 

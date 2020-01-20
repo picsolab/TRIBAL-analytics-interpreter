@@ -13,7 +13,7 @@ const GlobalInterpreterContainer = () => {
     } = useSelector(state => state.tweet, []),
     { clusters, clustersForGoals } = useSelector(state => state.cluster, []),
     {
-      currentModel,
+      currentModelInfo,
       goals,
       groups,
       features,
@@ -39,7 +39,7 @@ const GlobalInterpreterContainer = () => {
       clusters={clusters}
       clustersForGoals={clustersForGoals}
       // clusterIdsForTweets={clusterIdsForTweets}
-      currentModel={currentModel}
+      currentModelInfo={currentModelInfo}
       groups={groups}
       features={features}
       selectedFeatures={selectedFeatures}
