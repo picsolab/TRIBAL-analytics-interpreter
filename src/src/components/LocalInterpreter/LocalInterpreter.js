@@ -104,7 +104,6 @@ const AnswerWrapper = styled.div.attrs({
 })`
   width: 90%;
   height: 40px;
-  line-height: 3;
   margin: 5px 0;
   padding-left: 15px;
   font-weight: 600;
@@ -163,6 +162,7 @@ const QAView = ({
   selectedTweet,
   secondSelectedTweet,
   qType,
+  selectedTweetRules,
   contrastiveRules,
   contrastiveEXs,
   tweets,
@@ -180,7 +180,7 @@ const QAView = ({
       FEATURE-2: ...
     } 
   */
-
+  console.log('selectedTweetRules: ', selectedTweetRules)
   const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map((feature, idx) => {
     const subject = contrastiveRules[feature].subject;
     const inequality = contrastiveRules[feature].inequality;
@@ -200,7 +200,9 @@ const QAView = ({
     return inequalityStr + ' ' + feature + andStr;
   });
 
-  const pTypeAnswerStr = 'tweet ' + selectedTweet.tweetIdx + ' has ' + pTypeAnswerForFeatures.join(' ');
+  const pTypeAnswerStr = (!selectedTweetRules || selectedTweetRules.length === 0)
+      ? 'tweet ' + selectedTweet.tweetIdx + ' has '
+      : 'tweet ' + selectedTweet.tweetIdx + ' has ' + selectedTweetRules.join(', ')
 
   const {subject, feature, inequality, threshold} = diffRule;
   const firstSubjectStr = subject == 'first' ? 'tweet ' + selectedTweet.tweetIdx : 'tweet ' + secondSelectedTweet.tweetIdx;
@@ -257,22 +259,6 @@ const QAView = ({
             >
               {selectedTweet.pred === '1' ? 'blue camp' : 'red camp'}
             </CampIndicator>
-            &nbsp;
-            {' than '}
-            &nbsp;
-            <CampIndicator
-              style={{
-                backgroundColor: contrastiveEXs.length === 0 
-                  ? globalColors.group.lib
-                  : contrastiveEXs[0].pred === '1' 
-                    ? globalColors.group.lib 
-                    : globalColors.group.con
-              }}
-            >
-              {contrastiveEXs.length === 0 
-                ? 'blue camp'
-                : contrastiveEXs[0].pred === '1' ? 'blue camp' : 'red camp'}
-            </CampIndicator>{' '}
             &nbsp; ?
           </QuestionWrapper>
         </div>
@@ -288,7 +274,6 @@ const QAView = ({
               features={features} 
             />
           </SelectedInstanceWrapper>
-          <BetweenInstances>{'< >'}</BetweenInstances>
           <ContrastiveInstanceWrapper>
             {contrastiveEXs.map(contEX => (
               <div>
@@ -416,7 +401,6 @@ const QAView = ({
               features={features} 
             />
           </SelectedInstanceWrapper>
-          <BetweenInstances>{'< >'}</BetweenInstances>
           <SelectedInstanceWrapper>
             <div style={{fontSize: '0.8rem', fontWeight: 600}}>Second</div>
             <Document 
@@ -434,6 +418,7 @@ const LocalInterpreter = ({
   secondSelectedTweet,
   tweets,
   qType,
+  selectedTweetRules,
   contrastiveRules,
   contrastiveEXs,
   currentModel,
@@ -467,17 +452,6 @@ const LocalInterpreter = ({
           <SectionTitle>Instance-level comparison</SectionTitle>
           <Spin indicator={loadingIcon} />
         </div>
-        <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
-        &nbsp;
-        <Select
-          multiple={false}
-          value={qType}
-          onChange={e => {
-            dispatch({type: 'CHANGE_QTYPE', payload: e.option});
-          }}
-          options={['p-mode', 'o-mode']}
-          size={'small'}
-        />
         <QAView
           qType={qType}
           selectedTweet={selectedTweet}
@@ -500,21 +474,11 @@ const LocalInterpreter = ({
       <div>
         <SectionTitle>Instance-level comparison</SectionTitle>
       </div>
-      <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
-      &nbsp;
-      <Select
-        multiple={false}
-        value={qType}
-        onChange={e => {
-          dispatch({type: 'CHANGE_QTYPE', payload: e.option});
-        }}
-        options={['p-mode', 'o-mode']}
-        size={'small'}
-      />
       <QAView
         qType={qType}
         selectedTweet={selectedTweet}
         secondSelectedTweet={secondSelectedTweet}
+        selectedTweetRules={selectedTweetRules}
         contrastiveRules={contrastiveRules}
         contrastiveEXs={contrastiveEXs}
         diffRule={diffRule}

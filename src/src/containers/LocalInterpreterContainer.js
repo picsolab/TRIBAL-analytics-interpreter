@@ -17,6 +17,7 @@ const LocalInterpreterContainer = () => {
   const { 
     qType, 
     contrastiveRules, 
+    selectedTweetRules,
     contrastiveEXs, 
     diffRule,
     isCFLoading
@@ -31,6 +32,7 @@ const LocalInterpreterContainer = () => {
       secondSelectedTweet={secondSelectedTweet}
       features={features}
       qType={qType}
+      selectedTweetRules={selectedTweetRules}
       contrastiveRules={contrastiveRules}
       contrastiveEXs={contrastiveEXs}
       currentModel={currentModel}

@@ -784,9 +784,10 @@ class FindContrastiveExamples(APIView):
                         break
             
         time_check5 = time.time() - time_check1
+        print('selected_leaf_rules: ', selected_leaf_rules)
         print('time-check: ', time_check1, time_check2, time_check3, time_check4, time_check5)
         if q_type == 'p-mode':
-            return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
+            return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict, 'selectedTweetRules': selected_leaf_rules })
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
 

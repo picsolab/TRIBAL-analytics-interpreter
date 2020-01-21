@@ -89,6 +89,7 @@ const localInterpreter = (state = initialState, action) => {
           ? {
               ...state,
               selectedTweet: action.payload.selectedTweet,
+              selectedTweetRules: action.payload.selectedTweetRules,
               contrastiveRules: action.payload.contRules,
               contrastiveEXs: action.payload.contExamples,
               isCFLoading: false
