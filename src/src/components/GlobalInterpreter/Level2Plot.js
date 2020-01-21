@@ -756,6 +756,8 @@ function Level2Plot() {
           .xFeatureScale(xFeatureScale)
           .width(15)
       );
+
+    d3.select('.g_output_prob_plot').remove();
   }
 
   _level2Plot.dataLoader = function(value) {

@@ -466,7 +466,15 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             pdp_values_for_features = []
             for feature_idx, feature in enumerate(features):
                 pdp_values, feature_values = partial_dependence(model, X_for_groups[group_idx], [feature_idx], percentiles=(0, 1))
-                pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_dict(orient='records')
+                pdp_values_for_group = pdp_values[0]
+                
+                # Do 1 - (probability) if the group is not true class (since probability is possibility of being the group 1 (blue team))
+                if group_idx == 0:
+                    print('pdp_values_for_group_before: ', group_idx, pdp_values_for_group)
+                    pdp_values_for_group = [ 1- pdp_value for pdp_value in pdp_values_for_group ]
+                
+                print('pdp_values_for_group: ', group_idx, pdp_values_for_group)
+                pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values_for_group, 'featureValue': feature_values[0] }).to_dict(orient='records')
                 pdp_values_for_features.append({ 'feature': feature, 'values': pdp_values_json })
 
             pdp_values_for_groups.append({ 'group': group, 'valuesForFeatures': pdp_values_for_features })

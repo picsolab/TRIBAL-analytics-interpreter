@@ -617,6 +617,9 @@ const FeaturePlotView = React.memo(
           .updateOnClickCluster(updateOnClickCluster)
       );
 
+      gFeatureToOutputLines.remove();
+      gClusterPlot.remove();
+
       // if (globalMode !== 0) {
       //   //* Render Partial dependent plot (PDP)
       //   const gPDP = gLevel2
