@@ -224,7 +224,7 @@ const DocumentView = ({
         &nbsp;
       </div> */}
       <DocumentListWrapper>
-        <InfiniteScroll items={tweetList} step={10}>
+        <InfiniteScroll items={tweetList} step={20}>
           {item => (
             <Document
               tweet={item}
