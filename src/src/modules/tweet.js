@@ -7,6 +7,7 @@ import axios from 'axios';
 // Action type
 const FETCH_TWEETS = 'FETCH_TWEETS';
 const FETCH_WORDS = 'FETCH_WORDS';
+const FETCH_SEQS = 'FETCH_SEQS';
 const UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE =
   'UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE';
 const SELECT_TWEET = 'SELECT_TWEET';
@@ -124,37 +125,51 @@ export const fetchWords = ({ groups }) => {
   };
 };
 
-export const calculateTFIDFAndCooc = ({ tweets, words }) => {
+export const fetchSeqs = ({ opt }) => {
   return async dispatch => {
     await axios({
       method: 'post',
-      url: '/tweets/calculateTFIDFAndCooc/',
+      url: '/tweets/extractSeqs/',
       data: JSON.stringify({
-        tweets: tweets,
-        words: words
+        opt: opt
       })
     }).then(res => {
-      dispatch({ type: 'CAL_TFIDF_COOC', payload: res.data });
+      dispatch({ type: 'FETCH_SEQS', payload: res.data.seqs });
     });
   };
 };
 
-export function fetchWordsThenCalTFIDFAndCooc({ tweets, words, groups }) {
-  return (dispatch, getState) => {
-    // Remember I told you dispatch() can now handle thunks?
-    return dispatch(fetchWords({ groups: groups })).then(() => {
-      // Assuming this is where the fetched user got stored
-      const fetchedWords = getState().tweet.words;
-      // And we can dispatch() another thunk now!
-      return dispatch(
-        calculateTFIDFAndCooc({
-          tweets: tweets,
-          words: fetchedWords
-        })
-      );
-    });
-  };
-}
+// export const calculateTFIDFAndCooc = ({ tweets, words }) => {
+//   return async dispatch => {
+//     await axios({
+//       method: 'post',
+//       url: '/tweets/calculateTFIDFAndCooc/',
+//       data: JSON.stringify({
+//         tweets: tweets,
+//         words: words
+//       })
+//     }).then(res => {
+//       dispatch({ type: 'CAL_TFIDF_COOC', payload: res.data });
+//     });
+//   };
+// };
+
+// export function fetchWordsThenCalTFIDFAndCooc({ tweets, words, groups }) {
+//   return (dispatch, getState) => {
+//     // Remember I told you dispatch() can now handle thunks?
+//     return dispatch(fetchWords({ groups: groups })).then(() => {
+//       // Assuming this is where the fetched user got stored
+//       const fetchedWords = getState().tweet.words;
+//       // And we can dispatch() another thunk now!
+//       return dispatch(
+//         calculateTFIDFAndCooc({
+//           tweets: tweets,
+//           words: fetchedWords
+//         })
+//       );
+//     });
+//   };
+// }
 
 export function runDTThenRunClandPD({
   tweets,
@@ -188,6 +203,7 @@ export function runDTThenRunClandPD({
 const initialState = {
   tweets: [],
   words: [],
+  seqs: {},
   tweetsWithPredFeatures: [],
   tweetList: [],
   tweetListStatus: '',
@@ -214,6 +230,11 @@ const tweet = (state = initialState, action) => {
       return {
         ...state,
         words: action.payload
+      };
+    case FETCH_SEQS:
+      return {
+        ...state,
+        seqs: action.payload
       };
     case UPDATE_TWEETS_ON_CHANGING_GLOBAL_MODE:
       const updatedGlobalMode = action.payload;

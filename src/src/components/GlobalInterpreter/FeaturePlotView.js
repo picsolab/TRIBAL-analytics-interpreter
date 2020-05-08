@@ -10,9 +10,12 @@ import {StylesContext} from '@material-ui/styles/StylesProvider';
 import {globalColors, l, ll, lCom, SectionWrapper, SectionTitle, SubsectionTitle, SubTitle} from '../../GlobalStyles';
 import {globalScales} from '../../GlobalScales';
 
+import { Radio } from 'antd';
+
 import {renderQueue} from '../../lib/renderQueue';
 
 import SeqPlotView from './SeqPlotView';
+import SeqPlotView2 from './SeqPlotView2';
 
 import Level1Plot from './Level1Plot';
 import Level2Plot from './Level2Plot';
@@ -28,7 +31,7 @@ const FeaturePlotViewWrapper = styled.div.attrs({
   background-color: white;
   margin: 5px;
   padding: 5px;
-  border: 0.5px solid lightgray;
+  // border: 0.5px solid lightgray;
 `;
 
 const EmptyIndicator = styled.div.attrs({
@@ -103,8 +106,10 @@ const FeaturePlotView = React.memo(
     goals,
     tweets,
     clusters,
+    clusterIdsForTweets,
     clustersForGoals,
     words,
+    seqs,
     groups,
     features,
     isLoaded,
@@ -133,7 +138,7 @@ const FeaturePlotView = React.memo(
 
     useEffect(() => {
       const container = d3.select(ref.current),
-        svg = d3.select(ref2.current).style('margin-left', 10);
+        svg = d3.select(ref2.current);
 
       // // Clean up old elements before update
       d3.selectAll('.g_h_plot').remove();
@@ -157,6 +162,7 @@ const FeaturePlotView = React.memo(
       //   .append('g')
       //   .attr('class', 'g_level3')
       //   .attr('transform', 'translate(' + 0 + ',' + ll.l3.t + ')');
+
 
       const goalPlot = Level1Plot();
       const featurePlot = Level2Plot();
@@ -328,6 +334,8 @@ const FeaturePlotView = React.memo(
             groups,
             tweets,
             features,
+            clusters,
+            clusterIdsForTweets,
             pdpValues,
             pdpValuesForGroups,
             // dataBinCorrPredTweets,
@@ -736,7 +744,7 @@ const FeaturePlotView = React.memo(
 
       gClusterPlot.call(
         clusterPlot
-          .dataLoader([features, clusters, groups])
+          .dataLoader([features, clusters, groups, tweets])
           .scaleLoader([xFeatureScale, yClusterCoordScale, numTweetClusterScale, groupRatioScale, groupColorScales])
           .updateOnClickCluster(updateOnClickCluster)
       );
@@ -937,7 +945,7 @@ const FeaturePlotView = React.memo(
                 .data(pdpValuesPerFeature)
                 .enter()
                 .append('rect')
-                .attr('class', 'rect_pdp_' + feature.key)
+                .attr('class', 'rect_pdp rect_pdp_' + feature.key)
                 .attr('height', 10)
                 .attr('width', e => feature.pdScale(e.pdpValue))
                 .attr('x', 2)
@@ -959,7 +967,7 @@ const FeaturePlotView = React.memo(
                   .data(pdpValuesForGroupPerFeature)
                   .enter()
                   .append('rect')
-                  .attr('class', 'rect_pdp_' + feature.key + '_for_' + group.abbr)
+                  .attr('class', 'rect_pdp rect_pdp_' + feature.key + '_for_' + group.abbr)
                   .attr('height', 5)
                   .attr('width', e => feature.pdScale(e.pdpValue))
                   .attr('x', 2)
@@ -1344,6 +1352,28 @@ const FeaturePlotView = React.memo(
         >
           H-Plot
         </SubsectionTitle>
+        <div style={{ marginLeft: '10px'}}>
+          <Radio.Group 
+            onChange={e => {
+              if (e.target.value == 'pdp') {
+                d3.selectAll('.subgroup_rect').style('opacity', 0);
+                d3.selectAll('.path_pdp').style('opacity', '');
+                d3.selectAll('.area_pdp').style('opacity', '');
+                d3.selectAll('.rect_pdp').style('opacity', '');
+              } else if (e.target.value == 'subgroup') {
+                d3.selectAll('.subgroup_rect').style('opacity', '');
+                d3.selectAll('.path_pdp').style('opacity', 0);
+                d3.selectAll('.area_pdp').style('opacity', 0);
+                d3.selectAll('.rect_pdp').style('opacity', 0);
+              }
+            }}
+            defaultValue="pdp" 
+            buttonStyle="solid"
+          >
+            <Radio.Button value="subgroup">Subgroup</Radio.Button>
+            <Radio.Button value="pdp">PDP</Radio.Button>
+          </Radio.Group>
+        </div>
         <FeaturePlotViewWrapper
           ref={ref}
           // width={wholeWidth}
@@ -1407,10 +1437,11 @@ const FeaturePlotView = React.memo(
               preserveAspectRatio="xMinYMin" 
               ref={ref2}
             />
-            <SeqPlotView
+            <SeqPlotView2
               globalMode={globalMode}
               wordsInTweets={tweets}
               features={features}
+              seqs={seqs}
               isClusterSelected={isClusterSelected}
               tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
             />

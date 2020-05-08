@@ -51,5 +51,10 @@ urlpatterns = [
         regex=r'^findContrastiveExamples/$',
         view=views.FindContrastiveExamples.as_view(),
         name='find_contrastive_examples'
-    )
+    ),
+    url(
+        regex=r'^extractSeqs/$',
+        view=views.ExtractSeqs.as_view(),
+        name='extract_seqs'
+    ),
 ]

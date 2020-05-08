@@ -43,6 +43,8 @@ function Level2Plot() {
       groups,
       tweets,
       features,
+      clusters,
+      clusterIdsForTweets,
       pdpValues,
       pdpValuesForGroups,
       // dataBinCorrPredTweets,
@@ -746,18 +748,23 @@ function Level2Plot() {
     });
 
     //* Axes
-    const axesData = gFeaturePlot
-      .selectAll('.g_axis')
-      .data(features)
-      .call(
-        axes
-          .dataForFeatures(features)
-          .dataForPdpValues(pdpValues)
-          .dataForPdpValuesForGroups(pdpValuesForGroups)
-          .dataForFeatureImps(currentModelInfo.featureImps)
-          .xFeatureScale(xFeatureScale)
-          .width(15)
-      );
+    let axisMode = 'pdp';
+    gFeaturePlot
+        .selectAll('.g_axis')
+        .data(features)
+        .call(
+          axes
+            .axisMode(axisMode)
+            .dataForTweets(tweets)
+            .dataForClusters(clusters)
+            .dataForClusterIds(clusterIdsForTweets)
+            .dataForFeatures(features)
+            .dataForPdpValues(pdpValues)
+            .dataForPdpValuesForGroups(pdpValuesForGroups)
+            .dataForFeatureImps(currentModelInfo.featureImps)
+            .xFeatureScale(xFeatureScale)
+            .width(25)
+        );
   }
 
   _level2Plot.dataLoader = function(value) {

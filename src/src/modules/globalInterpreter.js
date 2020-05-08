@@ -234,6 +234,7 @@ const initialState = {
     //   modes: [{ name: 'mode-1', outputProbPlot: '', performance: '' }]
     // }
   ],
+  clusterIdsForTweets: [],
   pdpValues: [],
   pdpValuesForGroups: [],
   pdpValuesForCls: [],
@@ -322,6 +323,7 @@ const globalInterpreter = (state = initialState, action) => {
     case RUN_CL_N_CAL_PD_FOR_PDP_VALUES:
       return {
         ...state,
+        clusterIdsForTweets: action.payload.clusterIdsForTweets,
         pdpValues: action.payload.pdpValues,
         pdpValuesForGroups: action.payload.pdpValuesForGroups,
         pdpValuesForCls: action.payload.pdpValuesForCls,

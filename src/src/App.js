@@ -6,7 +6,7 @@ import './App.css';
 // import './index.css';
 import styled from 'styled-components';
 
-import {fetchTweets} from './modules/tweet';
+import {fetchTweets, fetchSeqs} from './modules/tweet';
 import {fetchUsers} from './modules/user';
 import {runDT} from './modules/globalInterpreter';
 
@@ -24,8 +24,8 @@ const Container = styled.div`
   width: 80%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 750px 450px;
-  grid-template-columns: 15% 15% 70%;
+  grid-template-rows: 50px 800px 450px;
+  grid-template-columns: 15% 12.5% 70%;
   grid-template-areas:
     'h h h'
     'e g g'
@@ -34,7 +34,7 @@ const Container = styled.div`
   font-size: 0.9rem;
   font-family: sans-serif;
   color: #404040;
-  background-color: whitesmoke;
+  // background-color: whitesmoke;
 `;
 
 const Header = styled.div`

@@ -11,7 +11,7 @@ import index from '../../index.css';
 import {StylesContext} from '@material-ui/styles/StylesProvider';
 import {globalColors, SectionWrapper, SectionTitle, SubsectionTitle, SubTitle} from '../../GlobalStyles';
 
-import {runDTThenRunClandPD, fetchWords, calculateTFIDFAndCooc, fetchWordsThenCalTFIDFAndCooc} from '../../modules/tweet';
+import {runDTThenRunClandPD, fetchWords, fetchSeqs} from '../../modules/tweet';
 import {runDT} from '../../modules/globalInterpreter';
 
 import Generator from './Generator';
@@ -211,6 +211,7 @@ const GlobalInterpreter = props => {
     selectedFeatures,
     tweets,
     words,
+    seqs,
     goals,
     tweetsWithPredFeatures,
     clusters,
@@ -243,6 +244,12 @@ const GlobalInterpreter = props => {
         groups: groups,
         tweets: tweets,
         words: words
+      })
+    );
+
+    dispatch(
+      fetchSeqs({
+        opt: 'static'
       })
     );
 
@@ -362,10 +369,11 @@ const GlobalInterpreter = props => {
         goals={goals}
         tweets={tweets}
         words={words}
+        seqs={seqs}
         features={selectedFeatures}
         clusters={clusters}
         clustersForGoals={clustersForGoals}
-        // clusterIdsForTweets={clusterIdsForTweets}
+        clusterIdsForTweets={clusterIdsForTweets}
         pdpValues={pdpValues}
         pdpValuesForGroups={pdpValuesForGroups}
         pdpValuesForCls={pdpValuesForCls}

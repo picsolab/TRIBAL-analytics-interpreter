@@ -6,12 +6,16 @@ const GlobalInterpreterContainer = () => {
   const {
       tweets,
       words,
+      seqs,
       tweetsWithPredFeatures,
       isLoaded,
       tfidf,
       cooc
     } = useSelector(state => state.tweet, []),
-    { clusters, clustersForGoals } = useSelector(state => state.cluster, []),
+    { clusters, 
+      clustersForGoals, 
+      clusterIdsForTweets 
+    } = useSelector(state => state.cluster, []),
     {
       currentModelInfo,
       goals,
@@ -29,16 +33,19 @@ const GlobalInterpreterContainer = () => {
 
   if (!tweets || tweets.length === 0) return <div />;
 
+  console.log('seqs: ', seqs);
+
   return (
     <GlobalInterpreter
       globalMode={globalMode}
       tweets={tweets}
       goals={goals}
       words={words}
+      seqs={seqs}
       tweetsWithPredFeatures={tweetsWithPredFeatures}
       clusters={clusters}
       clustersForGoals={clustersForGoals}
-      // clusterIdsForTweets={clusterIdsForTweets}
+      clusterIdsForTweets={clusterIdsForTweets}
       currentModelInfo={currentModelInfo}
       groups={groups}
       features={features}

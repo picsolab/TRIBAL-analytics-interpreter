@@ -7,9 +7,9 @@
     {
       "name": "Python: Django",
       "type": "python",
-      "request": "",
+      "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["runserver", "--noreload"],
+      "args": ["runserver", "8005", "--noreload"],
       "django": true
     },
     {

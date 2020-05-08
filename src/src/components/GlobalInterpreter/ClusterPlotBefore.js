@@ -9,7 +9,7 @@ function ClusterPlot() {
   let updateOnClickCluster = function() {};
 
   function _clusterPlot(selection) {
-    const [features, clusters, groups] = dataLoader;
+    const [features, clusters, groups, tweets] = dataLoader;
 
     const [xFeatureScale, yClusterCoordScale, numTweetClusterScale, groupRatioScale, groupColorScales] = scaleLoader;
 
@@ -37,9 +37,14 @@ function ClusterPlot() {
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
       .on('mouseover', function(d) {
         d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
+        console.log('cluster: ', d);
+        d3.selectAll('.subgroup_rect_' + d.clusterId)
+            .style('stroke-width', 1.5);
       })
       .on('mouseout', function(d) {
         d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
+        d3.selectAll('.subgroup_rect_' + d.clusterId)
+            .style('stroke-width', 0.5);
       })
       .on('click', updateOnClickCluster);
 

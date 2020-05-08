@@ -61,7 +61,7 @@ export const ll = {
   },
   l2: {
     t: l.h * 0.32,
-    h: l.h * 0.6
+    h: l.h * 0.65
   },
   l2ToL3: {
     t: l.h * 0.9,
@@ -85,7 +85,7 @@ export const lCom = {
   hPlot: {
     // in the context of svg
     t: 0,
-    l: 25,
+    l: 0,
     w: l.w * 0.55,
     h: l.h * 0.9,
     goalPlot: {
@@ -114,7 +114,7 @@ export const lCom = {
         m: 15
       },
       axis: {
-        w: 20,
+        w: 50,
         h: ll.l2.h,
         m: 5,
         cat: {
@@ -123,7 +123,7 @@ export const lCom = {
         }
       },
       pdp: {
-        w: 20
+        w: 40
       }
     },
     wordPlot: {
@@ -136,13 +136,13 @@ export const lCom = {
     }
   },
   fromFtoO: {
-    l: l.w * 0.575,
+    l: l.w * 0.6,
     w: l.w * 0.05
   },
   outputProbPlot: {
     t: ll.l2.t,
     h: ll.l2.h,
-    l: l.w * 0.625,
+    l: l.w * 0.66,
     w: 80
   },
   clusterPlot: {
@@ -201,8 +201,6 @@ export const SubsubsectionTitle = styled.div.attrs({
   font-weight: 550;
   // border-bottom: 2px solid gray;
   padding-bottom: 2px;
-  margin-top: 20px;
-  margin-bottom: 10px;
   font-size: 0.7rem;
   text-transform: uppercase;
   color: gray;

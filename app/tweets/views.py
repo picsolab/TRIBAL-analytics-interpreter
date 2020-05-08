@@ -484,6 +484,8 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
         # Calculate PD-per-clusters (for all and for groups)
         pdp_values_for_cls = []
         pdp_values_for_cls_and_groups = []
+        instances_for_clusters = []
+        # df_tweets_by_cluster.to_csv('./app/static/df_tweets_by_cluster.csv')
         for cl_idx in df_tweets_by_cluster.groups.keys():
             # Prepare data for PD per cluster
             indexes = df_tweets_by_cluster.groups[cl_idx]
@@ -523,9 +525,30 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
             'groupRatio': df_group_ratio['group_lib_ratio']
         })
 
+        # for cl_idx in range(len(cat_permutations)):
+        #     df_instances_for_lv['idx'] = list(df_instances_for_lv.index)
+        #     instances_idx_for_cl = cls_idx_list[cl_idx]
+        #     prototypes_idx_for_cl = protos_idx_list[cl_idx]
+        #     instances_for_cl = df_instances_for_lv.loc[instances_idx_for_cl]
+        #     prototypes_for_cl = df_instances_for_lv.loc[prototypes_idx_for_cl]
+        #     prototype_feature_list = [ {'name': feature_name, 'value': feature_value } for feature_name, feature_value in prototypes_for_cl.to_dict().items() if feature_name != 'idx' ]
+        #     prototype = {
+        #         'idx': df_instances_for_lv.loc[prototypes_idx_for_cl, 'idx'],
+        #         'features': prototype_feature_list  # [ {'name': 'air pollution', 'value': 1}, ... ]
+        #     }
+
+        #     cl_list.append({
+        #         'idx': cl_idx,
+        #         'lvIdx': lv_idx,
+        #         'sortedIdx': cl_idx,
+        #         'instances': instances_for_cl.to_dict('records'),
+        #         'prototype': prototype
+        #     })
+
         return Response({
             'clusters': df_clusters.to_dict(orient='records'),
-            'clusterIdsForTweets': cluster_ids,
+            # 'instances': df_tweets.to_dict(orient),
+            'clusterIdsForTweets': list(cluster_ids),
             'clustersForGoals': clusters_per_goals,
             'pdpValues': pdp_values_for_all,
             'pdpValuesForGroups': pdp_values_for_groups,
@@ -801,7 +824,6 @@ class FindContrastiveExamples(APIView):
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
 
 class CalculateTFIDFAndCooc(APIView): # Calculate TFIDF and Co-occurrence matrix
-
     def post(self, request, format=None):
         # tweets and words
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
@@ -837,3 +859,38 @@ class CalculateTFIDFAndCooc(APIView): # Calculate TFIDF and Co-occurrence matrix
         cooc_dict = cooccurrence_mat.to_dict(orient='dict')
 
         return Response({'tfidf': {}, 'cooc': cooc_dict})
+
+
+class ExtractSeqs(APIView):
+    def post(self, request, format=None):
+        request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        opt = request_json['opt']
+
+        if opt == 'static':
+            f = open('./app/static/data/imp_seqs.json', "r") 
+            imp_seqs = json.loads(f.read())
+        else:
+            feature_list = ['v','d','a','f','h','l','p']
+            imp_seqs = {}
+
+            for feature in feature_list:
+                print('feature: ', feature)
+                imp_seqs[feature] = []
+                test = dl.model_loader(feature, None)
+                tid_group_post_dict = test.normalize_group_posterior()
+                tid_construct_post_dict = test.normalize_construct_posterior()
+                tid_score_dict = test.normalize_imp_score()
+                tid_att_for_seq_dict = test.get_attentions_for_seqs()
+                
+                data, tweets = test.get_most_important(n=10)
+                for tid in tweets:
+                    imp_seqs[feature].append({
+                        'seq': ' '.join(data[tid]['seq']),
+                        'attForSeq': tid_att_for_seq_dict[tid],
+                        'score': tid_score_dict[tid],
+                        'featureProb': tid_construct_post_dict[tid],
+                        'groupProb': tid_group_post_dict[tid],
+                    })
+        print('imp_seqs: ', imp_seqs)
+
+        return Response({'seqs': imp_seqs })

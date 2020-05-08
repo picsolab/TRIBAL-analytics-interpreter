@@ -67,6 +67,16 @@ code {
   stroke-width: 2px;
 }
 
+.g_plot_x_axis line,
+.g_plot_y_axis line {
+  stroke-dasharray: 2, 2;
+  stroke: #999;
+}
+
+.seq_text {
+  font-size: 0.8rem;
+}
+
 .doc_selected {
   background-color: whitesmoke !important;
   border: 2px solid lightgray !important;

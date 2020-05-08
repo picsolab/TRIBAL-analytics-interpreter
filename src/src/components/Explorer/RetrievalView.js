@@ -51,9 +51,9 @@ const RetrievalView = ({ numRetrievedTweets }) => {
   const { Search } = Input;
   return (
     <RetrievalViewWrapper>
-      <div style={{ display: 'flex' }}>
+      {/* <div style={{ display: 'flex' }}>
         <SectionTitle>Retrieval</SectionTitle>
-      </div>
+      </div> */}
       <Search
         style={{ margin: '10px 0' }}
         placeholder="Search tweets"

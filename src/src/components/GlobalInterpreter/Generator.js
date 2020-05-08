@@ -16,7 +16,8 @@ import { deepMerge } from 'grommet/utils';
 
 import {
   TreeSelect,
-  Table
+  Table,
+  Slider
 } from 'antd';
 
 import index from '../../index.css';
@@ -223,6 +224,51 @@ const Generator = props => {
         />
       </Form>
       <div style={{ height: '30px' }} />
+      <div>
+        <SubsectionTitle>SEQUENCE</SubsectionTitle>
+        <div>
+          <SubsubsectionTitle>Ranking</SubsubsectionTitle>
+          <Slider 
+            className={'ddd'}
+            step={0.05} 
+            min={0}
+            max={1}
+            value={0.1}
+            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
+            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
+            style={{ width: '90%', margin: '5px 0' }}
+            // onChange={} 
+          />
+        </div>
+        <div>
+          <SubsubsectionTitle>Length</SubsubsectionTitle>
+          <Slider 
+            className={'ddd'}
+            step={0.05} 
+            min={0}
+            max={1}
+            value={0.1}
+            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
+            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
+            style={{ width: '90%', margin: '5px 0' }}
+            // onChange={} 
+          />
+        </div>
+        <div>
+          <SubsubsectionTitle>Ranking</SubsubsectionTitle>
+          <Slider 
+            className={'ddd'}
+            step={0.05} 
+            min={0}
+            max={1}
+            value={0.1}
+            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
+            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
+            style={{ width: '90%', margin: '5px 0' }}
+            // onChange={} 
+          />
+        </div>
+      </div>
     </GeneratorWrapper>
   );
 };
