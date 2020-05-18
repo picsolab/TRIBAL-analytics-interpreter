@@ -78,15 +78,16 @@ function Axes() {
           .attr('y', -lCom.hPlot.featurePlot.axis.m)
           .attr('width', lCom.hPlot.featurePlot.axis.w)
           .attr('height', lCom.hPlot.featurePlot.axis.h + lCom.hPlot.featurePlot.axis.m * 2)
-          .style('stroke', 'gray')
+          .style('stroke', 'black')
           .style('stroke-width', 2)
           .style('fill', 'whitesmoke')
           .style('fill-opacity', 0.5);
 
         // Feature titles
         gfeatureAxis
+          .datum(feature)
           .append('text')
-          .attr('class', 'feature_title')
+          .attr('class', 'feature_title_in_axis')
           .text(feature.key)
           .attr("transform", "rotate(-25 20 -30)")
           .attr('x', lCom.hPlot.featurePlot.titles.m - 10)

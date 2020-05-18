@@ -9,7 +9,7 @@ from . import models
 
 import pandas as pd
 import numpy as np
-import json, math, pickle, collections, pydot
+import json, math, pickle, collections
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
@@ -23,6 +23,8 @@ from sklearn.preprocessing import normalize
 from collections import Counter
 from io import StringIO
 import time
+
+from static.models import dl
 
 # A tweet as json
 '''
@@ -511,7 +513,13 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
                 pdp_values_for_cls_and_features = []
                 for feature_idx, feature in enumerate(features):
                     pdp_values, feature_values = partial_dependence(model, X_for_groups[group_idx], [feature_idx], percentiles=(0, 1))
-                    pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values[0], 'featureValue': feature_values[0] }).to_dict(orient='records')
+                    pdp_values_cl_for_group = pdp_values[0]
+
+                    if group_idx == 0:
+                        print('pdp_values_for_group_before: ', group_idx, pdp_values_for_group)
+                        pdp_values_cl_for_group = [ 1- pdp_value for pdp_value in pdp_values_cl_for_group ]
+
+                    pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_group, 'featureValue': feature_values[0] }).to_dict(orient='records')
                     pdp_values_for_cls_and_features.append({ 'feature': feature, 'values': pdp_values_cl_json })
                 
                 pdp_values_for_cls_and_groups.append({ 'cluster': cl_idx, 'group': group, 'valuesForFeatures': pdp_values_for_cls_and_features })
@@ -864,7 +872,12 @@ class CalculateTFIDFAndCooc(APIView): # Calculate TFIDF and Co-occurrence matrix
 class ExtractSeqs(APIView):
     def post(self, request, format=None):
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
+        mode = request_json['mode'] # all or cluster
         opt = request_json['opt']
+        tweet_ids = request_json['tweetIds']
+        weights = request_json['seqWeights']
+
+        print('mode: ', mode, opt, tweet_ids)
 
         if opt == 'static':
             f = open('./app/static/data/imp_seqs.json', "r") 
@@ -876,7 +889,7 @@ class ExtractSeqs(APIView):
             for feature in feature_list:
                 print('feature: ', feature)
                 imp_seqs[feature] = []
-                test = dl.model_loader(feature, None)
+                test = dl.model_loader(feature, mode, tweet_ids, weights['post'], weights['ranking'], weights['length'], weights['freq'], None)
                 tid_group_post_dict = test.normalize_group_posterior()
                 tid_construct_post_dict = test.normalize_construct_posterior()
                 tid_score_dict = test.normalize_imp_score()

@@ -9,7 +9,7 @@ function ClusterPlot() {
   let updateOnClickCluster = function() {};
 
   function _clusterPlot(selection) {
-    const [features, clusters, groups, tweets] = dataLoader;
+    const [features, clusters, groups, tweets, clusterIdsForTweets] = dataLoader;
 
     const [xFeatureScale, yClusterCoordScale, numTweetClusterScale, groupRatioScale, groupColorScales] = scaleLoader;
 
@@ -28,7 +28,7 @@ function ClusterPlot() {
       .data(clusters)
       .enter()
       .append('circle')
-      .attr('class', (d, i) => 'cluster_circles cluster_circles_' + d.clusterId)
+      .attr('class', (d, i) => 'cluster_circle cluster_circle_' + d.clusterId)
       .attr('cx', 0)
       .attr('cy', d => yClusterCoordScale(d.clusterId) + yClusterCoordScale.bandwidth() / 2)
       .attr('r', d => numTweetClusterScale(d.numTweets))
@@ -49,7 +49,9 @@ function ClusterPlot() {
       .on('click', updateOnClickCluster);
 
     const clusterTitle = selection
+      .datum(clusterIdsForTweets)
       .append('text')
+      .attr('class', 'cluster_plot_title')
       .text('Cluster')
       .attr('x', -60)
       .attr('y', 0);

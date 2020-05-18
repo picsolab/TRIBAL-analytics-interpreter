@@ -125,13 +125,16 @@ export const fetchWords = ({ groups }) => {
   };
 };
 
-export const fetchSeqs = ({ opt }) => {
+export const fetchSeqs = ({ opt, mode, tweetIds, seqWeights }) => {
   return async dispatch => {
     await axios({
       method: 'post',
       url: '/tweets/extractSeqs/',
       data: JSON.stringify({
-        opt: opt
+        opt: opt,
+        mode: mode,
+        tweetIds: tweetIds,
+        seqWeights: seqWeights
       })
     }).then(res => {
       dispatch({ type: 'FETCH_SEQS', payload: res.data.seqs });

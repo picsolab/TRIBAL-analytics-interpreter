@@ -44,7 +44,7 @@ const ContentDiv = styled.div.attrs({
   font-size: 0.8rem;
 `;
 
-const IndexIndicator = styled.div.attrs({
+const IndexIndicatorWrapper = styled.div.attrs({
   className: 'index_indicator'
 })`
   height: 20px;
@@ -58,10 +58,9 @@ const IndexIndicator = styled.div.attrs({
 const DocumentWrapper = styled.div.attrs({
   className: 'doc_wrapper'
 })`
-  border: 1px solid black;
+  border: 0.5px solid #e4e4e4;
   padding: 3px;
   margin: 5px 0;
-  border: 0.5px solid #dad9d9;
   background-color: white;
 `;
 
@@ -201,13 +200,49 @@ const ScoreView = ({ tweet, features }) => {
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
-      .data(features.map(d => d.abbr))
+      .data(features)
       .enter()
       .append('text')
-      .text(d => d)
+      .attr('class', d => 'feature_title ' + d.key)
+      .text(d => d.abbr)
       .attr('x', (d, i) => xFeatureScale(i))
       .attr('y', (d, i) => layout.svg.height)
-      .style('font-size', '0.6rem');
+      .style('font-size', '0.6rem')
+      .on('click', function(d) {
+        const tweetIdx = d3.select(this.parentNode.parentNode.parentNode).attr('class').split('_')[1];
+
+        d3.select(this)
+          .style('fill', 'red')
+          .style('font-weight', 600);
+
+        console.log(tweet.tweetIdx)
+        console.log('tweet content: ', d3.select('.doc_' + tweetIdx)
+        .select('.content').html());
+        let content = d3.select('.doc_' + tweetIdx)
+          .select('.content').html().toLowerCase();
+        const contentArr = content.split(' ');
+
+        const impSeq = tweet[d.key + 'Seq'].toLowerCase();
+
+        console.log(tweet.tweetIdx, tweetIdx);
+        console.log(content);
+        console.log(impSeq);
+
+        let impSeqArr = impSeq.split(' ');
+        let startIdx = contentArr.indexOf(impSeqArr[0].toLowerCase()),
+            endIdx = contentArr.indexOf(impSeqArr[impSeqArr.length-1].toLowerCase());
+        
+        let htmlForImpSeq = '<span style="font-weight: 600; background-color: #ffe000;">' + impSeq + '</span>';
+        const updatedSeqArr = [ ...contentArr.slice(0, startIdx), htmlForImpSeq, ...contentArr.slice(endIdx+1) ];
+        const updatedSeqHtml = updatedSeqArr.join(' ');
+
+        d3.select('.doc_' + tweetIdx)
+          .select('.content')
+          .each(function(d) { 
+            d3.select(this).html(updatedSeqHtml);
+            // d3.select(this).text(updatedSeqHtml);
+          });
+      });
   }, [tweet, ref.current]);
 
   return (
@@ -219,6 +254,67 @@ const ScoreView = ({ tweet, features }) => {
   );
 };
 
+const IndexIndicator = props => {
+  const { 
+    tweet
+  } = props;
+  return (
+    <IndexIndicatorWrapper
+      tweet={{ tweet: tweet }}
+      data-tweet-id={tweet.tweetIdx}
+      data-tweet={{ tweet: tweet }}
+      onClick={e => {
+        const selectedTweetEl = d3.select(e.target);
+        if (selectedTweetEl.classed('tweet_index_indicator_highlighted') == false) {
+          highlightSelectedTweet(true);
+        } else {
+          highlightSelectedTweet(false);
+        }
+        
+        function highlightSelectedTweet(isHighlighted) {
+          d3.select(e.target).classed('tweet_index_indicator_highlighted', isHighlighted);
+
+          // for continous features (individual lines)
+          const tweetLine = d3.selectAll('.tweet_line_' + tweet.tweetIdx).raise()
+            .classed('tweet_line_highlighted', isHighlighted);
+
+          // for categorical features (for aggregated line), go over selected features by looking at the feature titles
+          const features = d3.selectAll('.feature_title_in_axis').data();
+          features.forEach(function(feature, i) {
+            if (features[i].type == 'categorical') {
+              d3.selectAll('.aux_axis_for_cat_features_' + features[i].key + '_' + tweet[feature.key])
+                .classed('aux_axis_highlighted', isHighlighted);
+            }
+            console.log(feature);
+            if (i < features.length-1) {
+              const currFeatureValue = tweet[features[i].key],
+                nextFeatureValue = tweet[features[i+1].key];
+
+              if ((features[i].type == 'categorical') && (features[i+1].type == 'categorical')) {
+                d3.select('.tweet_cat_line_' + currFeatureValue + '_' + nextFeatureValue + '.from_' + features[i].abbr + '.to_' + features[i+1].abbr)
+                  .raise()
+                  .classed('tweet_line_highlighted', isHighlighted);
+              }
+              
+            }
+            
+          });
+
+          // for line from feature to output
+          const featureToOutputLine = d3.selectAll('.line_feature_to_output_' + tweet.tweetIdx).raise()
+            .classed('tweet_line_highlighted', isHighlighted);
+
+          // highilght the subgroup it belongs 
+          const clusterIdsForTweets = d3.select('.cluster_plot_title').datum();
+          const clusterIdForHighlightedTweet = clusterIdsForTweets[tweet.tweetIdx];
+          const clusterForHighlightedTweet = d3.select('.cluster_circle_' + clusterIdForHighlightedTweet)
+            .classed('cluster_for_highlighted', isHighlighted);
+        }
+      }}
+    >{tweet.tweetIdx}
+    </IndexIndicatorWrapper>
+  );
+}
 const Document = props => {
   const { 
     tweet, 
@@ -230,11 +326,13 @@ const Document = props => {
     return <div />;
   return (
     <DocumentWrapper
-      className={'doc_' + tweet.group + (isSelected ? ' doc_selected ' : '')}
+      className={'doc_' + tweet.tweetIdx + (isSelected ? ' doc_selected ' : '')}
+      tweet={tweet}
+      data-tag={tweet}
       // style={isSelected ? { backgroundColor: '#dad9d9' } : {}}
     >
       <div
-        className={'doc_' + tweet.id}
+        className={'doc_' + tweet.tweetIdx}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -258,6 +356,7 @@ const Document = props => {
                 .style('opacity', 0.5);
             } else {
               // to encode the selection
+
 
               // Cancel all effects
               d3.selectAll('.doc_glyph')
@@ -339,9 +438,13 @@ const Document = props => {
           features={features} 
         />
       </div>
-      <div style={{ display: 'flex' }}>
+      <div 
+        className={'contentWrapper'}
+        style={{ display: 'flex' }}>
         <ContentDiv>{tweet.rawContent}</ContentDiv>
-        <IndexIndicator>{tweet.tweetIdx}</IndexIndicator>
+        <IndexIndicator 
+          tweet={tweet}
+        />
       </div>
     </DocumentWrapper>
   );

@@ -23,7 +23,8 @@ const ExplorerWrapper = styled.div.attrs({
     'rt'
     'd'
     'l';
-  background-color: whitesmoke;
+  // background-color: whitesmoke;
+  border-right: solid 1px lightgray;
 `;
 
 const Explorer = ({

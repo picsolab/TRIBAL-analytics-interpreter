@@ -24,7 +24,7 @@ const Container = styled.div`
   width: 80%;
   margin: 10px auto;
   display: grid;
-  grid-template-rows: 50px 800px 450px;
+  grid-template-rows: 50px 900px 450px;
   grid-template-columns: 15% 12.5% 70%;
   grid-template-areas:
     'h h h'
@@ -41,15 +41,15 @@ const Header = styled.div`
   grid-area: h;
   width: 100%;
   height: 50px;
-  border-bottom: 1px solid darkgray;
+  // border-bottom: 1px solid darkgray;
   display: flex;
   align-items: center;
-  background-color: ${globalColors.feature};
+  // background-color: ${globalColors.feature};
   padding-left: 15px;
 `;
 
 const Title = styled.div`
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: black;
 `;
@@ -76,7 +76,7 @@ function App() {
   return (
     <Container className={Container}>
       <Header className={Header} style={{display: 'flex'}}>
-        <Title className=".App-link">TRIBAL:::&nbsp;
+        <Title className=".App-link">TRIBAL&nbsp;
           <span style={{ 
             'font-size': '1.5rem',
             'color': 'white' 

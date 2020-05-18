@@ -51,6 +51,14 @@ code {
   font-weight: bolder;
 }
 
+.g_output_prob_plot line {
+  stroke-width: 2px;
+}
+
+.g_output_prob_plot text {
+  font-size: 13px;
+}
+
 .g_word_x_axis line {
   stroke: none;
 }
@@ -71,6 +79,25 @@ code {
 .g_plot_y_axis line {
   stroke-dasharray: 2, 2;
   stroke: #999;
+}
+
+.tweet_index_indicator_highlighted {
+  border: solid 2px black;
+}
+
+.tweet_line_highlighted {
+  stroke-width: 3 !important;
+  stroke: black !important;
+  opacity: 1 !important;
+}
+
+.aux_axis_highlighted {
+  stroke: black !important;
+}
+
+.cluster_for_highlighted {
+  stroke-width: 3 !important;
+  stroke: black !important;
 }
 
 .seq_text {
@@ -98,18 +125,19 @@ code {
 }
 
 .d3-tooltip {
-  line-height: 1.5;
-  font-weight: 400;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  padding: 6px;
+  /* background: rgba(0, 0, 0, 0.8);
   color: #fff;
-  border-radius: 2px;
-  pointer-events: none;
+  border-radius: 4px; */
+  border: solid 2px black;
+  background: white;
+  font-size: 12px;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tooltip:after {
-  /* box-sizing: border-box; */
+  box-sizing: border-box;
   display: inline;
   font-size: 10px;
   width: 100%;

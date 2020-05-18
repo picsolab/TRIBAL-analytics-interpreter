@@ -10,6 +10,8 @@ import {StylesContext} from '@material-ui/styles/StylesProvider';
 import {globalColors, l, ll, lCom, SectionWrapper, SectionTitle, SubsectionTitle, SubTitle} from '../../GlobalStyles';
 import {globalScales} from '../../GlobalScales';
 
+import {fetchSeqs} from '../../modules/tweet';
+
 import { Radio } from 'antd';
 
 import {renderQueue} from '../../lib/renderQueue';
@@ -26,7 +28,6 @@ import ClusterPlotBefore from './ClusterPlotBefore';
 const FeaturePlotViewWrapper = styled.div.attrs({
   className: 'feature_plot_view_wrapper'
 })`
-  grid-area: f;
   height: 100%;
   background-color: white;
   margin: 5px;
@@ -158,11 +159,6 @@ const FeaturePlotView = React.memo(
           .append('g')
           .attr('class', 'g_level2')
           .attr('transform', 'translate(' + 0 + ',' + ll.l2.t + ')');
-      // gLevel3 = gHPlot
-      //   .append('g')
-      //   .attr('class', 'g_level3')
-      //   .attr('transform', 'translate(' + 0 + ',' + ll.l3.t + ')');
-
 
       const goalPlot = Level1Plot();
       const featurePlot = Level2Plot();
@@ -210,26 +206,6 @@ const FeaturePlotView = React.memo(
         dataBinCorrPredTweetsForGroups.push(dataBinCorrPredTweets);
         dataBinWrongPredTweetsForGroups.push(dataBinWrongPredTweets);
       });
-      // Settings for outputProbPlot
-      // const dataBinCorrectPredTweets = d3
-      //     .histogram()
-      //     .domain([0, 1])
-      //     .value(d => d.prob)
-      //     .thresholds(d3.range(0, 1, 0.05))(tweetsCorrectPred),
-      //   dataBinConWrongPredTweets = d3
-      //     .histogram()
-      //     .domain([0, 1])
-      //     .value(d => d.prob)
-      //     .thresholds(d3.range(0, 1, 0.05))(tweetsConWrongPred),
-      //   dataBinLibWrongPredTweets = d3
-      //     .histogram()
-      //     .domain([0, 1])
-      //     .value(d => d.prob)
-      //     .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPred);
-
-      // const maxFreq = _.max(dataBinCorrectPredTweets.map(d => d.length)),
-      //   maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
-      //   maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
 
       //* Scales
       const xFeatureScale = d3
@@ -364,14 +340,6 @@ const FeaturePlotView = React.memo(
           .xClusterPerGoalScale(xClusterPerGoalScale)
       );
 
-      // gLevel3.call(
-      //   wordPlot
-      //     .dataForWords(words)
-      //     .dataForCooc(cooc)
-      //     .xWordScale(xWordScale)
-      //     .coocThreshold(0.2)
-      // );
-
       //* Render components in between
       //* Render featuresToWords lines
       const lineFromFtoW = d3
@@ -405,6 +373,7 @@ const FeaturePlotView = React.memo(
         prob: d.prob,
         clusterId: d.clusterId,
         tweetId: d.tweetId,
+        tweetIdx: d.tweetIdx,
         source: {
           x: xFeatureToOutputScale(0),
           y: lastFeature === 'continuous' 
@@ -417,12 +386,16 @@ const FeaturePlotView = React.memo(
         }
       }));
 
-      const featureToOutputLinesData = gFeatureToOutputLines.selectAll('.line_feature_to_output').data(dataFeatureToOutputLines);
+      const featureToOutputLinesData = gFeatureToOutputLines
+        .selectAll('.line_feature_to_output')
+        .data(dataFeatureToOutputLines);
+
       // prettier-ignore
       featureToOutputLinesData
         .enter()
         .append('path')
-        .attr('class', d => 'line_feature_to_output line_feature_to_output_' + d.clusterId)
+        .attr('class', d => 'line_feature_to_output line_feature_to_output_' + d.tweetIdx 
+          + ' line_feature_to_output_cl_' + d.clusterId)
         .attr('d', drawFeatureToOutputLines)
         .style('fill', 'none')
         .style('stroke', d =>
@@ -436,27 +409,6 @@ const FeaturePlotView = React.memo(
       featureToOutputLinesData.attr('d', drawFeatureToOutputLines);
 
       featureToOutputLinesData.exit().remove();
-
-      //8 For feature plots, render canvas paths
-      // const render = renderQueue(draw).rate(30);
-
-      // const devicePixelRatio = window.devicePixelRatio || 1;
-      // const canvas = container
-      //   .append('canvas')
-      //   .attr('class', 'canvas_tweet_paths')
-      //   .attr('width', lCom.hPlot.w)
-      //   .attr('height', lCom.hPlot.featurePlot.h)
-      //   .style('top', -lCom.hPlot.w + lCom.hPlot.featurePlot.t - 15 + 'px')
-      //   .style('left', lCom.hPlot.l + 'px')
-      //   .style('z-index', -1);
-
-      // const ctx = canvas.node().getContext('2d');
-      // // ctx.globalCompositeOperation = 'darken';
-      // // ctx.globalAlpha = 1;
-      // ctx.lineWidth = 0.7;
-      // // ctx.clearRect(0, 0, layout.width, layout.height);
-      // ctx.globalAlpha = d3.min([1.15 / Math.pow(tweets.length, 0.3), 1]);
-      // render(tweets);
 
       // Add and store a brush for each axis.
       d3.selectAll('.g_axis')
@@ -472,8 +424,8 @@ const FeaturePlotView = React.memo(
           );
         })
         .selectAll('rect')
-        .attr('x', -8)
-        .attr('width', 16)
+        .attr('x', 0)
+        .attr('width', 8)
         .on('click', function(d){
           console.log('click in');
           d3.selectAll('.tweet_line')
@@ -584,135 +536,7 @@ const FeaturePlotView = React.memo(
 
           d3.selectAll('.mean_prob_text').remove();
         }
-        
-        // var d0 = d3.event.selection.map(y.invert),
-        //     d1 = d0.map(d3.timeDay.round);
-      
-        // // If empty when rounded, use floor & ceil instead.
-        // if (d1[0] >= d1[1]) {
-        //   d1[0] = d3.timeDay.floor(d0[0]);
-        //   d1[1] = d3.timeDay.offset(d1[0]);
-        // }
-      
-        // d3.select(this).transition().call(d3.event.target.move, d1.map(x));
       }
-        
-      // function project(d) {
-      //   return features.map(function(feature, i) {
-      //     // check if data element has property and contains a value
-      //     if (!(feature.key in d) || d[feature.key] === null) return null;
-
-      //     return [xFeatureScale(feature.key), feature.scale(d[feature.key])];
-      //   });
-      // }
-
-      // function draw(d) {
-      //   ctx.strokeStyle = groupColorScale(d.group);
-      //   ctx.beginPath();
-      //   const coords = project(d);
-      //   coords.forEach(function(p, i) {
-      //     // this tricky bit avoids rendering null values as 0
-      //     if (p === null) {
-      //       // this bit renders horizontal lines on the previous/next
-      //       // dimensions, so that sandwiched null values are visible
-      //       if (i > 0) {
-      //         const prev = coords[i - 1];
-      //         if (prev !== null) {
-      //           ctx.moveTo(prev[0], prev[1]);
-      //           ctx.lineTo(prev[0] + 6, prev[1]);
-      //         }
-      //       }
-      //       if (i < coords.length - 1) {
-      //         const next = coords[i + 1];
-      //         if (next !== null) {
-      //           ctx.moveTo(next[0] - 6, next[1]);
-      //         }
-      //       }
-      //       return;
-      //     }
-
-      //     if (i == 0) {
-      //       ctx.moveTo(p[0], p[1]);
-      //       return;
-      //     }
-
-      //     ctx.lineTo(p[0], p[1]);
-      //   });
-      //   ctx.stroke();
-      // }
-
-      // function brushstart() {
-      //   d3.event.sourceEvent.stopPropagation();
-      // }
-
-      // Handles a brush event, toggling the display of foreground lines.
-      // function brush() {
-      //   render.invalidate();
-
-      //   const actives = [];
-      //   svg
-      //     .selectAll('.axis .brush')
-      //     .filter(function(d) {
-      //       return d3.brushSelection(this);
-      //     })
-      //     .each(function(d) {
-      //       actives.push({
-      //         dimension: d,
-      //         extent: d3.brushSelection(this)
-      //       });
-      //     });
-
-      //   function within(value, extent, dim) {
-      //     return (
-      //       extent[0] <= features[dim].scale(value) &&
-      //       features[dim].scale(value) <= extent[1]
-      //     );
-      //   }
-
-      //   const selected = tweets.filter(function(d) {
-      //     if (
-      //       actives.every(function(active) {
-      //         const dim = active.dimension;
-
-      //         return within(d[dim.key], active.extent, dim.key);
-      //       })
-      //     ) {
-      //       return true;
-      //     }
-      //   });
-
-      //   // show ticks for active brush dimensions
-      //   // and filter ticks to only those within brush extents
-      //   /*
-      // svg.selectAll('.axis')
-      //     .filter(function(d) {
-      //       return actives.indexOf(d) > -1 ? true : false;
-      //     })
-      //     .classed('active', true)
-      //     .each(function(dimension, i) {
-      //       const extent = extents[i];
-      //       d3.select(this)
-      //         .selectAll('.tick text')
-      //         .style('display', function(d) {
-      //           const value = dimension.type.coerce(d);
-      //           return dimension.type.within(value, extent, dimension) ? null : 'none';
-      //         });
-      //     });
-
-      // // reset dimensions without active brushes
-      // svg.selectAll('.axis')
-      //     .filter(function(d) {
-      //       return actives.indexOf(d) > -1 ? false : true;
-      //     })
-      //     .classed('active', false)
-      //     .selectAll('.tick text')
-      //       .style('display', null);
-      // */
-
-      //   // ctx.clearRect(0, 0, l.w, l.h);
-      //   // ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
-      //   render(selected);
-      // } // end of brush()
 
       //* Render clusters
       // const clusterPlot = ClusterPlot();
@@ -744,7 +568,7 @@ const FeaturePlotView = React.memo(
 
       gClusterPlot.call(
         clusterPlot
-          .dataLoader([features, clusters, groups, tweets])
+          .dataLoader([features, clusters, groups, tweets, clusterIdsForTweets])
           .scaleLoader([xFeatureScale, yClusterCoordScale, numTweetClusterScale, groupRatioScale, groupColorScales])
           .updateOnClickCluster(updateOnClickCluster)
       );
@@ -1328,6 +1152,21 @@ const FeaturePlotView = React.memo(
             payload: tweetsInCluster
           });
 
+          dispatch(
+            fetchSeqs({
+              opt: 'dynamic',
+              mode: 'cluster',
+              // tweetIds: tweetsInCluster.map(d => d.tweetIdx)
+              tweetIds: [1,2,4,5,10,20,25,30,35,62,100,400,284,800,1000,1023,3040],
+              seqWeights: {
+                post: 1,
+                ranking: 1,
+                length: 1,
+                freq: 1
+              }
+            })
+          );
+
           dispatch({
             type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
             payload: {
@@ -1343,14 +1182,15 @@ const FeaturePlotView = React.memo(
     d3.selectAll('canvas').remove();
 
     return (
-      <div>
+      <div
+        style={{ gridArea: 'fp'}}>
         <SubsectionTitle
           style={{
             marginLeft: '10px',
             fontSize: '1.1rem'
           }}
         >
-          H-Plot
+          Group-level
         </SubsectionTitle>
         <div style={{ marginLeft: '10px'}}>
           <Radio.Group 
@@ -1361,7 +1201,9 @@ const FeaturePlotView = React.memo(
                 d3.selectAll('.area_pdp').style('opacity', '');
                 d3.selectAll('.rect_pdp').style('opacity', '');
               } else if (e.target.value == 'subgroup') {
-                d3.selectAll('.subgroup_rect').style('opacity', '');
+                d3.selectAll('.subgroup_rect')
+                  .style('opacity', '')
+                  .raise();
                 d3.selectAll('.path_pdp').style('opacity', 0);
                 d3.selectAll('.area_pdp').style('opacity', 0);
                 d3.selectAll('.rect_pdp').style('opacity', 0);

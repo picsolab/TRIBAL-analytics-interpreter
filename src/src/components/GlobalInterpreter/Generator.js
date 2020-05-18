@@ -31,14 +31,16 @@ import {
 } from '../../GlobalStyles';
 
 import { runDT } from '../../modules/globalInterpreter';
-import { runDTThenRunClandPD } from '../../modules/tweet';
+import { runDTThenRunClandPD, fetchSeqs } from '../../modules/tweet';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
 })`
   grid-area: ge;
   height: 100%;
-  border-right: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+  margin-top: 0;
+  display: flex;
 `;
 
 const layout = {
@@ -76,6 +78,10 @@ const customCheckBoxTheme = {
 };
 
 var currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness', 'purity', 'authority', 'loyalty'];
+var freqW = 1,
+  lengthW = 1,
+  rankingW = 1,
+  probW = 1;
 
 const Generator = props => {
   const dispatch = useDispatch();
@@ -155,7 +161,11 @@ const Generator = props => {
       <div style={{ backgroundColor: '#beffe7', fontWeight: 600 }}>All</div>
       <div>Emotion</div>
       <div>Moral</div> */}
+      <div>
+          <SubsectionTitle>Groups</SubsectionTitle>
+      </div>
       <Form
+        style={{ width: '300px' }}
         onSubmit={({ value }) => {
           // const selectedTweetsByMode =
           //   globalMode === 2 ? tweetsWithPredFeatures : tweets;
@@ -186,7 +196,6 @@ const Generator = props => {
       >
         {/* </Feature table> */}
         <SubsectionTitle>Features</SubsectionTitle>
-
         <TreeSelect
           // className={styles.featureSelector}
           showSearch
@@ -206,69 +215,129 @@ const Generator = props => {
             <TreeNode value={feature.key} title={feature.key} key={idx} />
           ))}
         </TreeSelect>
-        <Table
+        {/* <Table
           style={{ marginTop: '10px' }}
           rowSelection={featureSelection}
           columns={featureSelectionColumns}
           dataSource={dataFeatureTable}
           scroll={{ y: 250 }}
           pagination={false}
-        />
+        /> */}
         
         <Button1
-          style={{ marginTop: '30px' }}
+          style={{ marginTop: '10px' }}
           size="xsmall"
           type="submit"
           primary
           label="Run"
         />
       </Form>
-      <div style={{ height: '30px' }} />
-      <div>
+      <div style={{ height: '5px' }} />
+      <Form
+        style={{ marginLeft: '10px' }}
+        onSubmit={({ value }) => {
+          dispatch(
+            fetchSeqs({
+              opt: 'dynamic',
+              mode: 'all',
+              tweetIds: tweets.map(d => d.tweetIdx),
+              seqWeights: {
+                post: probW,
+                ranking: rankingW,
+                length: lengthW,
+                freq: freqW
+              }
+            })
+          );
+        }}
+      >
         <SubsectionTitle>SEQUENCE</SubsectionTitle>
-        <div>
-          <SubsubsectionTitle>Ranking</SubsubsectionTitle>
-          <Slider 
-            className={'ddd'}
-            step={0.05} 
-            min={0}
-            max={1}
-            value={0.1}
-            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
-            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
-            style={{ width: '90%', margin: '5px 0' }}
-            // onChange={} 
-          />
+        <div style={{ display: 'flex' }}>
+          <div style={{ marginRight: '10px' }}>
+            <div>
+              <SubsubsectionTitle>Predictive impact</SubsubsectionTitle>
+              <Slider 
+                className={'ddd'}
+                step={0.05} 
+                min={0.5}
+                max={1.5}
+                value={rankingW}
+                trackStyle={{ backgroundColor: 'mediumaquamarine', height: '5px' }}
+                handleStyle={{ backgroundColor: 'mediumaquamarine', border: '2px solid white' }}
+                style={{ width: '90%', margin: '5px 0' }}
+                onChange={(rankingWeight) => { 
+                  console.log('rankingWeight: ', rankingWeight);
+                  rankingW = rankingWeight;
+                  forceUpdate();
+                }} 
+              />
+            </div>
+            <div>
+              <SubsubsectionTitle>Length</SubsubsectionTitle>
+              <Slider 
+                className={'ddd'}
+                step={0.05} 
+                min={0.5}
+                max={1.5}
+                value={lengthW}
+                trackStyle={{ backgroundColor: 'mediumaquamarine', height: '5px' }}
+                handleStyle={{ backgroundColor: 'mediumaquamarine', border: '2px solid white' }}
+                style={{ width: '90%', margin: '5px 0' }}
+                onChange={(lengthWeight) => { 
+                  console.log('lengthWeight: ', lengthWeight);
+                  lengthW = lengthWeight;
+                  forceUpdate();
+                }} 
+              />
+            </div>
+          </div>
+          <div>
+            <div>
+              <SubsubsectionTitle>Prevalence</SubsubsectionTitle>
+              <Slider 
+                className={'ddd'} 
+                step={0.05} 
+                min={0.5}
+                max={1.5}
+                value={freqW}
+                trackStyle={{ backgroundColor: 'mediumaquamarine', height: '5px' }}
+                handleStyle={{ backgroundColor: 'mediumaquamarine', border: '2px solid white' }}
+                style={{ width: '90%', margin: '5px 0' }}
+                onChange={(freqWeight) => { 
+                  console.log('freqWeight: ', freqWeight);
+                  freqW = freqWeight;
+                  forceUpdate();
+                }} 
+              />
+            </div>
+            <div>
+              <SubsubsectionTitle>Concept representativenss</SubsubsectionTitle>
+              <Slider 
+                className={'ddd'} 
+                step={0.05} 
+                min={0.5}
+                max={1.5}
+                value={probW}
+                trackStyle={{ backgroundColor: 'mediumaquamarine', height: '5px' }}
+                handleStyle={{ backgroundColor: 'mediumaquamarine', border: '2px solid white' }}
+                style={{ width: '90%', margin: '5px 0' }}
+                onChange={(probWeight) => { 
+                  console.log('probWeight: ', probWeight);
+                  probW = probWeight;
+                  forceUpdate();
+                }} 
+              />
+            </div>
+          </div>
         </div>
-        <div>
-          <SubsubsectionTitle>Length</SubsubsectionTitle>
-          <Slider 
-            className={'ddd'}
-            step={0.05} 
-            min={0}
-            max={1}
-            value={0.1}
-            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
-            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
-            style={{ width: '90%', margin: '5px 0' }}
-            // onChange={} 
-          />
-        </div>
-        <div>
-          <SubsubsectionTitle>Ranking</SubsubsectionTitle>
-          <Slider 
-            className={'ddd'}
-            step={0.05} 
-            min={0}
-            max={1}
-            value={0.1}
-            trackStyle={{ backgroundColor: 'blue', height: '5px' }}
-            handleStyle={{ backgroundColor: 'blue', border: '2px solid white' }}
-            style={{ width: '90%', margin: '5px 0' }}
-            // onChange={} 
-          />
-        </div>
-      </div>
+        <Button1
+          style={{ marginTop: '10px' }}
+          size="xsmall"
+          type="submit"
+          primary
+          label="Run"
+        />
+      </Form>
     </GeneratorWrapper>
   );
 };

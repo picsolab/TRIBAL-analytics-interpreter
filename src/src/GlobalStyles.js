@@ -229,7 +229,7 @@ export const ListViewStyle = styled.div`
 `;
 
 export const Button1 = styled(Button)`
-  background: mediumpurple;
+  background: #56ad8f;
   border: none;
   padding: 1px 10px;
   font-size: 0.8rem;

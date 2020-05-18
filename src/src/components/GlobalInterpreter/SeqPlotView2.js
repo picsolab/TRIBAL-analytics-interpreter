@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 import * as d3 from 'd3';
 import _ from 'lodash';
+import d3tooltip from 'd3-tooltip';
 
 import {searchTweets} from '../../modules/explorer';
 
@@ -108,6 +109,8 @@ const WordGroupPlot = styled.div.attrs({
 
 //   return <WordListWrapper>{divWords}</WordListWrapper>;
 // };
+
+const tooltip = d3tooltip(d3);
 
 const Word = ({word}) => {
   const dispatch = useDispatch();
@@ -334,29 +337,6 @@ const SeqPlotView2 = ({
   const ref = useRef(null);
   numFeatures = features.length;
 
-  const impSeqs = [
-    { groupRatio: 0.67, score: 0.95, seq: 'great example and i am proud you are my' },
-    { groupRatio: 0.3, score: 0.9, seq: 'very proud to be represented' },
-    { groupRatio: 0.9, score: 0.86, seq: 'lehigh valley gun control advocates rally after' },
-    { groupRatio: 0.2, score: 0.85, seq: 'violence restraining orders linked to a reduction in suicides' },
-    { groupRatio: 0.4, score: 0.80, seq: 'in to protest no gun control votes <url> via' },
-    { groupRatio: 0.26, score: 0.76, seq: 'backs hillary clinton and pledges help with primary' },
-    { groupRatio: 0.1, score: 0.73, seq: 'tells gun rights rally of plan to repeal background' },
-    { groupRatio: 0.05, score: 0.65, seq: 'unexpected nap to tweet with lucifer about gun control' },
-    { groupRatio: 0.9, score: 0.5, seq: 'his dirty work when it comes to gun control' },
-    { groupRatio: 0.84, score: 0.43, seq: 'it will all come back to gun control eventually' },
-    { groupRatio: 0.75, score: 0.41, seq: 'america will not even acknowledge let alone try and' },
-    { groupRatio: 0.35, score: 0.38, seq: 'why do we need the second amendment' },
-    { groupRatio: 0.23, score: 0.35, seq: 'realize this was not an act of gun' },
-    { groupRatio: 0.15, score: 0.33, seq: 's laws against murder and that did' },
-    { groupRatio: 0.17, score: 0.2, seq: 'and excuses are still being made in favor of' },
-    { groupRatio: 0.4, score: 0.17, seq: '<number> innocent people killed and <number> injured' },
-    { groupRatio: 0.65, score: 0.13, seq: 'an idiot to blame gun violence on ohio tragedy' },
-    { groupRatio: 0.8, score: 0.1, seq: 's gonna be a debate on gun control' },
-    { groupRatio: 0.5, score: 0.04, seq: 'allows gun control laws to be passed' },
-    { groupRatio: 0.05, score: 0.02, seq: 'radical islamic terror attacks he is stupid as hell' }
-  ]
-
   useEffect(() => {
     const width = 800,
       height = 300,
@@ -374,10 +354,6 @@ const SeqPlotView2 = ({
     const groupColorScale = d3.scaleLinear()
       .domain([0, 0.5, 1])
       .range(['rgba(25, 12, 226, 0.5)', 'whitesmoke', 'rgba(255, 34, 34, 0.5)']);
-
-    const impScoreScale = d3.scaleLinear()
-      .domain([0.9, 1])
-      .range([7, 15]);
 
     const xFeatureScale = d3.scaleOrdinal()
       .domain(features)
@@ -421,9 +397,9 @@ const SeqPlotView2 = ({
     const simulation = d3.forceSimulation()
       // .force('link', d3.forceLink().distance(50))
       .force('charge', d3.forceManyBody().strength(-50))
-      .force('x', d3.forceX().strength(5).x(d => xFeatureScale(d.feature)))
-      .force('y', d3.forceY().strength(2).y(d => d.groupProb))
-      .force("collide", d3.forceCollide(d => d.widthForTick * 0.5).strength(1));
+      .force('x', d3.forceX().strength(1).x(d => xFeatureScale(d.feature)))
+      .force('y', d3.forceY().strength(1).y(d => d.groupProb))
+      .force("collide", d3.forceCollide(d => d.widthForTick * 0.35).strength(1));
 
     let allSeqs = [];
     let yAxisSetting = d3
@@ -468,95 +444,140 @@ const SeqPlotView2 = ({
 
     allSeqs = _.orderBy(allSeqs, ['score'], ['asc']);
 
-      const scoreThreshold = 0.98
-      const node = gPlot.selectAll('.g_seq_subplot')
-        .data(allSeqs)
-        .enter().append('g')
-        .attr('class', 'g_seq_subplot')
-        .each(function (d) {
-          const gText = d3.select(this);
-          if (d.score < scoreThreshold) {
-            gText
-              .append('rect')
-              .attr('class', 'seq_rect')
-              .attr('x', -5)
-              .attr('width', d => impScoreScale(d.score))
-              .attr('height', d => impScoreScale(d.score))
-              .attr('rx', 1.5)
-              .attr('ry', 1.5)
-              .style('fill', d => groupColorScale(d.groupProb))
-              .style('stroke', 'black')
-              // .call(force.drag)
-              .on('mouseover', d => console.log(d));
+    const impScoreScale = d3.scaleLinear()
+      .domain(d3.extent(allSeqs.map(d => d.score)))
+      .range([7, 15]);
 
-            d.widthForTick = impScoreScale(d.score) + 10;
-          } else if (d.score >= scoreThreshold) {
-            const seqText = gText
-              .append('text')
-              .attr('class', 'seq_text')
-              .attr('x', 20)
-              .style('font-family', 'Helvetica')
-              // .text(d => d.seq.split(' ').slice(0, 2))
-              .text(d => extractImpSubseq(d.seq, d.attForSeq))
-              .on('mouseover', d => console.log(d));
+    const scoreThreshold = 0.98
+    const node = gPlot.selectAll('.g_seq_subplot')
+      .data(allSeqs)
+      .enter().append('g')
+      .attr('class', 'g_seq_subplot')
+      .each(function (d) {
+        const gText = d3.select(this);
+        if (d.score < scoreThreshold) {
+          gText
+            .append('rect')
+            .attr('class', 'seq_rect')
+            .attr('x', -5)
+            .attr('width', d => impScoreScale(d.score))
+            .attr('height', d => impScoreScale(d.score))
+            .attr('rx', 1.5)
+            .attr('ry', 1.5)
+            .style('fill', d => groupColorScale(d.groupProb))
+            .style('stroke', 'black')
+            .on('mouseover', function(d, i) {
+              d3.select(this)
+                .style('stroke-width', 2)
+              const seqHtml =
+                'Sequence: ' +
+                d.seq +
+                '</br>' +
+                'Feature: ' +
+                Math.ceil(d.featureProb * 100) / 100 +
+                '</br>' +
+                'Group probability: ' +
+                Math.ceil(d.groupProb * 100) / 100 +
+                '</br>' +
+                '</div>';
+              tooltip.html(seqHtml);
+              tooltip.show();
+            })
+            .on('mouseout', function(d, i) {
+              d3.select(this)
+                .style('stroke-width', 1);
+              tooltip.hide();
+            });
 
-            gText
-              .append('rect')
-              .attr('x', 15)
-              .attr('y', -12)
-              .attr('rx', 3)
-              .attr('rx', 3)
-              .attr('width', seqText.node().getBoundingClientRect().width + 10)
-              .attr('height', seqText.node().getBoundingClientRect().height + 3)
-              .style('fill', 'white')
-              .style('stroke', d => groupColorScale(d.groupProb))
-              .style('stroke-width', 3)
-              .style('fill-opacity', 0.5);
+          d.widthForTick = impScoreScale(d.score) + 10;
+        } else if (d.score >= scoreThreshold) {
+          const seqText = gText
+            .append('text')
+            .attr('class', 'seq_text')
+            .attr('x', 20)
+            .style('font-family', 'Helvetica')
+            // .text(d => d.seq.split(' ').slice(0, 2))
+            .text(d => extractImpSubseq(d.seq, d.attForSeq))
+            .on('mouseover', function(d, i) {
+              d3.select(this)
+                .style('stroke-width', 2)
+              const seqHtml =
+                'Sequence: ' +
+                d.seq +
+                '</br>' +
+                'Feature: ' +
+                Math.ceil(d.featureProb * 100) / 100 +
+                '</br>' +
+                'Group probability: ' +
+                Math.ceil(d.groupProb * 100) / 100 +
+                '</br>' +
+                '</div>';
+              tooltip.html(seqHtml);
+              tooltip.show();
+            })
+            .on('mouseout', function(d, i) {
+              d3.select(this)
+                .style('stroke-width', 1);
+              tooltip.hide();
+            });
 
-            d.widthForTick = seqText.node().getBoundingClientRect().width / 2;
-          }
+          gText
+            .append('rect')
+            .attr('x', 15)
+            .attr('y', -12)
+            .attr('rx', 3)
+            .attr('rx', 3)
+            .attr('width', seqText.node().getBoundingClientRect().width + 10)
+            .attr('height', seqText.node().getBoundingClientRect().height + 3)
+            .style('fill', 'white')
+            .style('stroke', d => groupColorScale(d.groupProb))
+            .style('stroke-width', 3)
+            .style('fill-opacity', 0.5);
 
-        });
+          d.widthForTick = seqText.node().getBoundingClientRect().width / 2;
+        }
 
-      simulation
-        .nodes(allSeqs)
-        .on('tick', tick);
-      // .start();
+      });
 
-      function extractImpSubseq(seq, att) {
-        const seqArr = seq.split(' ');
-        const maxAttIdx = _.indexOf(att, _.max(att));
-        return seqArr[maxAttIdx] + '...';
-      }
+    simulation
+      .nodes(allSeqs)
+      .on('tick', tick);
+    // .start();
 
-      console.log('yGroupScalesInOrds: ', yGroupScalesInOrds)
-      function tick() {
-        node.each(function (d) {
-          // w = 50 * (1 + 10 * (1 - d.groupProb));
-          if (d.featureType == 'continuous')
-            d.y -= (.3 * (d.y - yFeatureProbForContScale(d.featureProb)))
-          else
-            d.y -= (.3 * (d.y - yGroupScalesInOrds[d.featureProb](d.groupProb)))
+    function extractImpSubseq(seq, att) {
+      const seqArr = seq.split(' ');
+      const maxAttIdx = _.indexOf(att, _.max(att));
+      return seqArr[maxAttIdx] + '...';
+    }
+
+    console.log('yGroupScalesInOrds: ', yGroupScalesInOrds)
+    function tick() {
+      node.each(function (d) {
+        // w = 50 * (1 + 10 * (1 - d.groupProb));
+        if (d.featureType == 'continuous')
+          d.y -= (.3 * (d.y - yFeatureProbForContScale(d.featureProb)))
+        else
+          d.y -= (.3 * (d.y - yGroupScalesInOrds[d.featureProb](d.groupProb)))
+      })
+
+      // node.attr('cx', function (d) { return d.x = Math.max(radius, Math.min(width - radius, d.x)); })
+      //   .attr('cy', function (d) { return d.y = Math.max(radius, Math.min(height - radius, d.y)); });
+
+      node
+        .attr('transform', function (d) {
+          var updatedX = Math.max(d.widthForTick, Math.min(width - d.widthForTick, d.x));
+          var updatedY = Math.max(d.widthForTick, Math.min(height - 5, d.y));
+          d.x = updatedX;
+          d.y = updatedY;
+          return 'translate(' +
+            updatedX + ',' + updatedY + ')';
         })
-
-        // node.attr('cx', function (d) { return d.x = Math.max(radius, Math.min(width - radius, d.x)); })
-        //   .attr('cy', function (d) { return d.y = Math.max(radius, Math.min(height - radius, d.y)); });
-
-        node
-          .attr('transform', function (d) {
-            var updatedX = Math.max(d.widthForTick, Math.min(width - d.widthForTick, d.x));
-            var updatedY = Math.max(d.widthForTick, Math.min(height - 5, d.y));
-            d.x = updatedX;
-            d.y = updatedY;
-            return 'translate(' +
-              updatedX + ',' + updatedY + ')';
-          })
-      }
+    }
   });
 
   return (
     <div style={{display: 'flex'}}>
-      <SeqPlotViewWrapper impSeqs={impSeqs}>
+      <SeqPlotViewWrapper>
         <svg
           width={layout.wordGroupPlot.width}
           height={layout.wordGroupPlot.height}

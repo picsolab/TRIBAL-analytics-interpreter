@@ -24,19 +24,13 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
 })`
   grid-area: g;
   display: grid;
+  margin-top: 0;
   // grid-template-columns: 100%;
-  grid-template-rows: 40px 5px 20px 550px;
-  grid-template-columns: 17.5% 82.5%;
+  grid-template-rows: 200px 650px;
+  grid-template-columns: 100%;
   grid-template-areas:
-    't t'
-    'ge md'
-    'ge ab'
-    'ge f';
-  // grid-template-areas:
-  //   't'
-  //   'md'
-  //   'ab'
-  //   'f';
+    'ge'
+    'fp';
 `;
 
 const ModeViewWrapper = styled.div.attrs({
@@ -249,7 +243,15 @@ const GlobalInterpreter = props => {
 
     dispatch(
       fetchSeqs({
-        opt: 'static'
+        opt: 'static',
+        mode: 'all',
+        tweetIds: tweets.map(d => d.tweetIdx),
+        seqWeights: {
+          post: 1,
+          ranking: 1,
+          length: 1,
+          freq: 1
+        }
       })
     );
 
@@ -268,10 +270,6 @@ const GlobalInterpreter = props => {
   if (!clusters || clusters.length === 0 || isLoaded === false)
     return (
       <GlobalInterpreterWrapper>
-        <div style={{gridArea: 't'}}>
-          <SectionTitle>Global Interpretability</SectionTitle>
-          <Spin indicator={loadingIcon} />
-        </div>
         {/* <Generator
           globalMode={globalMode}
           goals={goals}
@@ -285,12 +283,8 @@ const GlobalInterpreter = props => {
 
   return (
     <GlobalInterpreterWrapper>
-      <div style={{gridArea: 't'}}>
-        <SectionTitle>Group-level Comparison</SectionTitle>
-      </div>
       <div
         style={{
-          gridArea: 'md',
           display: 'flex',
           alignItems: 'center',
           // backgroundColor: 'white',

@@ -207,7 +207,9 @@ function Level2Plot() {
       .attr('width', d => xOutputProbCorrHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
       .style('fill', d => (d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con))
-      .style('opacity', 0.5);
+      .style('fill-opacity', 0.5)
+      .style('stroke', 'black')
+      .style('stroke-width', 0.5);
 
     // tweetLibHistForWrongPred
     gOutputProbPlot
@@ -226,7 +228,9 @@ function Level2Plot() {
       .attr('width', d => xOutputProbWrongHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
       .style('fill', d => globalColors.group.wrong.lib)
-      .style('opacity', 0.5);
+      .style('fill-opacity', 0.5)
+      .style('stroke', 'black')
+      .style('stroke-width', 0.5);
 
     // tweetConHistForWrongPred
     gOutputProbPlot
@@ -245,7 +249,9 @@ function Level2Plot() {
       .attr('width', d => xOutputProbWrongHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
       .style('fill', d => globalColors.group.wrong.con)
-      .style('opacity', 0.5);
+      .style('fill-opacity', 0.5)
+      .style('stroke', 'black')
+      .style('stroke-width', 0.5);
 
     // const gFeatureToOutputLines = svg
     //   .append('g')
@@ -271,7 +277,7 @@ function Level2Plot() {
     //   .append('line')
     //   .attr(
     //     'class',
-    //     d => 'line_feature_to_output line_feature_to_output_' + d.clusterId
+    //     d => 'line_feature_to_output line_feature_to_output_cl_' + d.clusterId
     //   )
     //   .attr('x1', xFeatureToOutputScale(0))
     //   .attr('y1', d => {
@@ -375,6 +381,7 @@ function Level2Plot() {
             const dataForLinesForCat = tweetsPerCat.map((d, i) => ({
               group: d.group,
               tweetId: d.tweetId,
+              tweetIdx: d.tweetIdx,
               source: {x: 0, y: currentFeatureScale(d[currFeature.key])},
               target: {
                 x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w - lCom.hPlot.featurePlot.axis.cat.m,
@@ -390,7 +397,7 @@ function Level2Plot() {
             .data(dataForLines)
             .enter()
             .append('path')
-            .attr('class', d => 'tweet_line tweet_line_' + d.tweetId)
+            .attr('class', d => 'tweet_line tweet_line_' + d.tweetIdx)
             .attr('d', drawTweetLine)
             .style('fill', 'none')
             .style('stroke', d => groupColorScale(d.group))
@@ -445,6 +452,7 @@ function Level2Plot() {
             const dataForLinesForCat = tweetsPerCat.map((d, i) => ({
               group: d.group,
               tweetId: d.tweetId,
+              tweetIdx: d.tweetIdx,
               source: {
                 x: lCom.hPlot.featurePlot.axis.cat.m - 2, 
                 y: catStartY + (catHeight / numTweetsPerCat) * i
@@ -463,7 +471,7 @@ function Level2Plot() {
             .data(dataForLines)
             .enter()
             .append('path')
-            .attr('class', d => 'tweet_line tweet_line_' + d.tweetId)
+            .attr('class', d => 'tweet_line tweet_line_' + d.tweetIdx)
             .attr('d', drawTweetLine)
             .style('fill', 'none')
             .style('stroke', d => groupColorScale(d.group))
@@ -538,9 +546,12 @@ function Level2Plot() {
               const libRatioFilteredTweets = filteredTweets.filter(d => d.group === '1').length / numFilteredTweets;
 
               tweetsCatToCat.push({
+                currFeature: currFeature,
+                nextFeature: nextFeature,
                 catCurr: catCurr,
                 catNext: catNext,
                 groupRatio: libRatioFilteredTweets,
+                numTweetsRatio: numFilteredTweets,
                 numTweetsRatioInCurr: numFilteredTweets / numTweetsInCurr,
                 cumNumTweetsRatioInCurr: cumNumTweetsRatioInCurr[catCurr] / numTweetsInCurr,
                 cumNumTweetsRatioInNext: cumNumTweetsRatioInNext[catNext] / numTweetsInNext,
@@ -557,6 +568,8 @@ function Level2Plot() {
             const heightForCurrCat = catScalesForCurr[d.catCurr].range()[1] - catScalesForCurr[d.catCurr].range()[0];
             const lineHeight = heightForCurrCat * d.numTweetsRatioInCurr;
             return {
+              currFeature: d.currFeature,
+              nextFeature: d.nextFeature,
               catCurr: d.catCurr,
               catNext: d.catNext,
               groupRatio: d.groupRatio,
@@ -582,21 +595,29 @@ function Level2Plot() {
             .data(dataForCatToCatLines)
             .enter()
             .append('path')
-            .attr('class', d => 'tweet_cat_line tweet_cat_line_' + d.catCurr + '_' + d.catNext)
+            .attr('class', d => 
+              'tweet_cat_line tweet_cat_line_' + d.catCurr + '_' + d.catNext
+              + ' from_' + d.currFeature.abbr
+              + ' to_' + d.nextFeature.abbr)
             .attr('d', drawTweetLine)
             .style('fill', 'none')
             .style('stroke', d => groupRatioScale(d.groupRatio))
             .style('stroke-width', d => d.lineHeight)
             .style('opacity', 0.8)
             .on('mouseover', function(d, i) {
-              d3.select(this).style('opacity', 0.8);
+              const catNameCurr = d.currFeature.values.filter(e => e.num === d.catCurr)[0].category,
+                catNameNext = d.nextFeature.values.filter(e => e.num === d.catNext)[0].category;
+
+              d3.select(this).raise()
+                .style('opacity', 0.8);
+
               const catToCatLineHtml =
                 '<div style="font-weight: 600">' +
                 'From: ' +
-                d.catCurr +
+                catNameCurr +
                 '</br>' +
                 'To: ' +
-                d.catNext +
+                catNameNext +
                 '</br>' +
                 '# tweets: ' +
                 d.numTweetsRatio +
@@ -646,6 +667,7 @@ function Level2Plot() {
           const dataForLines = tweets.map(d => ({
             group: d.group,
             tweetId: d.tweetId,
+            tweetIdx: d.tweetIdx,
             source: {x: 0, y: currentFeatureScale(d[currFeature.key])},
             target: {
               x: xFeatureScaleBandwidth - lCom.hPlot.featurePlot.axis.w,
@@ -658,7 +680,7 @@ function Level2Plot() {
             .data(dataForLines)
             .enter()
             .append('path')
-            .attr('class', d => 'tweet_line tweet_line_' + d.tweetId)
+            .attr('class', d => 'tweet_line tweet_line_' + d.tweetIdx)
             .attr('d', drawTweetLine)
             .style('fill', 'none')
             .style('stroke', d => groupColorScale(d.group))
@@ -708,7 +730,30 @@ function Level2Plot() {
 
               return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
             })
-            .style('stroke-width', 2);
+            .style('stroke-width', 1)
+            .on('mouseover', function(cat, i) {
+              const numTweetsInCat = tweetsGrpByFeature[cat].length;
+              const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
+              const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
+
+              d3.select(this).raise();
+
+              const auxAxisHtml =
+                '<div style="font-weight: 600">' +
+                '# tweets: ' +
+                numTweetsInCat +
+                '</br>' +
+                'Blue group ratio: ' +
+                Math.ceil((numLibTweetsInCat / numTweetsInCat) * 100) / 100 +
+                '</br>' +
+                '</div>';
+
+              tooltip.html(auxAxisHtml);
+              tooltip.show();
+            })
+            .on('mouseout', function(d, i) {
+              tooltip.hide();
+            })
         }
 
         function calculateScalesForCats(tweets, catFeature) {
