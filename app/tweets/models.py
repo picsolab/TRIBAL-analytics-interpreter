@@ -25,7 +25,7 @@ class Tweet(models.Model):
     dominance_grp_pred = models.BigIntegerField(null=False, default=0)
     care = models.BigIntegerField(null=False, default=0)
     care_seq = models.TextField(max_length=200, null=False, default='NaN')
-    care_seq_rank = models.BigIntegerField(null=False, default=0)
+    care_seq_rank = models.FloatField(null=False, default=0)
     care_pred = models.BigIntegerField(null=False, default=0)
     care_grp_pred = models.BigIntegerField(null=False, default=0)
     care_prob = models.FloatField(null=False, default=0.0)

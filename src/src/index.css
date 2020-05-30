@@ -86,8 +86,8 @@ code {
 }
 
 .tweet_line_highlighted {
-  stroke-width: 3 !important;
-  stroke: black !important;
+  stroke-width: 2 !important;
+  stroke: lightgreen !important;
   opacity: 1 !important;
 }
 
@@ -97,7 +97,7 @@ code {
 
 .cluster_for_highlighted {
   stroke-width: 3 !important;
-  stroke: black !important;
+  stroke: lightgreen !important;
 }
 
 .seq_text {
@@ -122,6 +122,11 @@ code {
 /* For tooltip */
 .tooltip_mouseovered {
   opacity: 1 !important;
+}
+
+.point_to_subgroup_for_selected_instance {
+  stroke: black !important;
+  opacity: 0;
 }
 
 .d3-tooltip {

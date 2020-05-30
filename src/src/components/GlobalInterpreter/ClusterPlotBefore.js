@@ -53,8 +53,9 @@ function ClusterPlot() {
       .append('text')
       .attr('class', 'cluster_plot_title')
       .text('Cluster')
-      .attr('x', -60)
-      .attr('y', 0);
+      .attr('x', -50)
+      .attr('y', -20)
+      .style('font-size', '17px');
   }
 
   _clusterPlot.dataLoader = function(data) {

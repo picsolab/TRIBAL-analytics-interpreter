@@ -262,8 +262,8 @@ const FeaturePlotView = React.memo(
 
       const groupRatioScale = d3
         .scaleLinear()
-        .domain([0, 0.5, 1])
-        .range([globalColors.group.con, 'whitesmoke', globalColors.group.lib]);
+        .domain([0, 0.2, 0.4, 0.6, 0.8, 1])
+        .range(['#CB4335', '#E74C3C', '#FADBD8', '#D7DBFF', '#7584FF', '#001BFF']);
 
       // For level 1
       const xGoalScale = d3
@@ -557,7 +557,7 @@ const FeaturePlotView = React.memo(
         .attr('class', 'g_cluster_plot')
         .attr(
           'transform',
-          'translate(' + (lCom.clusterPlot.l + lCom.clusterPlot.maxR * 2 + 40) + ',' + (lCom.clusterPlot.maxR * 2 + 40) + ')'
+          'translate(' + (lCom.clusterPlot.l + lCom.clusterPlot.maxR * 2 + 40) + ',' + (lCom.clusterPlot.maxR * 2 + 50) + ')'
         );
 
       // for ClusterPlotBefore
@@ -654,6 +654,9 @@ const FeaturePlotView = React.memo(
             .classed('cluster_selected', false)
             .style('stroke', 'gray')
             .style('stroke-width', '1px');
+
+          d3.selectAll('.point_to_subgroup_for_selected_instance.subgroup_' + clusterId)
+            .style('opacity', 1);
 
           // Return back all elements to the normal
           // gFeaturePlot.selectAll('.path_tweet').remove();
@@ -1187,10 +1190,11 @@ const FeaturePlotView = React.memo(
         <SubsectionTitle
           style={{
             marginLeft: '10px',
-            fontSize: '1.1rem'
+            fontSize: '1.1rem',
+            marginTop: '30px'
           }}
         >
-          Group-level
+          Group-level comparison
         </SubsectionTitle>
         <div style={{ marginLeft: '10px'}}>
           <Radio.Group 

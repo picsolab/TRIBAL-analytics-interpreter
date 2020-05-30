@@ -60,10 +60,6 @@ function Level2Plot() {
 
     const xFeatureScaleBandwidth = xFeatureScale(features[1].key) - xFeatureScale(features[0].key);
     const axes = Axes();
-    // const yOutputProbSetting = d3
-    //   .axisLeft(yOutputProbScale)
-    //   .tickValues([0, 0.5, 1])
-    //   .tickSize(1);
 
     const gOutputProbPlot = selection
       .append('g')
@@ -74,66 +70,6 @@ function Level2Plot() {
           lCom.outputProbPlot.l +
           ',0)'
       );
-
-    //* For the current version
-    // groups.forEach((group, groupIdx) => {
-    //   const gOutputProbPlot = selection
-    //     .append('g')
-    //     .attr('class', 'g_output_prob_plot')
-    //     .attr('transform', 'translate(' + lCom.outputProbPlot.l + ',' + yGroupScale(groupIdx) + ')');
-
-    //   gOutputProbPlot
-    //     .append('text')
-    //     .text(group.name === 'conservative' ? 'Red' : 'Blue')
-    //     .attr('x', 20)
-    //     .attr('y', -l.textHeight)
-    //     .style('font-size', '0.8rem')
-    //     .style('fill', 'gray');
-
-    //   gOutputProbPlot
-    //     .append('g')
-    //     .call(yOutputProbSetting)
-    //     .attr('class', 'g_output_prob_axis')
-    //     .attr('transform', 'translate(' + lCom.outputProbPlot.w / 2 + ',' + 0 + ')');
-
-    //   // tweetHistForCorrectPred
-    //   gOutputProbPlot
-    //     .append('g')
-    //     .attr('class', 'g_output_prob_for_corr_pred_' + group.abbr)
-    //     .attr('transform', d => {
-    //       return 'translate(' + lCom.outputProbPlot.w / 2 + ',' + 0 + ')';
-    //     })
-    //     .selectAll('.rect_output_for_corr_' + group.abbr)
-    //     .data(dataBinWrongPredTweetsForGroups[groupIdx])
-    //     .enter()
-    //     .append('rect')
-    //     .attr('class', 'rect_output_for_corr_' + group.abbr)
-    //     .attr('x', 3)
-    //     .attr('y', d => yOutputProbHistScale(d.x0))
-    //     .attr('width', d => xOutputProbHistScale(d.length))
-    //     .attr('height', yOutputProbHistScale.bandwidth() - 0.5)
-    //     .style('fill', globalColors.groups[groupIdx].color)
-    //     .style('opacity', 0.5);
-
-    //   // tweetHistForWrongPred
-    //   gOutputProbPlot
-    //     .append('g')
-    //     .attr('class', 'g_output_prob_for_wrong_pred_' + group.abbr)
-    //     .attr('transform', d => {
-    //       return 'translate(' + 0 + ',' + 0 + ')';
-    //     })
-    //     .selectAll('.rect_output_for_wrong_')
-    //     .data(dataBinWrongPredTweetsForGroups[groupIdx])
-    //     .enter()
-    //     .append('rect')
-    //     .attr('class', 'rect_output_for_wrong_')
-    //     .attr('x', d => lCom.outputProbPlot.w / 2 - 3 - xOutputProbHistScale(d.length))
-    //     .attr('y', d => yOutputProbHistScale(d.x0))
-    //     .attr('width', d => xOutputProbHistScale(d.length))
-    //     .attr('height', yOutputProbHistScale.bandwidth() - 0.5)
-    //     .style('fill', d => globalColors.groups[groupIdx].colorForWrong)
-    //     .style('opacity', 0.5);
-    // });
 
     //* For the previous version
     // Calculate the histogram data
@@ -253,71 +189,6 @@ function Level2Plot() {
       .style('stroke', 'black')
       .style('stroke-width', 0.5);
 
-    // const gFeatureToOutputLines = svg
-    //   .append('g')
-    //   .attr('class', 'g_feature_to_output_paths')
-    //   .attr('transform', 'translate(' + lCom.hPlot.featurePlot.w + ',0)');
-
-    // const xFeatureToOutputScale = d3
-    //   .scaleOrdinal()
-    //   .domain([0, 1])
-    //   .range([
-    //     0,
-    //     lCom.hPlot.featureToOutputLines.w +
-    //       l.mm -
-    //       20
-    //   ]);
-
-    // const featureToOutputLinesData = gFeatureToOutputLines
-    //   .selectAll('.line_feature_to_output')
-    //   .data(tweets);
-
-    // featureToOutputLinesData
-    //   .enter()
-    //   .append('line')
-    //   .attr(
-    //     'class',
-    //     d => 'line_feature_to_output line_feature_to_output_cl_' + d.clusterId
-    //   )
-    //   .attr('x1', xFeatureToOutputScale(0))
-    //   .attr('y1', d => {
-    //     const lastFeature = selectedFeatures[selectedFeatures.length - 1].key;
-    //     return lastFeature === 'care'
-    //       ? yCareScale(d[lastFeature])
-    //       : lastFeature === 'fairness'
-    //       ? yFairnessScale(d[lastFeature])
-    //       : yVDScale(d[lastFeature]);
-    //   })
-    //   .attr('x2', d => xFeatureToOutputScale(1))
-    //   .attr('y2', d =>
-    //     globalMode === 0 ? yGroupScale(d.group) : yOutputProbScale(d.prob)
-    //   )
-    //   .style('stroke', d =>
-    //     d.group === d.pred
-    //       ? groupColorScale(d.group)
-    //       : groupWrongColorScale(d.group)
-    //   )
-    //   // .style('stroke-dasharray', d => (d.group === d.pred ? 'none' : '4,5'))
-    //   .style('stroke-width', 0.3)
-    //   .style('opacity', d => 0.3);
-
-    // featureToOutputLinesData
-    //   .attr('x1', xFeatureToOutputScale(0))
-    //   .attr('y1', d => {
-    //     const lastFeature = selectedFeatures[selectedFeatures.length - 1].key;
-    //     return lastFeature === 'care'
-    //       ? yCareScale(d[lastFeature])
-    //       : lastFeature === 'fairness'
-    //       ? yFairnessScale(d[lastFeature])
-    //       : yVDScale(d[lastFeature]);
-    //   })
-    //   .attr('x2', d => xFeatureToOutputScale(1))
-    //   .attr('y2', d =>
-    //     globalMode === 0 ? yGroupScale(d.group) : yOutputProbScale(d.prob)
-    //   );
-
-    // featureToOutputLinesData.exit().remove();
-
     //* FeaturePlot
     const gFeaturePlot = selection.append('g').attr('class', 'g_feature_plot');
 
@@ -325,13 +196,6 @@ function Level2Plot() {
       .selectAll('text')
       .data(features)
       .enter();
-
-    // featureTitleData // feature title text
-    //   .append('text')
-    //   .text(d => d.abbr)
-    //   .attr('x', (d, i) => xFeatureScale(d.key) - 10)
-    //   .attr('y', (d, i) => 10)
-    //   .style('font-size', '0.8rem');
 
     //* Render tweet lines
     const drawTweetLine = d3
@@ -406,33 +270,6 @@ function Level2Plot() {
 
           // Add auxilary axis for categorical feature
           renderAuxAxisForCats(tweets, nextFeature, catScales, 'right');
-        //   gFeaturePlot
-        //     .selectAll('.aux_axis_for_cat_features')
-        //     .data(catsInFeature)
-        //     .enter()
-        //     .append('rect')
-        //     .attr('class', cat => 'aux_axis_for_cat_features_' + nextFeature + '_' + cat)
-        //     .attr('x', xFeatureScale(nextFeature.key) - lCom.hPlot.featurePlot.axis.cat.m)
-        //     .attr('y', cat => catScales[cat].range()[0])
-        //     .attr('width', 5)
-        //     .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
-        //     .style('fill', cat => {
-        //       const numTweetsInCat = tweetsGrpByFeature[cat].length;
-        //       const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-        //       const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-        //       return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
-        //     })
-        //     .style('fill-opacity', 0.5)
-        //     .style('stroke', cat => {
-        //       const numTweetsInCat = tweetsGrpByFeature[cat].length;
-        //       const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-        //       const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-        //       return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
-        //     })
-        //     .style('stroke-width', 1);
-        // }
         }
 
         function drawLinesFromCatToCont() {
@@ -482,32 +319,6 @@ function Level2Plot() {
 
           // Add auxilary axis for categorical feature
           renderAuxAxisForCats(tweets, currFeature, catScales, 'left');
-          // gFeaturePlot
-          //   .selectAll('.aux_axis_for_cat_features')
-          //   .data(catsInFeature)
-          //   .enter()
-          //   .append('rect')
-          //   .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature + '_' + cat)
-          //   .attr('x', xFeatureScale(currFeature.key) + lCom.hPlot.featurePlot.axis.w/2 + lCom.hPlot.featurePlot.axis.cat.m)
-          //   .attr('y', cat => catScales[cat].range()[0])
-          //   .attr('width', 5)
-          //   .attr('height', cat => catScales[cat].range()[1] - catScales[cat].range()[0])
-          //   .style('fill', cat => {
-          //     const numTweetsInCat = tweetsGrpByFeature[cat].length;
-          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-          //     return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
-          //   })
-          //   .style('fill-opacity', 0.5)
-          //   .style('stroke', cat => {
-          //     const numTweetsInCat = tweetsGrpByFeature[cat].length;
-          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByFeature[cat], d => d.group);
-          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-          //     return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
-          //   })
-          //   .style('stroke-width', 2);
         }
 
         function drawLinesFromCatToCat() {
@@ -635,32 +446,6 @@ function Level2Plot() {
           // Add auxilary axis for categorical feature
           renderAuxAxisForCats(tweets, currFeature, catScalesForCurr, 'left');
           renderAuxAxisForCats(tweets, nextFeature, catScalesForNext, 'right');
-          // gFeaturePlot
-          //   .selectAll('.aux_axis_for_cat_features')
-          //   .data(catsInCurrFeature)
-          //   .enter()
-          //   .append('rect')
-          //   .attr('class', cat => 'aux_axis_for_cat_features_' + currFeature.key + '_' + cat)
-          //   .attr('x', xFeatureScale(currFeature.key) - lCom.hPlot.featurePlot.axis.cat.m)
-          //   .attr('y', cat => catScalesForCurr[cat].range()[0])
-          //   .attr('width', 5)
-          //   .attr('height', cat => catScalesForCurr[cat].range()[1] - catScalesForCurr[cat].range()[0])
-          //   .style('fill', cat => {
-          //     const numTweetsInCat = tweetsGrpByCurrFeature[cat].length;
-          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByCurrFeature[cat], d => d.group);
-          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-          //     return groupRatioScale(numLibTweetsInCat / numTweetsInCat);
-          //   })
-          //   .style('fill-opacity', 0.5)
-          //   .style('stroke', cat => {
-          //     const numTweetsInCat = tweetsGrpByCurrFeature[cat].length;
-          //     const tweetsGrpByGrp = _.groupBy(tweetsGrpByCurrFeature[cat], d => d.group);
-          //     const numLibTweetsInCat = tweetsGrpByGrp[1].length; // 0 = liberal
-
-          //     return d3.rgb(groupRatioScale(numLibTweetsInCat / numTweetsInCat)).darker();
-          //   })
-          //   .style('stroke-width', 1);
         }
 
         function drawLinesFromContToCont() {

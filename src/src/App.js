@@ -25,7 +25,7 @@ const Container = styled.div`
   margin: 10px auto;
   display: grid;
   grid-template-rows: 50px 900px 450px;
-  grid-template-columns: 15% 12.5% 70%;
+  grid-template-columns: 15% 12.5% 60%;
   grid-template-areas:
     'h h h'
     'e g g'

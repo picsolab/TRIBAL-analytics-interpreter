@@ -86,7 +86,7 @@ export const lCom = {
     // in the context of svg
     t: 0,
     l: 0,
-    w: l.w * 0.55,
+    w: l.w * 0.65,
     h: l.h * 0.9,
     goalPlot: {
       t: ll.l1.t,
@@ -111,7 +111,7 @@ export const lCom = {
       titles: {
         t: ll.l2.t - 15,
         h: ll.l2.h - 15,
-        m: 15
+        m: 20
       },
       axis: {
         w: 50,
@@ -136,20 +136,20 @@ export const lCom = {
     }
   },
   fromFtoO: {
-    l: l.w * 0.6,
+    l: l.w * 0.7,
     w: l.w * 0.05
   },
   outputProbPlot: {
     t: ll.l2.t,
     h: ll.l2.h,
-    l: l.w * 0.66,
+    l: l.w * 0.76,
     w: 80
   },
   clusterPlot: {
     t: l.h * 0.15,
     //h: ll.l1.h + ll.l2.h,
     h: ll.l2.h,
-    l: l.w * 0.725,
+    l: l.w * 0.825,
     w: l.w * 0.225,
     m: 10,
     minR: 4,
@@ -187,7 +187,7 @@ export const SubsectionTitle = styled.div.attrs({
   font-weight: 550;
   // border-bottom: 2px solid gray;
   padding-bottom: 2px;
-  margin-top: 20px;
+  // margin-top: 10px;
   margin-bottom: 10px;
   font-size: 0.9rem;
   text-transform: uppercase;

@@ -114,8 +114,6 @@ function Axes() {
 
         // Render components for subgroups
         function renderSubgroupAxis(gfeatureAxis, tweetsForFeature) {
-          console.log('tweets: ', tweetsForFeature);
-
           const featureScale = feature.type == 'continuous' 
             ? feature.scale
             : d3.scaleLinear()
@@ -129,8 +127,8 @@ function Axes() {
             .range(cumGroupSizeRatio);
 
           const groupRatioScale = d3.scaleLinear()
-            .domain([0, 0.5, 1])
-            .range(['red', 'whitesmoke', 'blue']);
+            .domain([0, 0.2, 0.4, 0.6, 0.8, 1])
+            .range(['#CB4335', '#E74C3C', '#FADBD8', '#D7DBFF', '#7584FF', '#001BFF']);
 
           yAxisSetting = d3
             .axisLeft(featureScale)
@@ -158,6 +156,8 @@ function Axes() {
                 ? (featureMean - featureSD*0.6745)/5 
                 : featureMean - featureSD*0.6745;
 
+            console.log('cl.groupRatio.lib: ', cl.groupRatio.lib)
+
             gfeatureAxis
               .append('rect')
               .attr('class', 'subgroup_rect subgroup_rect_' + cl.clusterId)
@@ -169,24 +169,24 @@ function Axes() {
               .style('stroke', 0.25)
               .style('fill', groupRatioScale(cl.groupRatio.lib))
               .on('mouseover', d => console.log('featureMean and SD: ', cl.clusterId, featureMean, featureSD))
+            
+            var triangleSize = 20;
+            var verticalTransform = 180 + Math.sqrt(triangleSize);
+  
+            const triangle = d3.symbol()
+                    .type(d3.symbolTriangle)
+                    .size(triangleSize);
+  
+            gfeatureAxis.append('path')
+              .attr('class', 'point_to_subgroup_for_selected_instance ' + 'subgroup_' + clId)
+              .attr("d", triangle)
+              .attr("stroke", 'black')
+              .attr("fill", 'black')
+              .attr("transform", function(d) { 
+                const x = clId == 0 ? 0 : xGroupScale(clId-1);
+                return "translate(" + x + "," + (-10) + ")rotate(180)"; 
+              });
           });
-              
-
-          // d3.range(9).forEach(function(clId) {
-          //   const instancesForCl = tweetsForFeature.filter(d => d.clusterId == clId);
-          //   console.log('instancesForCl: ', instancesForCl);
-
-          //   const featureMean = _.mean(instancesForCl.map(d => d.feature)),
-          //     featureSD = 0.2;
-
-          //   d3.select(this)
-          //     .append('rect')
-          //     .attr('x', 0)
-          //     .attr('y', 0)
-          //     .attr('width', 10)
-          //     .attr('height', 20)
-          //     .style('fill', 'black');
-          // });
         }
 
         // Render components for pdp
@@ -220,16 +220,18 @@ function Axes() {
           
           // Feature importance bar for each feature
           const featureImpScale = d3.scaleLinear()
-              .domain([0, 1])
-              .range(d3.extent(featureImps[i]));
+              .domain(d3.extent(featureImps))
+              .range([0, 30]);
+
           gfeatureAxis
             .append('rect')
             .attr('class', 'feature_imp_rect_' + featureName)
             .attr('x', 0)
-            .attr('y', -lCom.hPlot.featurePlot.axis.m*3)
+            .attr('y', -lCom.hPlot.featurePlot.axis.m*3+1)
             .attr('width', featureImpScale(featureImps[i]))
-            .attr('height', lCom.hPlot.featurePlot.axis.m*2)
-            .style('fill', 'gray');
+            .attr('height', lCom.hPlot.featurePlot.axis.m*2 - 3)
+            .style('fill', '#66cdaa99')
+            .style('stroke', 'mediumaquamarine')
 
           // if it's categorical, render bar chart PDPs for each category
           if (feature.type == 'categorical') {

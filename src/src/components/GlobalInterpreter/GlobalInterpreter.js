@@ -26,7 +26,7 @@ const GlobalInterpreterWrapper = styled(SectionWrapper).attrs({
   display: grid;
   margin-top: 0;
   // grid-template-columns: 100%;
-  grid-template-rows: 200px 650px;
+  grid-template-rows: 170px 650px;
   grid-template-columns: 100%;
   grid-template-areas:
     'ge'

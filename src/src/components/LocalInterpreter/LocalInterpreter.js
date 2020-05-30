@@ -10,7 +10,7 @@ import {grommet} from 'grommet/themes';
 import {deepMerge} from 'grommet/utils';
 import index from '../../index.css';
 import {StylesContext} from '@material-ui/styles/StylesProvider';
-import {SectionWrapper, SectionTitle, SubTitle, globalColors} from '../../GlobalStyles';
+import {SectionWrapper, SectionTitle, SubsectionTitle, SubTitle, globalColors} from '../../GlobalStyles';
 
 import Document from '../subcomponents/Document';
 
@@ -20,7 +20,7 @@ const LocalInterpreterWrapper = styled(SectionWrapper).attrs({
   className: 'local_interpreter'
 })`
   grid-area: l;
-  border-left: 1px solid lightgray;
+  // border-left: 1px solid lightgray;
   margin-top: 10px;
   // display: grid;
   // grid-template-columns: 15% 85%;
@@ -464,7 +464,7 @@ const LocalInterpreter = ({
     return (
       <LocalInterpreterWrapper>
         <div>
-          <SectionTitle>Instance-level comparison</SectionTitle>
+          <SubsectionTitle>Instance-level comparison</SubsectionTitle>
           <Spin indicator={loadingIcon} />
         </div>
         <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
@@ -498,7 +498,7 @@ const LocalInterpreter = ({
   return (
     <LocalInterpreterWrapper>
       <div>
-        <SectionTitle>Instance-level comparison</SectionTitle>
+        <SubsectionTitle>Instance-level comparison</SubsectionTitle>
       </div>
       <span style={{fontWeight: 600}}>Select a contrastive question type: </span>
       &nbsp;

@@ -69,6 +69,7 @@ const ScoreView = ({ tweet, features }) => {
   const featureNames = features.map(d => d.key),
     numFeatures = featureNames.length,
     tweetScores = Object.values(_.pick(tweet, featureNames));
+  const featuresUpdated = features.map(d => ({ ...d, tweet: tweet}));
 
   const layout = {
     width: 50,
@@ -81,36 +82,6 @@ const ScoreView = ({ tweet, features }) => {
   };
 
   var xFeatureScale = d3.scaleBand().range([0, layout.svg.width]);
-
-  var yScoreScale = d3
-    .scaleLinear()
-    .domain([1, 0])
-    .range([layout.svg.height - layout.marginBottom, 0]);
-
-  const yCareScale = d3
-    .scaleOrdinal()
-    .domain([1, 0, 3, 2])
-    .range([
-      layout.svg.height - layout.marginBottom,
-      layout.svg.height -
-        layout.marginBottom -
-        (layout.svg.height - 3 * layout.marginBottom) / 1,
-      layout.svg.height -
-        layout.marginBottom -
-        (layout.svg.height - 3 * layout.marginBottom) / 2,
-      layout.marginBottom
-    ]);
-
-  const yFairnessScale = d3
-    .scaleOrdinal()
-    .domain([1, 0, 2])
-    .range([
-      layout.svg.height - layout.marginBottom,
-      layout.svg.height -
-        layout.marginBottom -
-        (layout.svg.height - 2 * layout.marginBottom) / 2,
-      layout.marginBottom
-    ]);
 
   const numToCat4Scale = d3
     .scaleOrdinal()
@@ -168,9 +139,18 @@ const ScoreView = ({ tweet, features }) => {
       
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
-      .attr('height', (d, i) => layout.svg.height - layout.marginBottom - features[i].scoreScale(d))
+      .attr('height', (d, i) => {
+        console.log('scoreScale: ', features[i].scoreScale.range(), d, features[i].scoreScale(d))
+        return (features[i].type === 'categorical')
+          ? 25 - features[i].scoreScale(d) - features[i].scoreScale.bandwidth()
+          : 25 - features[i].scoreScale(d)
+      })
       .attr('x', (d, i) => xFeatureScale(i))
-      .attr('y', (d, i) => features[i].scoreScale(d))
+      .attr('y', (d, i) => {
+        return (features[i].type === 'categorical')
+        ? features[i].scoreScale(d) + features[i].scoreScale.bandwidth()
+        : features[i].scoreScale(d)
+      })
       .on('mouseover', (d, i) => {
         const titleHtml = '<div style="font-weight: 600">Features</div>';
         const scoreHtml = features.map(feature => {
@@ -189,18 +169,15 @@ const ScoreView = ({ tweet, features }) => {
 
         tooltip.html(titleHtml + scoreHtml.join(''));
         tooltip.show();
-        console.log(scoreHtml);
-        console.log(d3.selectAll('.feature_rect'))
       })
       .on('mouseout', (d, i) => {
         tooltip.hide();
       });
     
 
-    const featureTitle = d3
-      .select(ref.current)
-      .selectAll('text')
-      .data(features)
+    const featureTitle = svg
+      .selectAll('.feature_title')
+      .data(featuresUpdated)
       .enter()
       .append('text')
       .attr('class', d => 'feature_title ' + d.key)
@@ -209,39 +186,65 @@ const ScoreView = ({ tweet, features }) => {
       .attr('y', (d, i) => layout.svg.height)
       .style('font-size', '0.6rem')
       .on('click', function(d) {
+        const selectedTweet = d.tweet;
         const tweetIdx = d3.select(this.parentNode.parentNode.parentNode).attr('class').split('_')[1];
+        const selectedFeatureTitle = d3.select(this);
+        const isFeatureTitleSelected = selectedFeatureTitle.classed('feature_title_selected');
 
-        d3.select(this)
-          .style('fill', 'red')
-          .style('font-weight', 600);
+        if (isFeatureTitleSelected == false) {
+          selectFeatureForTweet(true);
+        } else {
+          selectFeatureForTweet(false);
+        }
 
-        console.log(tweet.tweetIdx)
-        console.log('tweet content: ', d3.select('.doc_' + tweetIdx)
-        .select('.content').html());
-        let content = d3.select('.doc_' + tweetIdx)
-          .select('.content').html().toLowerCase();
-        const contentArr = content.split(' ');
+        function selectFeatureForTweet(isSelected) {
+          selectedFeatureTitle
+            .classed('feature_title_selected', isSelected);
 
-        const impSeq = tweet[d.key + 'Seq'].toLowerCase();
+          let content = d3.select('.doc_' + tweetIdx)
+            .select('.content').html().toLowerCase();
+          let updatedSeqHtml = '';
+          if (isSelected == true) {
+            selectedFeatureTitle
+              .style('fill', 'red')
+              .style('font-weight', 600);
 
-        console.log(tweet.tweetIdx, tweetIdx);
-        console.log(content);
-        console.log(impSeq);
-
-        let impSeqArr = impSeq.split(' ');
-        let startIdx = contentArr.indexOf(impSeqArr[0].toLowerCase()),
-            endIdx = contentArr.indexOf(impSeqArr[impSeqArr.length-1].toLowerCase());
-        
-        let htmlForImpSeq = '<span style="font-weight: 600; background-color: #ffe000;">' + impSeq + '</span>';
-        const updatedSeqArr = [ ...contentArr.slice(0, startIdx), htmlForImpSeq, ...contentArr.slice(endIdx+1) ];
-        const updatedSeqHtml = updatedSeqArr.join(' ');
-
-        d3.select('.doc_' + tweetIdx)
-          .select('.content')
-          .each(function(d) { 
-            d3.select(this).html(updatedSeqHtml);
-            // d3.select(this).text(updatedSeqHtml);
-          });
+            console.log('d.tweet: ', d.tweet);
+            console.log(tweet.tweetIdx)
+            console.log('tweet content: ', d3.select('.doc_' + tweetIdx)
+            .select('.content').html());
+            
+            const contentArr = content.split(' ');
+  
+            const impSeq = selectedTweet[d.key + 'Seq'].toLowerCase();
+  
+            console.log(content);
+            console.log(impSeq);
+  
+            //let impSeqArr = impSeq.split(' ');
+            let startIdx = content.indexOf(impSeq.toLowerCase()),
+                endIdx = startIdx + impSeq.toLowerCase().length;
+            
+            let htmlForImpSeq = '<span style="font-weight: 600; background-color: #ffe000;">' + impSeq + '</span>';
+            const updatedSeqArr = [ content.slice(0, startIdx), htmlForImpSeq, content.slice(endIdx+1) ];
+            
+            updatedSeqHtml = updatedSeqArr.join(' ');
+          } else {
+            selectedFeatureTitle
+              .style('fill', '')
+              .style('font-weight', '');
+            
+            updatedSeqHtml = content.replace('<span style="font-weight: 600; background-color: #ffe000;">', '').replace('</span>', '');
+          }
+          
+          d3.select('.doc_' + tweetIdx)
+            .select('.content')
+            .each(function(d) {
+              d3.select(this).node().innerHTML = '';
+              d3.select(this).html(updatedSeqHtml);
+              // d3.select(this).text(updatedSeqHtml);
+            });
+        }
       });
   }, [tweet, ref.current]);
 
@@ -264,6 +267,7 @@ const IndexIndicator = props => {
       data-tweet-id={tweet.tweetIdx}
       data-tweet={{ tweet: tweet }}
       onClick={e => {
+        console.log('index-indicator: ', tweet);
         const selectedTweetEl = d3.select(e.target);
         if (selectedTweetEl.classed('tweet_index_indicator_highlighted') == false) {
           highlightSelectedTweet(true);
@@ -324,6 +328,7 @@ const Document = props => {
   const dispatch = useDispatch();
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
+  console.log('chekc tweet: ', tweet);
   return (
     <DocumentWrapper
       className={'doc_' + tweet.tweetIdx + (isSelected ? ' doc_selected ' : '')}
@@ -435,13 +440,14 @@ const Document = props => {
         <div>{tweet.screenName}</div>
         <ScoreView 
           tweet={tweet}
-          features={features} 
+          features={features}
+          onClick={e => { console.log('scoreview clicked: ', e.target) }}
         />
       </div>
       <div 
         className={'contentWrapper'}
         style={{ display: 'flex' }}>
-        <ContentDiv>{tweet.rawContent}</ContentDiv>
+        <ContentDiv>{tweet.content}</ContentDiv>
         <IndexIndicator 
           tweet={tweet}
         />

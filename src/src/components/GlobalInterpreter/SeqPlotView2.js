@@ -1,16 +1,19 @@
 import React, {useEffect, useRef} from 'react';
-import {useDispatch} from 'react-redux';
+
 import * as d3 from 'd3';
 import _ from 'lodash';
 import d3tooltip from 'd3-tooltip';
+import ReactTooltip from 'react-tooltip';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {searchTweets} from '../../modules/explorer';
 
+import Document from '../subcomponents/Document';
 import styled from 'styled-components';
 import {Button} from 'grommet';
 import index from '../../index.css';
 import {StylesContext} from '@material-ui/styles/StylesProvider';
-import {SectionWrapper, SectionTitle, SubTitle, globalColors} from '../../GlobalStyles';
+import {SectionWrapper, SectionTitle, SubTitle, lCom, globalColors} from '../../GlobalStyles';
 
 const layout = {
   margin: {top: 20, right: 110, bottom: 20, left: 15},
@@ -35,7 +38,7 @@ var numFeatures = 7;
 const SeqPlotViewWrapper = styled.div.attrs({
   className: 'word_plot_view_wrapper'
 })`
-  width: 75%;
+  width: 80%;
   height: 300px;
   grid-area: w;
   display: flex;
@@ -341,7 +344,7 @@ const SeqPlotView2 = ({
     const width = 800,
       height = 300,
       radius = 6,
-      paddingLeft = 20;
+      paddingLeft = 10;
 
     const features = ['v', 'd', 'a', 'f', 'h', 'l', 'p'];
 
@@ -353,19 +356,24 @@ const SeqPlotView2 = ({
 
     const groupColorScale = d3.scaleLinear()
       .domain([0, 0.5, 1])
-      .range(['rgba(25, 12, 226, 0.5)', 'whitesmoke', 'rgba(255, 34, 34, 0.5)']);
+      .range(['rgba(255, 34, 34, 0.5)', 'whitesmoke', 'rgba(25, 12, 226, 0.5)']);
 
-    const xFeatureScale = d3.scaleOrdinal()
+    // const xFeatureScale = d3.scaleOrdinal()
+    //   .domain(features)
+    //   .range([20, 100, 200, 300, 400, 500, 600]);
+
+    const xFeatureScale = d3
+      .scalePoint()
       .domain(features)
-      .range([20, 100, 200, 300, 400, 500, 600]);
+      .range([0, lCom.hPlot.w]);
 
     const yFeatureProbForContScale = d3.scaleLinear()
       .domain([0, 0.2, 0.4, 0.6, 0.8, 1])
-      .range([300, 220, 180, 160, 120, 10]);
+      .range([280, 200, 160, 140, 100, 10]);
 
     const yFeatureForOrdScale = d3.scaleBand()
       .domain([0, 1, 2, 3])
-      .range([300, 10]);
+      .range([280, 20]);
 
     let yGroupScalesInOrds = [];
     yFeatureForOrdScale.domain().forEach((ord, i) => {
@@ -373,8 +381,8 @@ const SeqPlotView2 = ({
         d3.scaleLinear()
           .domain([0, 1])
           .range([
-            yFeatureForOrdScale.range()[1] + yFeatureForOrdScale.bandwidth() * i,
-            yFeatureForOrdScale.range()[1] + yFeatureForOrdScale.bandwidth() * (i + 1)
+            yFeatureForOrdScale.range()[0] - yFeatureForOrdScale.bandwidth() * i,
+            yFeatureForOrdScale.range()[0] - yFeatureForOrdScale.bandwidth() * (i + 1)
           ])
       );
     });
@@ -429,7 +437,7 @@ const SeqPlotView2 = ({
 
       gPlot.append('g')
         .attr('class', 'g_plot_y_axis ' + feature)
-        .attr('transform', 'translate(' + (xFeatureScale(feature) + 25) + ',' + 0 + ')')
+        .attr('transform', 'translate(' + (xFeatureScale(feature) + 16) + ',' + 0 + ')')
         .call(yAxisSetting)
         .call(g => g.select(".domain").remove());
 
@@ -455,8 +463,7 @@ const SeqPlotView2 = ({
       .attr('class', 'g_seq_subplot')
       .each(function (d) {
         const gText = d3.select(this);
-        if (d.score < scoreThreshold) {
-          gText
+        gText
             .append('rect')
             .attr('class', 'seq_rect')
             .attr('x', -5)
@@ -482,6 +489,7 @@ const SeqPlotView2 = ({
                 '</div>';
               tooltip.html(seqHtml);
               tooltip.show();
+              // ReactTooltip.show(this);
             })
             .on('mouseout', function(d, i) {
               d3.select(this)
@@ -490,11 +498,15 @@ const SeqPlotView2 = ({
             });
 
           d.widthForTick = impScoreScale(d.score) + 10;
+
+        if (d.score < scoreThreshold) {
+          
         } else if (d.score >= scoreThreshold) {
           const seqText = gText
             .append('text')
             .attr('class', 'seq_text')
             .attr('x', 20)
+            .attr('y', -10)
             .style('font-family', 'Helvetica')
             // .text(d => d.seq.split(' ').slice(0, 2))
             .text(d => extractImpSubseq(d.seq, d.attForSeq))
@@ -524,15 +536,24 @@ const SeqPlotView2 = ({
           gText
             .append('rect')
             .attr('x', 15)
-            .attr('y', -12)
+            .attr('y', -22)
             .attr('rx', 3)
             .attr('rx', 3)
             .attr('width', seqText.node().getBoundingClientRect().width + 10)
             .attr('height', seqText.node().getBoundingClientRect().height + 3)
             .style('fill', 'white')
-            .style('stroke', d => groupColorScale(d.groupProb))
-            .style('stroke-width', 3)
+            .style('stroke', d => 'gray')
+            .style('stroke-width', 1)
             .style('fill-opacity', 0.5);
+
+          gText
+            .append('line')
+            .attr('x1', 5)
+            .attr('y1', 0)
+            .attr('x2', 15)
+            .attr('y2', -15)
+            .style('stroke', 'gray')
+            .style('stroke-array', '4,2')
 
           d.widthForTick = seqText.node().getBoundingClientRect().width / 2;
         }
@@ -585,6 +606,7 @@ const SeqPlotView2 = ({
         />
       </SeqPlotViewWrapper>
       <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} />
+      <ReactTooltip />
     </div>
   );
 };

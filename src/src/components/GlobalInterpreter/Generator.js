@@ -32,15 +32,34 @@ import {
 
 import { runDT } from '../../modules/globalInterpreter';
 import { runDTThenRunClandPD, fetchSeqs } from '../../modules/tweet';
+import { flexbox } from '@material-ui/system';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
 })`
   grid-area: ge;
   height: 100%;
-  border-bottom: 1px solid lightgray;
+  // border-bottom: 1px solid lightgray;
+  // background: whitesmoke;
   margin-top: 0;
   display: flex;
+  border-bottom: 1px solid whitesmoke;
+  padding: 0 10px;
+`;
+
+const GroupDiv = styled.div.attrs({
+  className: 'group_div'
+})`
+  width: 10px;
+  height: 10px;
+  line-height: 5;
+  margin-right: 5px;
+  border: 1px solid black;
+  color: white;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0.5;
+  cursor: pointer;
 `;
 
 const layout = {
@@ -163,9 +182,17 @@ const Generator = props => {
       <div>Moral</div> */}
       <div>
           <SubsectionTitle>Groups</SubsectionTitle>
+          <div style={{ display: 'flex' }}>
+            <GroupDiv style={{ background: 'red' }} />
+            <div>Red</div>
+          </div>
+          <div style={{ display: 'flex' }}>
+            <GroupDiv style={{ background: 'blue' }} />
+            <div>Blue</div>
+          </div>
       </div>
       <Form
-        style={{ width: '300px' }}
+        style={{ width: '300px', marginLeft: '60px' }}
         onSubmit={({ value }) => {
           // const selectedTweetsByMode =
           //   globalMode === 2 ? tweetsWithPredFeatures : tweets;
@@ -234,7 +261,7 @@ const Generator = props => {
       </Form>
       <div style={{ height: '5px' }} />
       <Form
-        style={{ marginLeft: '10px' }}
+        style={{ marginLeft: '60px' }}
         onSubmit={({ value }) => {
           dispatch(
             fetchSeqs({

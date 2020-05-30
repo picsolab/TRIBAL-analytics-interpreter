@@ -66,74 +66,6 @@ const ScoreView = ({ // ScoreView as a whole on top of the list
       .domain([1, 0])
       .range([layout.svg.height - layout.marginBottom, 0]);
 
-    const yCFScale = d3
-      .scaleOrdinal()
-      .domain([3, 2, 1, 0])
-      .range([
-        layout.svg.width,
-        layout.svg.width - layout.svg.width / 3,
-        layout.svg.width - (layout.svg.width / 3) * 2,
-        0
-      ]);
-
-    const yCareScale = d3
-      .scaleOrdinal()
-      .domain([2, 3, 0, 1])
-      .range([
-        layout.height,
-        layout.height - ((layout.height - layout.marginBottom) / 3) * 1,
-        layout.height - ((layout.height - layout.marginBottom) / 3) * 2,
-        layout.marginBottom
-      ]);
-
-    const yFairnessScale = d3
-      .scaleOrdinal()
-      .domain([2, 0, 1])
-      .range([
-        layout.height,
-        layout.height - (layout.height - layout.marginBottom) / 2,
-        layout.marginBottom
-      ]);
-
-    // const featureRect = d3
-    //   .select(ref.current)
-    //   .selectAll('.feature_avg_rect')
-    //   .data(avgScores)
-    //   .enter()
-    //   .append('rect')
-    //   .attr('class', 'feature_avg_rect')
-    //   .attr('width', layout.svg.width / numFeatures - 3)
-    //   .attr('height', (d, i) =>
-    //     i === 1 ? yFairnessScale(d) : i === 3 ? yCareScale(d) : yScoreScale(d)
-    //   )
-    //   .attr('x', (d, i) => xFeatureScale(i))
-    //   .attr('y', (d, i) => {
-    //     return i === 1
-    //       ? yFairnessScale(d)
-    //       : i === 3
-    //       ? yCareScale(d)
-    //       : yScoreScale(d);
-    //   })
-    //   .style('fill', globalColors.feature)
-    //   .style('cursor', 'pointer')
-    //   .on('click', function(d, i) {
-    //     const sortBy =
-    //       i === 0
-    //         ? 'valence'
-    //         : i === 1
-    //         ? 'fairness'
-    //         : i === 2
-    //         ? 'dominance'
-    //         : 'care';
-
-    //     d3.selectAll('.feature_sort_by').classed('feature_sort_by', false);
-    //     d3.select(this).classed('feature_sort_by', true);
-    //     dispatch({
-    //       type: 'SORT_TWEETS_BY_FEATURE',
-    //       payload: sortBy
-    //     });
-    //   });
-
     const featureTitle = d3
       .select(ref.current)
       .selectAll('text')
@@ -193,7 +125,7 @@ const DocumentView = ({
     if (feature.type == 'continuous') {
       featureScale
         .domain(feature.domain)
-        .range([30, 0]);
+        .range([25, 0]);
       
     } else if (feature.type == 'categorical') {
       // const height = lCom.hPlot.featurePlot.h,
@@ -204,7 +136,7 @@ const DocumentView = ({
       // );
       featureScale
         .domain(feature.domain)
-        .range([30, 5]);   
+        .range([25, 0]);   
     }
   });
 

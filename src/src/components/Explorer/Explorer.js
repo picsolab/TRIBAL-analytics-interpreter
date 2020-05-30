@@ -17,14 +17,14 @@ const ExplorerWrapper = styled.div.attrs({
 })`
   grid-area: e;
   display: grid;
-  grid-template-rows: 100px 750px 300px;
+  grid-template-rows: 100px 800px 300px;
   grid-template-columns: 100%;
   grid-template-areas:
     'rt'
     'd'
     'l';
-  // background-color: whitesmoke;
-  border-right: solid 1px lightgray;
+  background-color: whitesmoke;
+  // border-right: solid 1px lightgray;
 `;
 
 const Explorer = ({
