@@ -69,6 +69,7 @@ const initialState = {
     fairness: 0.415014834
   },
   contrastiveRules: [],
+  selectedTweetRules: [],
   contrastiveEXs: [],
   diffRule: '',
   isCFLoading: false  // CF == CounterFactual
@@ -89,6 +90,7 @@ const localInterpreter = (state = initialState, action) => {
           ? {
               ...state,
               selectedTweet: action.payload.selectedTweet,
+              selectedTweetRules: action.payload.selectedTweetRules,
               contrastiveRules: action.payload.contRules,
               contrastiveEXs: action.payload.contExamples,
               isCFLoading: false

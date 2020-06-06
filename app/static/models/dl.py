@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 import pandas as pd
-import string
+import string, math
 
 class model_loader():
     def __init__(self, dim, mode, tweet_ids, post_w, ranking_w, length_w, freq_w, args):
@@ -13,11 +13,28 @@ class model_loader():
             self.regression = False
 
         tweets = pickle.load(open(f'./app/static/models/dl_models/{dim}_model.pkl', 'rb'))
+        df_tweets_full = pd.read_csv('./app/static/data/tweets_full_w_coding_changed.csv', index_col='tweet_id')
+        df_tweets_full.index = df_tweets_full.index.astype(str)
         df_tweets = pd.DataFrame(tweets).transpose()
+
         if mode == 'all':
             self.data = tweets
         elif mode == 'cluster':
-            self.data = df_tweets.iloc[tweet_ids].to_dict('index')
+            df_filtered_tweets = df_tweets.loc[tweet_ids]
+            df_tweets_full_filtered_tweets = df_tweets_full.loc[tweet_ids]
+            df_tweets_full_filtered_tweets.to_csv('./app/static/data/tweets_in_cluster.csv')
+            self.data = df_filtered_tweets.to_dict('index')
+            print('group 0: ', df_tweets_full_filtered_tweets.loc[df_tweets_full_filtered_tweets['care']==0].shape)
+            print('group 1: ', df_tweets_full_filtered_tweets.loc[df_tweets_full_filtered_tweets['care']==1].shape)
+            for k in self.data:
+                if 'label_0' in self.data[k].keys():
+                    if math.isnan(self.data[k]['label_0']):
+                        print('dfdf: ', self.data[k])
+                else:
+                    print('ffdd: ', self.data[k])
+            self.data = {k: self.data[k] for k in self.data if not math.isnan(self.data[k]['label_0'])}
+            #self.data =  [ tweet for tweet in self.data.items()
+            print('selected tweets: ', len(self.data))
         
         print('extracting sequences...')
         self._extract_seqs(args)
@@ -62,7 +79,7 @@ class model_loader():
             self.sorted_importance = sorted(self.global_importance.items(), 
                                             key=lambda x: x[1], reverse=True)
         
-        
+        pd.DataFrame(self.data).to_csv('./app/static/data/imp_seqs_for_cluster.csv')
         return self.data, [item[0] for item in self.sorted_importance[:n]]
     
     def normalize_group_posterior(self):
@@ -210,7 +227,10 @@ class model_loader():
     
     def _get_seq(self, case):
         attn = case['attention']
-        attn = [item for item in attn if item > 0]
+        if isinstance(attn, list):
+            attn = [item for item in attn if item > 0]
+        else:
+            attn = [attn]
         max_s = 0
         max_loc = []
         lengths = []

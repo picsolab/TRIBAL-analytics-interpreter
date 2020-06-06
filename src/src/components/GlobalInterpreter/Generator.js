@@ -109,6 +109,7 @@ const Generator = props => {
     globalMode,
     goals,
     tweets,
+    tweetsInClusterForSeqPlot,
     tweetsWithPredFeatures,
     features,
     selectedFeatures,
@@ -263,11 +264,17 @@ const Generator = props => {
       <Form
         style={{ marginLeft: '60px' }}
         onSubmit={({ value }) => {
+          var tweetsForUpdating = [];
+          if (tweetsInClusterForSeqPlot.length == 0)
+            tweetsForUpdating = tweets;
+          else
+            tweetsForUpdating = tweetsInClusterForSeqPlot;
           dispatch(
             fetchSeqs({
               opt: 'dynamic',
               mode: 'all',
-              tweetIds: tweets.map(d => d.tweetIdx),
+              tweets: tweets,
+              tweetIds: tweetsForUpdating.map(d => d.tweetId),
               seqWeights: {
                 post: probW,
                 ranking: rankingW,

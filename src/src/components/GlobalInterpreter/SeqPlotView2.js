@@ -346,7 +346,7 @@ const SeqPlotView2 = ({
       radius = 6,
       paddingLeft = 10;
 
-    const features = ['v', 'd', 'a', 'f', 'h', 'l', 'p'];
+    const features = ['v', 'd', 'h', 'f', 'p', 'a', 'l'];
 
     const svg = d3.select(ref.current)
       .attr('width', 800)

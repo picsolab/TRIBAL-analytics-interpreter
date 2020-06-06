@@ -164,6 +164,7 @@ const QAView = ({
   secondSelectedTweet,
   qType,
   contrastiveRules,
+  selectedTweetRules,
   contrastiveEXs,
   tweets,
   currentModelInfo,
@@ -181,6 +182,8 @@ const QAView = ({
     } 
   */
 
+  console.log('selectedTweetRules: ', selectedTweetRules);
+  console.log('contrastiveEXs: ', contrastiveEXs);
   const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map((feature, idx) => {
     const subject = contrastiveRules[feature].subject;
     const inequality = contrastiveRules[feature].inequality;
@@ -434,6 +437,7 @@ const LocalInterpreter = ({
   secondSelectedTweet,
   tweets,
   qType,
+  selectedTweetRules,
   contrastiveRules,
   contrastiveEXs,
   currentModelInfo,
@@ -482,6 +486,7 @@ const LocalInterpreter = ({
           qType={qType}
           selectedTweet={selectedTweet}
           secondSelectedTweet={secondSelectedTweet}
+          selectedTweetRules={selectedTweetRules}
           contrastiveRules={contrastiveRules}
           contrastiveEXs={contrastiveEXs}
           diffRule={diffRule}
@@ -516,6 +521,7 @@ const LocalInterpreter = ({
         selectedTweet={selectedTweet}
         secondSelectedTweet={secondSelectedTweet}
         contrastiveRules={contrastiveRules}
+        selectedTweetRules={selectedTweetRules}
         contrastiveEXs={contrastiveEXs}
         diffRule={diffRule}
         tweets={tweets}

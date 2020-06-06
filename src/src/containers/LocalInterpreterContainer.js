@@ -16,6 +16,7 @@ const LocalInterpreterContainer = () => {
 
   const { 
     qType, 
+    selectedTweetRules,
     contrastiveRules, 
     contrastiveEXs, 
     diffRule,
@@ -32,6 +33,7 @@ const LocalInterpreterContainer = () => {
       features={features}
       qType={qType}
       contrastiveRules={contrastiveRules}
+      selectedTweetRules={selectedTweetRules}
       contrastiveEXs={contrastiveEXs}
       currentModelInfo={currentModelInfo}
       diffRule={diffRule}

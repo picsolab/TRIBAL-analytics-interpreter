@@ -132,7 +132,7 @@ class LoadData(APIView):
         tweets_json = []
         for tweet in tweet_objects_json:
             tweet_json = tweet['fields']
-            tweet_json.update({ 'tweet_id': tweet['pk'] })
+            tweet_json.update({ 'tweet_id': str(tweet['pk']) })
             tweets_json.append(tweet_json)
 
         return Response(tweets_json)
@@ -827,7 +827,7 @@ class FindContrastiveExamples(APIView):
         time_check5 = time.time() - time_check1
         print('time-check: ', time_check1, time_check2, time_check3, time_check4, time_check5)
         if q_type == 'p-mode':
-            return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict })
+            return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict, 'selectedTweetRules': selected_leaf_rules })
         elif q_type == 'o-mode':
             return Response({ 'qType': q_type, 'diffRule': diff_rule })
 
@@ -877,7 +877,8 @@ class ExtractSeqs(APIView):
         tweet_ids = request_json['tweetIds']
         weights = request_json['seqWeights']
 
-        print('mode: ', mode, opt, tweet_ids)
+        print('mode: ', mode, opt)
+        print('lenngth of tweets: ', len(tweet_ids))
 
         if opt == 'static':
             f = open('./app/static/data/imp_seqs.json', "r") 
@@ -894,6 +895,16 @@ class ExtractSeqs(APIView):
                 tid_construct_post_dict = test.normalize_construct_posterior()
                 tid_score_dict = test.normalize_imp_score()
                 tid_att_for_seq_dict = test.get_attentions_for_seqs()
+
+                df_feature_values = pd.DataFrame(list(tid_construct_post_dict.values()), columns=['feature_value'], index=tid_construct_post_dict.keys())
+                if feature == 'f':
+                    df_feature_values['feature_value'] = df_feature_values['feature_value'].map({0:1, 1:2, 2:0})
+                elif feature == 'p':
+                    df_feature_values['feature_value'] = df_feature_values['feature_value'].map({0:0, 1:2, 2:1})
+                elif feature == 'a' or feature == 'l':
+                    df_feature_values['feature_value'] = df_feature_values['feature_value'].map({0:0, 1:3, 2:2, 3:1})
+                elif feature == 'h':
+                    df_feature_values['feature_value'] = df_feature_values['feature_value'].map({0:0, 1:3, 2:2, 3:1})
                 
                 data, tweets = test.get_most_important(n=10)
                 for tid in tweets:
@@ -901,9 +912,8 @@ class ExtractSeqs(APIView):
                         'seq': ' '.join(data[tid]['seq']),
                         'attForSeq': tid_att_for_seq_dict[tid],
                         'score': tid_score_dict[tid],
-                        'featureProb': tid_construct_post_dict[tid],
+                        'featureProb': df_feature_values.loc[tid],
                         'groupProb': tid_group_post_dict[tid],
                     })
-        print('imp_seqs: ', imp_seqs)
 
         return Response({'seqs': imp_seqs })

@@ -347,6 +347,7 @@ const GlobalInterpreter = props => {
         goals={goals}
         groups={groups}
         tweets={tweets}
+        tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot}
         tweetsWithPredFeatures={tweetsWithPredFeatures}
         features={features}
         selectedFeatures={selectedFeatures}

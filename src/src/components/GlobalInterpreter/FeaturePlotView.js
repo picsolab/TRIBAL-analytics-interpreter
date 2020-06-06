@@ -1160,7 +1160,7 @@ const FeaturePlotView = React.memo(
               opt: 'dynamic',
               mode: 'cluster',
               // tweetIds: tweetsInCluster.map(d => d.tweetIdx)
-              tweetIds: [1,2,4,5,10,20,25,30,35,62,100,400,284,800,1000,1023,3040],
+              tweetIds: tweetsInCluster.map(d => d.tweetId),
               seqWeights: {
                 post: 1,
                 ranking: 1,

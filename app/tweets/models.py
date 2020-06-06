@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 @python_2_unicode_compatible
 class Tweet(models.Model):
     # """ Tweet Model """
-    tweet_id = models.BigIntegerField(primary_key=True, default='')
+    tweet_id = models.BigAutoField(primary_key=True)
     tweet_idx = models.BigIntegerField(null=False, default=0)
     grp = models.CharField(max_length=100, null=False, default='NaN')
     raw_content = models.TextField(max_length=200, null=False, default='NaN')
