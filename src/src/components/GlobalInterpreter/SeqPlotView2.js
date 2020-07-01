@@ -161,7 +161,11 @@ const SeqListForCluster = ({isClusterSelected, tweetsInClusterForSeqPlot}) => {
         >
           Sequences in cluster
         </div>
-        <div style={{background: 'whitesmoke', padding: '10px', height: '90%'}} />
+        <div style={{
+            borderTop: '2px solid whitesmoke', 
+            padding: '10px', 
+            height: '100%'
+          }} />
       </div>
     );
   else if (isClusterSelected === true) {
@@ -215,7 +219,11 @@ const SeqListForCluster = ({isClusterSelected, tweetsInClusterForSeqPlot}) => {
         >
           Sequences in cluster
         </div>
-        <div style={{background: 'whitesmoke', padding: '10px', height: '100%'}}>
+        <div style={{
+            borderTop: '2px solid whitesmoke', 
+            padding: '10px', 
+            height: '100%'
+          }}>
           {top20SeqsForCluster.map(uniqueSeq => (
             <Word word={uniqueSeq} />
           ))}

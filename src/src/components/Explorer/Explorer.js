@@ -44,7 +44,7 @@ const Explorer = ({
     <ExplorerWrapper>
       <RetrievalView tweets={tweets} numRetrievedTweets={numRetrievedTweets} />
       <DocumentView
-        tweetList={Object.keys(selectedUser).length === 0 ? tweetList : filteredTweetList}
+        tweetList={tweetList}
         selectedTweet={selectedTweet}
         features={features}
       />

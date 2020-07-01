@@ -65,6 +65,8 @@ const Mockup3 = styled.div`
 const issues = ['Gun control', 'Abortion'];
 const datasets = ['Tweets'];
 
+let MODE = 'pdp'
+
 function App() {
   const dispatch = useDispatch();
 

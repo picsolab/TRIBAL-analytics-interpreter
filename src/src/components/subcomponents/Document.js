@@ -216,7 +216,7 @@ const ScoreView = ({ tweet, features }) => {
             
             const contentArr = content.split(' ');
   
-            const impSeq = selectedTweet[d.key + 'Seq'].toLowerCase();
+            const impSeq = selectedTweet[d.key + 'Seq'].toLowerCase().replace(/\</g,"&lt;").replace(/\>/g,"&gt;");
   
             console.log(content);
             console.log(impSeq);
@@ -228,6 +228,7 @@ const ScoreView = ({ tweet, features }) => {
             let htmlForImpSeq = '<span style="font-weight: 600; background-color: #ffe000;">' + impSeq + '</span>';
             const updatedSeqArr = [ content.slice(0, startIdx), htmlForImpSeq, content.slice(endIdx+1) ];
             
+            console.log('updated seq: ', updatedSeqArr)
             updatedSeqHtml = updatedSeqArr.join(' ');
           } else {
             selectedFeatureTitle
@@ -308,10 +309,11 @@ const IndexIndicator = props => {
           const featureToOutputLine = d3.selectAll('.line_feature_to_output_' + tweet.tweetIdx).raise()
             .classed('tweet_line_highlighted', isHighlighted);
 
-          // highilght the subgroup it belongs 
+          // highilght the subgroup it belongs to
           const clusterIdsForTweets = d3.select('.cluster_plot_title').datum();
-          const clusterIdForHighlightedTweet = clusterIdsForTweets[tweet.tweetIdx];
-          const clusterForHighlightedTweet = d3.select('.cluster_circle_' + clusterIdForHighlightedTweet)
+          const clusterIdForHighlightedTweet = tweet.clusterId;
+          console.log(clusterIdsForTweets[tweet.tweetIdx]);
+          const clusterForHighlightedTweet = d3.select('.cluster_circle_' + clusterIdsForTweets[tweet.tweetIdx])
             .classed('cluster_for_highlighted', isHighlighted);
         }
       }}

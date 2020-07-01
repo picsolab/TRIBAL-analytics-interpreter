@@ -45,10 +45,10 @@ const Indicator = styled.div.attrs({
   className: 'h_indicator'
 })`
   // width: 50px;
-  border-left: 2px solid black;
+  // border-left: 2px solid black;
   border-left: 2px solid #e8e8e8;
   text-align: center;
-  background-color: whitesmoke;
+  // background-color: whitesmoke;
   margin-right: 10px;
   padding: 0 5px;
   color: #929292;
@@ -100,6 +100,8 @@ const layout = {
     leftMargin: 80
   }
 };
+
+let MODE = 'pdp';
 
 const FeaturePlotView = React.memo(
   ({
@@ -646,6 +648,7 @@ const FeaturePlotView = React.memo(
       // }
 
       function updateOnClickCluster(d, i) {
+        console.log('MODE: ', MODE)
         const selectedCluster = d3.select(this),
           clusterId = d.clusterId;
         // When unselecting a selected cluster (going back to the whole)
@@ -854,6 +857,44 @@ const FeaturePlotView = React.memo(
 
           d3.selectAll('.line_feature_to_output_' + clusterId)
             .style('opacity', 0.3);
+
+          // Highlight selected cluster in subgroup view
+          const gFeatureAxes = d3.selectAll('.g_feature_axis');
+          const selectedSubgroupHighlight = d3.select('.selected_subgroup_highlight');
+          if (selectedSubgroupHighlight.empty()) {
+            gFeatureAxes.each(function(d, i) {
+              const _this = d3.select(this);
+              const selectedAxisRect = _this.select('.axis_rect');
+              const selectedSubgroupRect = _this.select('.subgroup_rect_' + clusterId);
+              const height = selectedAxisRect.attr('height');
+              const x = selectedSubgroupRect.attr('x'),
+                  width = selectedSubgroupRect.attr('width');
+              
+              _this
+                .append('rect')
+                .attr('class', 'selected_subgroup_highlight')
+                .attr('x', x) // x of subgroupRect
+                .attr('y', -5)
+                .attr('width', width) // width of subgroupRect
+                .attr('height', height) // height of axisRect (to occupy the whole width)
+                .style('fill', 'gray')
+                .style('opacity', 0.15);
+            });
+              
+          } else {
+            gFeatureAxes.each(function(d, i) {
+              const _this = d3.select(this);
+              const selectedSubgroupRect = _this.select('.subgroup_rect_' + clusterId);
+              const x = selectedSubgroupRect.attr('x'),
+                  width = selectedSubgroupRect.attr('width');
+
+              _this.select('.selected_subgroup_highlight')
+                .attr('x', x)
+                .attr('width', width);
+            });
+            
+          }
+          
 
           // To highlight the paths for continous features
           // Highlight the cluster paths by generating svg paths
@@ -1200,11 +1241,15 @@ const FeaturePlotView = React.memo(
           <Radio.Group 
             onChange={e => {
               if (e.target.value == 'pdp') {
+                MODE = 'pdp';
                 d3.selectAll('.subgroup_rect').style('opacity', 0);
+                d3.selectAll('.selected_subgroup_highlight').style('opacity', 0);
+
                 d3.selectAll('.path_pdp').style('opacity', '');
                 d3.selectAll('.area_pdp').style('opacity', '');
                 d3.selectAll('.rect_pdp').style('opacity', '');
               } else if (e.target.value == 'subgroup') {
+                MODE = 'subgroup';
                 d3.selectAll('.subgroup_rect')
                   .style('opacity', '')
                   .raise();

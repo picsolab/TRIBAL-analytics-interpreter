@@ -224,8 +224,8 @@ const tweet = (state = initialState, action) => {
     case FETCH_TWEETS:
       return {
         ...state,
-        tweets: action.payload.tweets,
-        tweetList: action.payload.tweets,
+        tweets: _.sortBy(action.payload.tweets, 'tweetIdx'),
+        tweetList: _.sortBy(action.payload.tweets, 'tweetIdx'),
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
         selectedTweet: action.payload.tweets[0]
       };
@@ -315,7 +315,9 @@ const tweet = (state = initialState, action) => {
         tweets: JSON.parse(action.payload.tweets)
       };
     case RUN_CL_N_CAL_PD_FOR_TWEETS:
-      const updatedTweets = state.tweets.map((d, i) => ({
+      const tweets = state.tweets;
+      const sortedTweets = _.sortBy(state.tweets, ['tweetIdx'], ['asc']);
+      const updatedTweets = tweets.map((d, i) => ({
         ...d,
         pdpValue: action.payload.pdpValues[i],
         clusterId: action.payload.clusterIdsForTweets[i]

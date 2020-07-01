@@ -64,16 +64,16 @@ function Axes() {
       .each(function(feature, i) {
         let yAxisSetting;
         const featureName = feature.key;
-        const gfeatureAxis = d3.select('.g_feature_axis_' + featureName);
+        const gFeatureAxis = d3.select('.g_feature_axis_' + featureName);
         const tweetsForFeature = tweets.map(d => ({
           clusterId: d.clusterId,
           feature: d[featureName]
         }));
 
         // Axis rectangle
-        gfeatureAxis
+        gFeatureAxis
           .append('rect')
-          .attr('class', 'axis_rect_' + featureName)
+          .attr('class', 'axis_rect axis_rect_' + featureName)
           .attr('x', 0)
           .attr('y', -lCom.hPlot.featurePlot.axis.m)
           .attr('width', lCom.hPlot.featurePlot.axis.w)
@@ -84,7 +84,7 @@ function Axes() {
           .style('fill-opacity', 0.5);
 
         // Feature titles
-        gfeatureAxis
+        gFeatureAxis
           .datum(feature)
           .append('text')
           .attr('class', 'feature_title_in_axis')
@@ -95,7 +95,7 @@ function Axes() {
           .attr('font-size', '0.8rem')
           .attr('font-weight', 600);
 
-        renderSubgroupAxis(gfeatureAxis, tweetsForFeature);
+        renderSubgroupAxis(gFeatureAxis, tweetsForFeature);
         renderPdpAxis();
 
         if (mode == 'pdp') {
@@ -113,7 +113,7 @@ function Axes() {
           
 
         // Render components for subgroups
-        function renderSubgroupAxis(gfeatureAxis, tweetsForFeature) {
+        function renderSubgroupAxis(gFeatureAxis, tweetsForFeature) {
           const featureScale = feature.type == 'continuous' 
             ? feature.scale
             : d3.scaleLinear()
@@ -158,7 +158,7 @@ function Axes() {
 
             console.log('cl.groupRatio.lib: ', cl.groupRatio.lib)
 
-            gfeatureAxis
+            gFeatureAxis
               .append('rect')
               .attr('class', 'subgroup_rect subgroup_rect_' + cl.clusterId)
               .attr('x', clId == 0 ? 0 : xGroupScale(clId-1))
@@ -177,7 +177,7 @@ function Axes() {
                     .type(d3.symbolTriangle)
                     .size(triangleSize);
   
-            gfeatureAxis.append('path')
+            gFeatureAxis.append('path')
               .attr('class', 'point_to_subgroup_for_selected_instance ' + 'subgroup_' + clId)
               .attr("d", triangle)
               .attr("stroke", 'black')
@@ -223,7 +223,7 @@ function Axes() {
               .domain(d3.extent(featureImps))
               .range([0, 30]);
 
-          gfeatureAxis
+          gFeatureAxis
             .append('rect')
             .attr('class', 'feature_imp_rect_' + featureName)
             .attr('x', 0)

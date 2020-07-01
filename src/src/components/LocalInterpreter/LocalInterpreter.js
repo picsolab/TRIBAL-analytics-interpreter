@@ -468,7 +468,7 @@ const LocalInterpreter = ({
     return (
       <LocalInterpreterWrapper>
         <div>
-          <SubsectionTitle>Instance-level comparison</SubsectionTitle>
+          <SubsectionTitle>Instance-level comparison</SubsectionTitle>&nbsp;&nbsp;
           <Spin indicator={loadingIcon} />
         </div>
         <span style={{fontWeight: 600}}>Select a contrastive question type: </span>

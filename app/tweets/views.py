@@ -22,7 +22,7 @@ from sklearn.preprocessing import normalize
 
 from collections import Counter
 from io import StringIO
-import time
+import time, ast
 
 from static.models import dl
 
@@ -574,8 +574,22 @@ class FindContrastiveExamples(APIView):
         q_type = request_json['qType']
         selected_tweet = request_json['selectedTweet']
         second_selected_tweet = request_json['secondSelectedTweet']
+        selected_tweet_idx = selected_tweet['tweetIdx']
+
         tweets = request_json['tweets']
         model_id = request_json['currentModelInfo']['id']
+
+        mode = 'static'
+
+        if mode == 'static' and q_type == 'p-mode':
+            df_cont_examples = pd.read_csv('./app/static/data/cont_examples.csv')
+
+            return Response({ 
+                'qType': q_type, 
+                'contExamples': ast.literal_eval(df_cont_examples.loc[selected_tweet_idx, 'contExamples']), 
+                'contRules': ast.literal_eval(df_cont_examples.loc[selected_tweet_idx, 'contRules']), 
+                'selectedTweetRules': ast.literal_eval(df_cont_examples.loc[selected_tweet_idx, 'selectedTweetRules']) 
+            })  
 
         # Load the model and parse it as decision tree
         tweets = sorted(tweets, key=lambda k: k['tweetIdx'])
@@ -625,13 +639,9 @@ class FindContrastiveExamples(APIView):
             leaves_class.append(leaf_class)
             num_cons.append(num_con)
             num_libs.append(num_lib)
-            print(entries[leaf_idx])
             entry_idx.append(entries[leaf_idx])
 
         time_check3 = time.time()
-
-        print('entry_idx: ', entry_idx)
-        print('leaves_index: ', leaves_index)
 
         df_leaves = pd.DataFrame({ 
             'idx': leaves_index,
@@ -781,6 +791,9 @@ class FindContrastiveExamples(APIView):
 
             first_leaf_rules = first_leaf['rule'].values[0]
             second_leaf_rules = second_leaf['rule'].values[0]
+
+            print('first_leaf_rules: ', first_leaf_rules)
+            print('second_leaf_rules: , ', second_leaf_rules)
                 
             num_rules_second_leaf = len(first_leaf_rules)
             num_rules_first_leaf = len(second_leaf_rules)
