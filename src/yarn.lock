@@ -2622,6 +2622,11 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
+cephes@^1.1.2:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/cephes/-/cephes-1.2.0.tgz#4d246b622bc488ab8c982a1f702f0c9f49705d96"
+  integrity sha512-twuUuJRrIrsELHz6foJtZlqrz6FC36zoHZJvvThsrM1UWPKxyoilw1Rka6Hk0AmPFKHKUoGwGfAtvNZNtNZu0g==
+
 chain-function@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/chain-function/-/chain-function-1.0.1.tgz#c63045e5b4b663fb86f1c6e186adaf1de402a1cc"
@@ -4004,6 +4009,13 @@ dir-glob@2.0.0:
   dependencies:
     arrify "^1.0.1"
     path-type "^3.0.0"
+
+distributions@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/distributions/-/distributions-2.1.0.tgz#7005f01898937fbe6404abda20fa7f4aaaa058e0"
+  integrity sha512-4eov7WXRip5Tu0K7Y51W1oVt+DcvkoE0EzsvbLzgedC/n4PUpYXHqk6vo/OH1HteBHp5Vm6cmfnInf9NAXM4qQ==
+  dependencies:
+    cephes "^1.1.2"
 
 dns-equal@^1.0.0:
   version "1.0.0"
@@ -10793,6 +10805,11 @@ stylis@^3.5.0:
   resolved "https://registry.yarnpkg.com/stylis/-/stylis-3.5.4.tgz#f665f25f5e299cf3d64654ab949a57c768b73fbe"
   integrity sha512-8/3pSmthWM7lsPBKv7NXkzn2Uc9W7NotcwGNpJaa3k7WMM1XDCA4MgT5k/8BIexd5ydZdboXtU90XH9Ec4Bv/Q==
 
+summary@0.3.x:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/summary/-/summary-0.3.2.tgz#3d7439b30dab3449dfd66840a822838d4a4a8561"
+  integrity sha1-PXQ5sw2rNEnf1mhAqCKDjUpKhWE=
+
 supports-color@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
@@ -11059,6 +11076,14 @@ tsutils@^3.7.0:
   integrity sha512-fyveWOtAXfumAxIqkcMHuPaaVyLBKjB8Y00ANZkqh+HITBAQscCbQIHwwBTJdvQq7RykLEbOPcUUnJ16X4NA0g==
   dependencies:
     tslib "^1.8.1"
+
+ttest@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/ttest/-/ttest-2.1.1.tgz#ee0c9118fff6580a5c8d6cfe69845219e075277f"
+  integrity sha512-YlRYswipptMVPLil4bsblnp2HXmcAR0McnfnuCM26EYrBZTCdUc/BVPuqZoaMb9h06smAPhe+s+wFMtYOULVGQ==
+  dependencies:
+    distributions "^2.1.0"
+    summary "0.3.x"
 
 tty-browserify@0.0.0:
   version "0.0.0"

@@ -46,8 +46,8 @@ const Indicator = styled.div.attrs({
 })`
   // width: 50px;
   // border-left: 2px solid black;
-  border-left: 2px solid #e8e8e8;
-  text-align: center;
+  // border-left: 2px solid #e8e8e8;
+  // text-align: center;
   // background-color: whitesmoke;
   margin-right: 10px;
   padding: 0 5px;
@@ -1291,9 +1291,13 @@ const FeaturePlotView = React.memo(
             <EmptyIndicator
               style={{
                 width: lCom.hIndicator.w,
-                height: ll.l1ToL2.h
+                height: ll.l1ToL2.h,
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                color: '#74b9a1',
+                paddingTop: '15px'
               }}
-            ></EmptyIndicator>
+            >Feature Importance</EmptyIndicator>
             <Indicator
               style={{
                 width: lCom.hIndicator.w,

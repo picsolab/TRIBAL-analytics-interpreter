@@ -4,6 +4,8 @@ import useForceUpdate from 'use-force-update';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
+import ttest from 'ttest';
+
 import styled from 'styled-components';
 import {
   Grommet,
@@ -13,6 +15,7 @@ import {
 } from 'grommet';
 import { grommet } from 'grommet/themes';
 import { deepMerge } from 'grommet/utils';
+import { globalScales } from '../../GlobalScales';
 
 import {
   TreeSelect,
@@ -31,7 +34,7 @@ import {
 } from '../../GlobalStyles';
 
 import { runDT } from '../../modules/globalInterpreter';
-import { runDTThenRunClandPD, fetchSeqs } from '../../modules/tweet';
+import tweet, { runDTThenRunClandPD, fetchSeqs } from '../../modules/tweet';
 import { flexbox } from '@material-ui/system';
 
 const GeneratorWrapper = styled(SectionWrapper).attrs({
@@ -175,6 +178,165 @@ const Generator = props => {
     }
   };
 
+  const ref = useRef(null);
+  useEffect(() => {
+    const svg = d3.select(ref.current);
+
+    const data = {
+      labels: features.map(d => d.key),
+      series: [
+        { 
+          group: '1', 
+          values: []
+        },
+        { group: '0', 
+          values: []
+        }
+      ]
+    };
+
+    features.forEach(feature => {
+      let featureValuesForGroups = [];
+      groups.forEach((group, idx) => {
+        const featureValuePerGroup = tweets
+            .filter(d => d.group == group.idx)
+            .map(d => d[feature.key]);
+
+        const meanGroupValue = _.mean(featureValuePerGroup);
+
+        featureValuesForGroups.push(featureValuePerGroup);
+        data.series[idx].values.push(meanGroupValue);
+      });
+
+      console.log('ttest: ', ttest(featureValuesForGroups[0], featureValuesForGroups[1]).pValue());
+    });
+
+    // var data = {
+    //   labels: [
+    //     'resilience', 'maintainability', 'accessibility',
+    //     'uptime', 'functionality', 'impact'
+    //   ],
+    //   series: [
+    //     {
+    //       label: '2012',
+    //       values: [4, 8, 15, 16, 23, 42]
+    //     },
+    //     {
+    //       label: '2013',
+    //       values: [12, 43, 22, 11, 73, 25]
+    //     },
+    //     {
+    //       label: '2014',
+    //       values: [31, 28, 14, 8, 15, 21]
+    //     },]
+    // };
+    
+    var chartWidth       = 100,
+        barHeight        = 15,
+        groupHeight      = barHeight * data.series.length,
+        gapBetweenGroups = 10,
+        spaceForLabels   = 110,
+        spaceForLegend   = 150;
+    
+    // Zip the series data together (first values, second values, etc.)
+    var zippedData = [];
+    for (var i=0; i<data.labels.length; i++) {
+      for (var j=0; j<data.series.length; j++) {
+        zippedData.push(data.series[j].values[i]);
+      }
+    }
+    
+    // Color scale
+    var color = d3.scaleOrdinal(d3.schemeCategory10);
+    var chartHeight = barHeight * zippedData.length + gapBetweenGroups;
+    
+    var x = d3.scaleLinear()
+        .domain([0, d3.max(zippedData)])
+        .range([0, chartWidth]);
+    
+    var y = d3.scaleLinear()
+        .range([chartHeight + gapBetweenGroups, 0]);
+    
+    var yAxis = d3.axisLeft()
+        .scale(y)
+        .tickFormat('')
+        .tickSize(0);
+    
+    // Specify the chart area and dimensions
+    var chart = svg
+        .attr("width", spaceForLabels + chartWidth + spaceForLegend)
+        .attr("height", chartHeight);
+    
+    console.log('zippedData: ', zippedData);
+    // Create bars
+    var bar = chart.selectAll("g")
+        .data(zippedData)
+        .enter().append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + spaceForLabels + "," + (i * barHeight) + ")";
+        });
+    
+    // Create rectangles of the correct width
+    bar.append("rect")
+        .attr("fill", function(d,i) { return globalScales.groupColorScale(i % data.series.length); })
+        .attr("class", "bar")
+        .attr("width", x)
+        .attr("height", barHeight - 1)
+        .style('opacity', 0.7);
+    
+    // Add text label in bar
+    bar.append("text")
+        .attr("x", function(d) { return x(d) - 3; })
+        .attr("y", barHeight / 2)
+        .attr("fill", "red")
+        .attr("dy", ".35em")
+        .text(function(d) { return Math.ceil(d*100)/100; });
+    
+    // Draw labels
+    bar.append("text")
+        .attr("class", "label")
+        .attr("x", function(d) { return - 75; })
+        .attr("y", groupHeight / 2)
+        .attr("dy", ".35em")
+        .text(function(d,i) {
+          if (i % data.series.length === 0)
+            return data.labels[Math.floor(i/data.series.length)];
+          else
+            return ""});
+    
+    chart.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + spaceForLabels + ", " + -gapBetweenGroups/2 + ")")
+          .call(yAxis);
+    
+    // Draw legend
+    var legendRectSize = 18,
+        legendSpacing  = 4;
+    
+    var legend = chart.selectAll('.legend')
+        .data(data.series)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            var height = legendRectSize + legendSpacing;
+            var offset = -gapBetweenGroups/2;
+            var horz = spaceForLabels + chartWidth + 40 - legendRectSize;
+            var vert = i * height - offset;
+            return 'translate(' + horz + ',' + vert + ')';
+        });
+    
+    // legend.append('rect')
+    //     .attr('width', legendRectSize)
+    //     .attr('height', legendRectSize)
+    //     .style('fill', function (d, i) { return globalScales.groupColorScale(i); })
+    //     .style('stroke', function (d, i) { return globalScales.groupColorScale(i); });
+    
+    // legend.append('text')
+    //     .attr('class', 'legend')
+    //     .attr('x', legendRectSize + legendSpacing)
+    //     .attr('y', legendRectSize - legendSpacing)
+    //     .text(function (d) { return d.label; });
+  });
   return (
     <GeneratorWrapper>
       {/* <SubsectionTitle>Aggregate</SubsectionTitle>
@@ -184,12 +346,23 @@ const Generator = props => {
       <div>
           <SubsectionTitle>Groups</SubsectionTitle>
           <div style={{ display: 'flex' }}>
-            <GroupDiv style={{ background: 'red' }} />
-            <div>Red</div>
-          </div>
-          <div style={{ display: 'flex' }}>
-            <GroupDiv style={{ background: 'blue' }} />
-            <div>Blue</div>
+            <div style={{ width: 'flex' }}>
+              <div style={{ display: 'flex' }}>
+                <GroupDiv style={{ background: 'red' }} />
+                <div>Red</div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <GroupDiv style={{ background: 'blue' }} />
+                <div>Blue</div>
+              </div>
+            </div>
+            <svg 
+              width={200} 
+              height={300} 
+              viewBox={'0 0 ' + 200 + ' ' + 300} 
+              preserveAspectRatio="xMinYMin" 
+              ref={ref}
+            />
           </div>
       </div>
       <Form
