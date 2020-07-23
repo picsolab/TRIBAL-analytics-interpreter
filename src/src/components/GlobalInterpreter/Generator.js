@@ -194,7 +194,7 @@ const Generator = props => {
         }
       ]
     };
-
+    const ttestResults = [];
     features.forEach(feature => {
       let featureValuesForGroups = [];
       groups.forEach((group, idx) => {
@@ -208,7 +208,9 @@ const Generator = props => {
         data.series[idx].values.push(meanGroupValue);
       });
 
-      console.log('ttest: ', ttest(featureValuesForGroups[0], featureValuesForGroups[1]).pValue());
+      const ttestResult = ttest(featureValuesForGroups[0], featureValuesForGroups[1]).pValue();
+      console.log('ttestResult: ', Math.ceil(ttestResult*100)/100);
+      ttestResults.push(ttestResult);
     });
 
     // var data = {
@@ -235,8 +237,8 @@ const Generator = props => {
         barHeight        = 15,
         groupHeight      = barHeight * data.series.length,
         gapBetweenGroups = 10,
-        spaceForLabels   = 110,
-        spaceForLegend   = 150;
+        spaceForLabels   = 100,
+        spaceForLegend   = 50;
     
     // Zip the series data together (first values, second values, etc.)
     var zippedData = [];
@@ -264,50 +266,58 @@ const Generator = props => {
     
     // Specify the chart area and dimensions
     var chart = svg
-        .attr("width", spaceForLabels + chartWidth + spaceForLegend)
-        .attr("height", chartHeight);
+        .attr('width', spaceForLabels + chartWidth + spaceForLegend)
+        .attr('height', chartHeight);
     
     console.log('zippedData: ', zippedData);
     // Create bars
-    var bar = chart.selectAll("g")
+    var bar = chart.selectAll('g')
         .data(zippedData)
-        .enter().append("g")
-        .attr("transform", function(d, i) {
-          return "translate(" + spaceForLabels + "," + (i * barHeight) + ")";
+        .enter().append('g')
+        .attr('transform', function(d, i) {
+          return 'translate(' + spaceForLabels + ',' + (i * barHeight) + ')';
         });
     
     // Create rectangles of the correct width
-    bar.append("rect")
-        .attr("fill", function(d,i) { return globalScales.groupColorScale(i % data.series.length); })
-        .attr("class", "bar")
-        .attr("width", x)
-        .attr("height", barHeight - 1)
-        .style('opacity', 0.7);
+    bar.append('rect')
+        .attr('fill', function(d,i) { return globalScales.groupColorScale(i % data.series.length); })
+        .attr('class', 'bar')
+        .attr('width', x)
+        .attr('height', barHeight - 1)
+        .style('opacity', 0.6);
     
     // Add text label in bar
-    bar.append("text")
-        .attr("x", function(d) { return x(d) - 3; })
-        .attr("y", barHeight / 2)
-        .attr("fill", "red")
-        .attr("dy", ".35em")
+    bar.append('text')
+        .attr('class', 'feature_value_label')
+        .attr('x', function(d) { return x(d) + 10; })
+        .attr('y', barHeight / 2)
+        .attr('dy', '.35em')
+        .style('font-size', '0.9rem')
+        .style('fill', 'gray')
         .text(function(d) { return Math.ceil(d*100)/100; });
     
     // Draw labels
-    bar.append("text")
-        .attr("class", "label")
-        .attr("x", function(d) { return - 75; })
-        .attr("y", groupHeight / 2)
-        .attr("dy", ".35em")
-        .text(function(d,i) {
+    bar.append('text')
+        .attr('class', 'feature_label')
+        .attr('x', function(d) { return - 100; })
+        .attr('y', groupHeight / 2)
+        .attr('dy', '.35em')
+        .style('font-size', '1.1rem')
+        .text(function(d, i) {
+          console.log('iii: ', i);
+          let ttestMarker = '';
+          if (ttestResults[Math.floor(i/data.series.length)] < 0.05)
+            ttestMarker = '*';
+
           if (i % data.series.length === 0)
-            return data.labels[Math.floor(i/data.series.length)];
+            return data.labels[Math.floor(i/data.series.length)] + ttestMarker;
           else
-            return ""});
+            return ''});
     
-    chart.append("g")
-          .attr("class", "y axis")
-          .attr("transform", "translate(" + spaceForLabels + ", " + -gapBetweenGroups/2 + ")")
-          .call(yAxis);
+    // chart.append('g')
+    //       .attr('class', 'y axis')
+    //       .attr('transform', 'translate(' + spaceForLabels + ', ' + -gapBetweenGroups/2 + ')')
+    //       .call(yAxis);
     
     // Draw legend
     var legendRectSize = 18,
@@ -346,7 +356,7 @@ const Generator = props => {
       <div>
           <SubsectionTitle>Groups</SubsectionTitle>
           <div style={{ display: 'flex' }}>
-            <div style={{ width: 'flex' }}>
+            <div style={{ width: '100px' }}>
               <div style={{ display: 'flex' }}>
                 <GroupDiv style={{ background: 'red' }} />
                 <div>Red</div>
@@ -360,7 +370,7 @@ const Generator = props => {
               width={200} 
               height={300} 
               viewBox={'0 0 ' + 200 + ' ' + 300} 
-              preserveAspectRatio="xMinYMin" 
+              preserveAspectRatio='xMinYMin' 
               ref={ref}
             />
           </div>
@@ -403,7 +413,7 @@ const Generator = props => {
           // style={{ width: 100 }}
           value={currentlySelectedFeatures}
           dropdownStyle={{ maxHeight: 100, overflow: 'auto' }}
-          placeholder="Please select"
+          placeholder='Please select'
           allowClear
           multiple
           treeDefaultExpandAll
@@ -427,10 +437,10 @@ const Generator = props => {
         
         <Button1
           style={{ marginTop: '10px' }}
-          size="xsmall"
-          type="submit"
+          size='xsmall'
+          type='submit'
           primary
-          label="Run"
+          label='Run'
         />
       </Form>
       <div style={{ height: '5px' }} />
@@ -539,10 +549,10 @@ const Generator = props => {
         </div>
         <Button1
           style={{ marginTop: '10px' }}
-          size="xsmall"
-          type="submit"
+          size='xsmall'
+          type='submit'
           primary
-          label="Run"
+          label='Run'
         />
       </Form>
     </GeneratorWrapper>
