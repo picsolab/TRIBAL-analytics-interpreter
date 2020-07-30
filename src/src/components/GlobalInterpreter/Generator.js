@@ -280,7 +280,7 @@ const Generator = props => {
     
     // Create rectangles of the correct width
     bar.append('rect')
-        .attr('fill', function(d,i) { return globalScales.groupColorScale(i % data.series.length); })
+        .attr('fill', function(d,i) { return globalScales.groupColorScale(1 - i % data.series.length); })
         .attr('class', 'bar')
         .attr('width', x)
         .attr('height', barHeight - 1)
