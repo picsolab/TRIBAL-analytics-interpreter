@@ -85,9 +85,38 @@ code {
   border: solid 2px black;
 }
 
+.line_hidden {
+  opacity: 0 !important;
+}
+
+.line_for_cl_selected {
+  opacity: 0.7 !important;
+}
+
+.line_mouseovered {
+  opacity: 0.7 !important;
+}
+
+.tweet_selected {
+  opacity: 0.3 !important;
+}
+
+.tweet_hidden {
+  opacity: 0 !important;
+}
+
+.tweet_highlighted {
+  opacity: 0.3 !important;
+}
+
 .tweet_line_highlighted {
   stroke-width: 2 !important;
   stroke: lightgreen !important;
+  opacity: 1 !important;
+}
+
+.tweet_prob_hist_highlighted {
+  stroke-width: 3px;
   opacity: 1 !important;
 }
 

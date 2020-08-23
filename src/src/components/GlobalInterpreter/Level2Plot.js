@@ -28,6 +28,7 @@ function Level2Plot() {
     rectWidth = 100;
 
   let dataLoader = [];
+  let updateOnClickProbHistogram = function() {};
 
   let xOutputProbHistScale = '';
   let yOutputProbScale = '';
@@ -145,7 +146,8 @@ function Level2Plot() {
       .style('fill', d => (d.x0 >= 0.5 ? globalColors.group.lib : globalColors.group.con))
       .style('fill-opacity', 0.5)
       .style('stroke', 'black')
-      .style('stroke-width', 0.5);
+      .style('stroke-width', 0.5)
+      .on('click', updateOnClickProbHistogram)
 
     // tweetLibHistForWrongPred
     gOutputProbPlot
@@ -163,10 +165,11 @@ function Level2Plot() {
       .attr('y', d => yOutputProbHistBinScale(d.x0))
       .attr('width', d => xOutputProbWrongHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-      .style('fill', d => globalColors.group.wrong.lib)
+      .style('fill', d => globalColors.group.wrong.con)
       .style('fill-opacity', 0.5)
       .style('stroke', 'black')
-      .style('stroke-width', 0.5);
+      .style('stroke-width', 0.5)
+      .on('click', updateOnClickProbHistogram);
 
     // tweetConHistForWrongPred
     gOutputProbPlot
@@ -184,10 +187,19 @@ function Level2Plot() {
       .attr('y', d => yOutputProbHistBinScale(d.x0))
       .attr('width', d => xOutputProbWrongHistScale(d.length))
       .attr('height', yOutputProbHistBinScale.bandwidth() - 0.5)
-      .style('fill', d => globalColors.group.wrong.con)
+      .style('fill', d => globalColors.group.wrong.lib)
       .style('fill-opacity', 0.5)
       .style('stroke', 'black')
-      .style('stroke-width', 0.5);
+      .style('stroke-width', 0.5)
+      .on('click', updateOnClickProbHistogram)
+      .on('mouseout', function(d) {
+        console.log(d);
+
+        d3.selectAll('.tweet_selected')
+          .filter(e => _.includes(d.map(f => f.tweetId), e.tweetId))
+          .style('stroke', 'red')
+          .style('stroke-width', 'none');
+      })
 
     //* FeaturePlot
     const gFeaturePlot = selection.append('g').attr('class', 'g_feature_plot');
@@ -471,15 +483,23 @@ function Level2Plot() {
             .style('stroke', d => groupColorScale(d.group))
             .style('opacity', 0.2)
             .on('mouseover', function(d, i) {
-              d3.select(this).style('opacity', 0.7);
-              const catToCatLineHtml =
-                '<div style="font-weight: 600">' + 'Tweet ID: ' + d.tweetId + '</br>' + 'Group: ' + d.group + '</div>';
+              const _this = d3.select(this);
 
-              tooltip.html(catToCatLineHtml);
-              tooltip.show();
+              console.log('opacity: ', _this.style('opacity'));
+              if(_this.style('opacity') != 0) {
+                _this
+                  .classed('line_mouseovered', true);
+                const catToCatLineHtml =
+                  '<div style="font-weight: 600">' + 'Tweet ID: ' + d.tweetId + '</br>' + 'Group: ' + d.group + '</div>';
+
+                tooltip.html(catToCatLineHtml);
+                tooltip.show();
+              }
+                
             })
             .on('mouseout', function(d, i) {
-              d3.select(this).style('opacity', 0.2);
+              d3.select(this)
+                .classed('line_mouseovered', false);
               tooltip.hide();
             });
         }
@@ -642,6 +662,12 @@ function Level2Plot() {
   _level2Plot.groupRatioScale = function(value) {
     if (!arguments.length) return groupRatioScale;
     groupRatioScale = value;
+    return _level2Plot;
+  };
+
+  _level2Plot.updateOnClickProbHistogram = function(onClickFunc) {
+    if (!arguments.length) return updateOnClickProbHistogram;
+    updateOnClickProbHistogram = onClickFunc;
     return _level2Plot;
   };
 

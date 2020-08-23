@@ -120,8 +120,6 @@ function Axes() {
               .domain([_.min(feature.scale.domain()), _.max(feature.scale.domain())])  // Treat cateogorical features as continuous
               .range([160, 0]);
 
-          console.log('featureScale: ', featureScale.domain());
-
           const xGroupScale = d3.scaleOrdinal()
             .domain(d3.range(9))
             .range(cumGroupSizeRatio);
@@ -155,8 +153,6 @@ function Axes() {
               first_quantile = featureMean - featureSD*0.6745 < 0 
                 ? (featureMean - featureSD*0.6745)/5 
                 : featureMean - featureSD*0.6745;
-
-            console.log('cl.groupRatio.lib: ', cl.groupRatio.lib)
 
             gFeatureAxis
               .append('rect')
@@ -236,19 +232,19 @@ function Axes() {
           // if it's categorical, render bar chart PDPs for each category
           if (feature.type == 'categorical') {
             // For PDP for all
-            d3.select('.g_feature_axis_' + featureName)
-              .selectAll('.rect_pdp_' + featureName)
-              .data(pdpValuesPerFeature)
-              .enter()
-              .append('rect')
-              .attr('class', 'rect_pdp rect_pdp_' + featureName)
-              .attr('x', 2)
-              .attr('y', e => feature.scale(e.featureValue) + feature.scale.bandwidth() / 2 - 5)
-              .attr('width', e => feature.pdScale(e.pdpValue))
-              .attr('height', 10)
-              .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-              .style('fill', 'rgb(190, 255, 231)')
-              .style('fill-opacity', 0.3);
+            // d3.select('.g_feature_axis_' + featureName)
+            //   .selectAll('.rect_pdp_' + featureName)
+            //   .data(pdpValuesPerFeature)
+            //   .enter()
+            //   .append('rect')
+            //   .attr('class', 'rect_pdp rect_pdp_' + featureName)
+            //   .attr('x', 2)
+            //   .attr('y', e => feature.scale(e.featureValue) + feature.scale.bandwidth() / 2 - 5)
+            //   .attr('width', e => feature.pdScale(e.pdpValue))
+            //   .attr('height', 10)
+            //   .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+            //   .style('fill', 'rgb(190, 255, 231)')
+            //   .style('fill-opacity', 0.3);
 
             // For per-group PDP
             pdpValuesForGroups.forEach((pdpValuesObjForGroup, groupIdx) => {
@@ -293,29 +289,29 @@ function Axes() {
             //   .style('fill', 'rgb(190, 255, 231)')
             //   .style('fill-opacity', 0.3);
 
-            d3.select('.g_feature_axis_' + feature.key)
-              .append('path')
-              .datum(pdpValuesPerFeature)
-              .attr('class', 'path_pdp path_pdp_' + feature.key)
-              .attr('d', drawPDPLine)
-              .style('stroke', 'rgb(190, 255, 231)')
-              .style('stroke-width', 4)
-              .style('fill', 'none')
-              // .style('stroke-dasharray', '8,3')
-              .style('shape-rendering', 'crispedges')
-              .style('opacity', 1);
+            // d3.select('.g_feature_axis_' + feature.key)
+            //   .append('path')
+            //   .datum(pdpValuesPerFeature)
+            //   .attr('class', 'path_pdp path_pdp_' + feature.key)
+            //   .attr('d', drawPDPLine)
+            //   .style('stroke', 'rgb(190, 255, 231)')
+            //   .style('stroke-width', 4)
+            //   .style('fill', 'none')
+            //   // .style('stroke-dasharray', '8,3')
+            //   .style('shape-rendering', 'crispedges')
+            //   .style('opacity', 1);
 
             // area
-            d3.select('.g_feature_axis_' + feature.key)
-              .append('path')
-              .datum(pdpValuesPerFeature)
-              .attr('class', 'area_pdp area_pdp_' + feature.key)
-              .attr('d', drawPDPArea)
-              .style('stroke', 'none')
-              .style('fill', 'gray')
-              .style('stroke-dasharray', '8,3')
-              .style('shape-rendering', 'crispedges')
-              .style('fill-opacity', 0.3);
+            // d3.select('.g_feature_axis_' + feature.key)
+            //   .append('path')
+            //   .datum(pdpValuesPerFeature)
+            //   .attr('class', 'area_pdp area_pdp_' + feature.key)
+            //   .attr('d', drawPDPArea)
+            //   .style('stroke', 'none')
+            //   .style('fill', 'gray')
+            //   .style('stroke-dasharray', '8,3')
+            //   .style('shape-rendering', 'crispedges')
+            //   .style('fill-opacity', 0.3);
 
             // For per-group PDP
             pdpValuesForGroups.forEach((pdpValuesObjForGroup, groupIdx) => {

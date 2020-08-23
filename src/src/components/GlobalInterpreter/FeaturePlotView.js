@@ -130,7 +130,6 @@ const FeaturePlotView = React.memo(
     const dispatch = useDispatch();
     const ref = useRef(null),
       ref2 = useRef(null);
-
     // Set group color scale and save to global variable
     globalScales.groupColorScales = groups.map((group, groupIdx) => {
       return d3
@@ -142,6 +141,10 @@ const FeaturePlotView = React.memo(
     useEffect(() => {
       const container = d3.select(ref.current),
         svg = d3.select(ref2.current);
+
+      const selectedTweetIds = d3.selectAll('.tweet_selected').data().map(d => d.tweetId);
+      console.log('selectedTweetIds: ', selectedTweetIds, d3.selectAll('.tweet_selected').data())
+    
 
       // // Clean up old elements before update
       d3.selectAll('.g_h_plot').remove();
@@ -279,7 +282,7 @@ const FeaturePlotView = React.memo(
         .range([0, xGoalScale.bandwidth()]);
 
       // For level 2
-      const xOutputProbHistScale = d3
+      let xOutputProbHistScale = d3
         .scaleLinear()
         .domain([0, maxFreqCorr])
         .range([0, lCom.outputProbPlot.w / 2]);
@@ -331,6 +334,7 @@ const FeaturePlotView = React.memo(
           .yOutputProbHistScale(yOutputProbHistScale)
           .groupColorScale(groupColorScale)
           .groupRatioScale(groupRatioScale)
+          .updateOnClickProbHistogram(updateOnClickProbHistogram)
       );
 
       gLevel1.call(
@@ -429,9 +433,9 @@ const FeaturePlotView = React.memo(
         .attr('x', 0)
         .attr('width', 8)
         .on('click', function(d){
-          console.log('click in');
+          console.log('start brushing');
           d3.selectAll('.tweet_line')
-            .style('opacity', 0);
+            .classed('line_hidden', true);
 
           d3.selectAll('tweet_cat_line')
             .style('stroke-width', (d) => d.lineHeight);
@@ -439,7 +443,11 @@ const FeaturePlotView = React.memo(
           d3.select('mean_prob_text').remove();
         });
 
+      const selectedTweetIds2 = d3.selectAll('.tweet_selected').data().map(d => d.tweetId);
+      console.log('selectedTweetIds2: ', selectedTweetIds2);
+
       function brush() {
+        console.log('start brushing');
         const actives = [];
         svg
           .selectAll('.g_axis .brush')
@@ -461,15 +469,18 @@ const FeaturePlotView = React.memo(
           );
         }
 
-        const allContLines = d3.selectAll('.tweet_line');
-        const allCatLines = d3.selectAll('.tweet_cat_line');
-        const allLinesToOutput = d3.selectAll('.line_feature_to_output');
+        const allContLines = d3.selectAll('.tweet_line'),
+              allCatLines = d3.selectAll('.tweet_cat_line'),
+              allLinesToOutput = d3.selectAll('.line_feature_to_output'),
+              selectedTweetLines = d3.selectAll('.tweet_selected');
+        console.log('all-vs-selected: ', allContLines, selectedTweetLines, selectedTweetIds)
+
+        //const selectedTweetData = tweets.filter(d => _.includes(selectedTweetIds, d.tweetId));
         const filteredTweetIds = tweets
           .filter(function(d) {
             let dim = '';
             if (
               actives.every(function(active) {
-                console.log(active.extent)
                 dim = active.dimension;
                 
                 return within(d[dim.key], active.extent, dim.key);
@@ -478,7 +489,8 @@ const FeaturePlotView = React.memo(
               return true;
             }
           }).map(e => e.tweetId);
-        const filteredLines = allContLines.filter(e => 
+        console.log('filteredTweetIds: ', filteredTweetIds);
+        const filteredLines = selectedTweetLines.filter(e => 
             { return _.includes(filteredTweetIds, e.tweetId) });
         const filteredOutputLines = allLinesToOutput.filter(e => {
             return _.includes(filteredTweetIds, e.tweetId)
@@ -490,18 +502,21 @@ const FeaturePlotView = React.memo(
           const numCatLineTweetsInAllTweets = d.tweetsInCatToCat.length;
           const numCatLineTweetsInFilteredTweets = d.tweetsInCatToCat.filter(d => _.includes(filteredTweetIds, d.tweetId)).length;
           const selectedTweetRatio = numCatLineTweetsInFilteredTweets / numCatLineTweetsInAllTweets;
-          console.log('selectedTweetRatio: ', selectedTweetRatio);
           const catLineWidth = d.lineHeight;
           const LineWidthForSelectedTweets = catLineWidth * selectedTweetRatio;
-          console.log('LineWidthForSelectedTweets: ', catLineWidth, selectedTweetRatio, LineWidthForSelectedTweets);
           catLine
             .style('stroke-width', LineWidthForSelectedTweets);
         });
-        console.log('filteredOutputLines: ', filteredOutputLines);
-        allContLines.style('opacity', 0);
+
+        allContLines
+          .classed('tweet_hidden', true);
         allLinesToOutput.style('opacity', 0);
 
-        filteredLines.style('opacity', 0.3);
+        console.log('filteredLines: ', filteredLines)
+
+        filteredLines
+          //.style('opacity', '0.3)
+          .classed('tweet_highlighted', true);
         filteredOutputLines.style('opacity', 0.3);
 
         let avgProbForFilteredTweets = 0;
@@ -521,17 +536,24 @@ const FeaturePlotView = React.memo(
         
 
         // For cat-to-cat lines
-        d3.selectAll('.tweet_cat_line').data().filter(d => d.tweetsInCatToCat)
-        
-        console.log('filtered tweet lines: ', filteredLines);
+        d3.selectAll('.tweet_cat_line')
+          .data()
+          .filter(d => d.tweetsInCatToCat);
       }
 
+      // Click other area to reverse the selection
       function brushended() {
         // if (!d3.event.sourceEvent) return; // Only transition after input.
         if (!d3.event.selection) {
           console.log('click in');
-          d3.selectAll('.tweet_line')
-            .style('opacity', 0.3);
+          // d3.selectAll('.tweet_line')
+          //   .style('opacity', 0.3);
+
+          d3.selectAll('.tweet_highlighted')
+            .classed('tweet_highlighted', false);
+
+          d3.selectAll('.tweet_hidden')
+            .classed('tweet_hidden', false);
 
           d3.selectAll('.tweet_cat_line')
             .style('stroke-width', (d) => d.lineHeight);
@@ -647,10 +669,81 @@ const FeaturePlotView = React.memo(
       //     .attr('y', 10);
       // }
 
+      function updateOnClickProbHistogram(tweetsInProbHist, i) {
+        const selectedProb = d3.select(this);
+        console.log('tweetsInProbHist: ', tweetsInProbHist);
+
+        const tweetIdsInProbHist = tweetsInProbHist.map(d => d.tweetId);
+
+        selectedProb
+          .style('stroke-width', '2px');
+
+        d3.selectAll('.tweet_selected')
+          .filter(e => _.includes(tweetsInProbHist.map(f => f.tweetId), e.tweetId))
+          .classed('tweet_prob_hist_highlighted', true);
+
+        const catLines = d3
+          .select('.g_feature_plot')
+          .selectAll('.tweet_cat_line');
+        const dataCatToCat = catLines.data();
+
+        const dataCatToCatForCluster = dataCatToCat.map(d => {
+          const tweetsInCurr = d.tweetsInCurr;
+          const tweetsInCatToCat = d.tweetsInCatToCat;
+          const tweetsCatToCatForCl = tweetsInCatToCat.filter(t => _.includes(tweetIdsInProbHist, t.tweetId));
+          const libRatio = tweetsCatToCatForCl.filter(d => d.group === '1').length / tweetsCatToCatForCl.length;
+          let numTweetsRatioInCurr = 0;
+
+          if (tweetsCatToCatForCl.length !== 0) 
+            numTweetsRatioInCurr = tweetsCatToCatForCl.length / tweetsInCurr.length;
+
+          return {
+            ...d,
+            lineHeightForCl: d.heightForCat * numTweetsRatioInCurr,
+            groupRatioForCl: libRatio
+          };
+        });
+        
+        catLines.data(dataCatToCatForCluster);
+        catLines
+          .style('stroke-width', d => d.lineHeightForCl)
+          .style('stroke', d => groupRatioScale(d.groupRatioForCl));
+
+        // List tweets within this cluster in tweetList
+        dispatch({
+          type: 'LIST_TWEETS_IN_CL',
+          payload: tweetsInProbHist
+        });
+
+        dispatch(
+          fetchSeqs({
+            opt: 'dynamic',
+            mode: 'cluster',
+            // tweetIds: tweetsInCluster.map(d => d.tweetIdx)
+            tweetIds: tweetsInProbHist.map(d => d.tweetId),
+            seqWeights: {
+              post: 1,
+              ranking: 1,
+              length: 1,
+              freq: 1
+            }
+          })
+        );
+
+        // dispatch({
+        //   type: 'SHOW_SEQ_PLOT_FOR_CLUSTER',
+        //   payload: {
+        //     isClusterSelected: true,
+        //     tweetsInClusterForSeqPlot: tweetsInCluster
+        //   }
+        // });
+      }
+
       function updateOnClickCluster(d, i) {
         console.log('MODE: ', MODE)
         const selectedCluster = d3.select(this),
           clusterId = d.clusterId;
+
         // When unselecting a selected cluster (going back to the whole)
         if (selectedCluster.classed('cluster_selected') === true) {
           d3.select(this)
@@ -664,7 +757,8 @@ const FeaturePlotView = React.memo(
           // Return back all elements to the normal
           // gFeaturePlot.selectAll('.path_tweet').remove();
           d3.select('canvas').style('opacity', 1);
-          d3.selectAll('.tweet_line').style('opacity', 0.3);
+          d3.selectAll('.tweet_line')
+            .classed('tweet_selected', true);
 
           // Update categorical lines
           const catLines = d3.select('.g_tweet_line_2')
@@ -701,6 +795,12 @@ const FeaturePlotView = React.memo(
             .domain([0, 1])
             .value(d => d.prob)
             .thresholds(d3.range(0, 1, 0.05))(tweetsWrongPred);
+
+          // Update Prob-histogram from updated xScale
+          xOutputProbHistScale
+            .domain([0, 70]);
+
+          console.log('xOutputProbHistScale: ', xOutputProbHistScale)
 
           groups.forEach((group, groupIdx) => {
             const outputProbCorrRectsDataPerGroup = d3
@@ -770,19 +870,19 @@ const FeaturePlotView = React.memo(
               const existingRects = d3.select('.g_feature_axis_' + feature.key).selectAll('.rect_pdp_' + feature.key);
               existingRects.remove();
 
-              d3.select('.g_feature_axis_' + feature.key)
-                .selectAll('.rect_pdp_' + feature.key)
-                .data(pdpValuesPerFeature)
-                .enter()
-                .append('rect')
-                .attr('class', 'rect_pdp rect_pdp_' + feature.key)
-                .attr('height', 10)
-                .attr('width', e => feature.pdScale(e.pdpValue))
-                .attr('x', 2)
-                .attr('y', e => feature.scale(e.featureValue) + feature.scale.bandwidth() / 2 - 5)
-                .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
-                .style('fill', 'rgb(190, 255, 231)')
-                .style('fill-opacity', 0.3);
+              // d3.select('.g_feature_axis_' + feature.key)
+              //   .selectAll('.rect_pdp_' + feature.key)
+              //   .data(pdpValuesPerFeature)
+              //   .enter()
+              //   .append('rect')
+              //   .attr('class', 'rect_pdp rect_pdp_' + feature.key)
+              //   .attr('height', 10)
+              //   .attr('width', e => feature.pdScale(e.pdpValue))
+              //   .attr('x', 2)
+              //   .attr('y', e => feature.scale(e.featureValue) + feature.scale.bandwidth() / 2 - 5)
+              //   .style('stroke', d3.rgb('rgb(190, 255, 231)').darker())
+              //   .style('fill', 'rgb(190, 255, 231)')
+              //   .style('fill-opacity', 0.3);
 
               groups.forEach((group, groupIdx) => {
                 const pdpValuesForGroup = pdpValuesForGroups[groupIdx].valuesForFeatures,
@@ -921,7 +1021,9 @@ const FeaturePlotView = React.memo(
                   .filter(d => _.includes(tweetIdsInCluster, d.tweetId));
 
                 tweetLinesForCluster.exit().remove();
-                tweetLinesForCluster.style('opacity', 0.7);
+                tweetLinesForCluster
+                  .classed('tweet_selected', true);
+                  //.style('opacity', 0.7);
               } else if (feature.type === 'categorical') {
                 // To updated aggregated paths for categorical features
                 const catLines = d3
@@ -1058,14 +1160,21 @@ const FeaturePlotView = React.memo(
                   .thresholds(d3.range(0, 1, 0.05))(tweetsLibWrongPredForCluster);
 
 
-          const maxFreq = _.max(dataBinCorrPredTweets.map(d => d.length)),
-            maxFreqConWrong = _.max(dataBinConWrongPredTweets.map(d => d.length)),
-            maxFreqLibWrong = _.max(dataBinLibWrongPredTweets.map(d => d.length));
+          const maxFreq = _.max(dataBinCorrPredTweetsForCluster.map(d => d.length)),
+            maxFreqConWrong = _.max(dataBinConWrongPredTweetsForCluster.map(d => d.length)),
+            maxFreqLibWrong = _.max(dataBinLibWrongPredTweetsForCluster.map(d => d.length));
+
+          xOutputProbHistScale
+            .domain([0, maxFreq]);
 
           const xOutputProbWrongHistScale = d3
             .scaleLinear()
-            .domain([0, _.max([maxFreqConWrong, maxFreqLibWrong])])
+            .domain([0, maxFreq])
+            //.domain([0, _.max([maxFreqConWrong, maxFreqLibWrong])])
             .range([0, lCom.outputProbPlot.w / 2]);
+
+          console.log('xOutputProbHistScale: ', xOutputProbHistScale.domain());
+          console.log('xOutputProbWrongHistScale: ', xOutputProbWrongHistScale.domain());
 
           const yOutputProbHistBinScale = d3
             .scaleBand()
@@ -1097,7 +1206,7 @@ const FeaturePlotView = React.memo(
                   layout.outputProbPlot.width / 2 -
                   xOutputProbWrongHistScale(d.length)
               )
-              .attr('width', d => xOutputProbWrongHistScale(d.length));
+              .attr('width', d => xOutputProbWrongHistScale(d.length))
 
           // tweetConHistForWrongPred
           const outputProbForConWrongPred = d3.select('.g_output_prob_hist_for_con_wrong_pred')
@@ -1134,17 +1243,17 @@ const FeaturePlotView = React.memo(
 
             // For continuous variables
             if (feature.type === 'continuous') {
-              const pdpPathForAll = d3
-                .select('.path_pdp_' + feature.key)
-                .datum(pdpValuesForCls[clusterId].valuesForFeatures[featureIdx].values);
-              const pdpAreaForAll = d3
-                .select('.area_pdp_' + feature.key)
-                .datum(pdpValuesForCls[clusterId].valuesForFeatures[featureIdx].values);
+              // const pdpPathForAll = d3
+              //   .select('.path_pdp_' + feature.key)
+              //   .datum(pdpValuesForCls[clusterId].valuesForFeatures[featureIdx].values);
+              // const pdpAreaForAll = d3
+              //   .select('.area_pdp_' + feature.key)
+              //   .datum(pdpValuesForCls[clusterId].valuesForFeatures[featureIdx].values);
 
-              pdpPathForAll.exit().remove();
-              pdpPathForAll.attr('d', drawPDPLine);
-              pdpAreaForAll.exit().remove();
-              pdpAreaForAll.attr('d', drawPDPArea);
+              // pdpPathForAll.exit().remove();
+              // pdpPathForAll.attr('d', drawPDPLine);
+              // pdpAreaForAll.exit().remove();
+              // pdpAreaForAll.attr('d', drawPDPArea);
 
               groups.forEach((group, groupIdx) => {
                 // For continuous variables

@@ -99,8 +99,8 @@ const customCheckBoxTheme = {
   }
 };
 
-var currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness', 'purity', 'authority', 'loyalty'];
-var freqW = 1,
+let currentlySelectedFeatures = ['valence', 'dominance', 'care', 'fairness', 'purity', 'authority', 'loyalty'];
+let freqW = 1,
   lengthW = 1,
   rankingW = 1,
   probW = 1;
@@ -180,7 +180,8 @@ const Generator = props => {
 
   const ref = useRef(null);
   useEffect(() => {
-    const svg = d3.select(ref.current);
+    const svg = d3.select(ref.current)
+      .attr('class', 'box_plot');
 
     const data = {
       labels: features.map(d => d.key),
@@ -194,6 +195,7 @@ const Generator = props => {
         }
       ]
     };
+
     const ttestResults = [];
     features.forEach(feature => {
       let featureValuesForGroups = [];
@@ -201,39 +203,22 @@ const Generator = props => {
         const featureValuePerGroup = tweets
             .filter(d => d.group == group.idx)
             .map(d => d[feature.key]);
-
-        const meanGroupValue = _.mean(featureValuePerGroup);
+        const sortedValue = _.sortBy(featureValuePerGroup);
 
         featureValuesForGroups.push(featureValuePerGroup);
-        data.series[idx].values.push(meanGroupValue);
+        data.series[idx].values.push({
+          mean: _.mean(featureValuePerGroup),
+          firstQuantile: d3.quantile(sortedValue, 0.25),
+          thirdQuantile: d3.quantile(sortedValue, 0.75),
+          max: d3.max(featureValuePerGroup),
+          min: d3.min(featureValuePerGroup)
+        });
       });
 
-      const ttestResult = ttest(featureValuesForGroups[0], featureValuesForGroups[1]).pValue();
-      console.log('ttestResult: ', Math.ceil(ttestResult*100)/100);
-      ttestResults.push(ttestResult);
+      ttestResults.push(ttest(featureValuesForGroups[0], featureValuesForGroups[1]).pValue());
     });
-
-    // var data = {
-    //   labels: [
-    //     'resilience', 'maintainability', 'accessibility',
-    //     'uptime', 'functionality', 'impact'
-    //   ],
-    //   series: [
-    //     {
-    //       label: '2012',
-    //       values: [4, 8, 15, 16, 23, 42]
-    //     },
-    //     {
-    //       label: '2013',
-    //       values: [12, 43, 22, 11, 73, 25]
-    //     },
-    //     {
-    //       label: '2014',
-    //       values: [31, 28, 14, 8, 15, 21]
-    //     },]
-    // };
     
-    var chartWidth       = 100,
+    let chartWidth       = 100,
         barHeight        = 15,
         groupHeight      = barHeight * data.series.length,
         gapBetweenGroups = 10,
@@ -241,37 +226,38 @@ const Generator = props => {
         spaceForLegend   = 50;
     
     // Zip the series data together (first values, second values, etc.)
-    var zippedData = [];
-    for (var i=0; i<data.labels.length; i++) {
-      for (var j=0; j<data.series.length; j++) {
+    let zippedData = [];
+    for (let i=0; i<data.labels.length; i++) {
+      for (let j=0; j<data.series.length; j++) {
         zippedData.push(data.series[j].values[i]);
       }
     }
     
     // Color scale
-    var color = d3.scaleOrdinal(d3.schemeCategory10);
-    var chartHeight = barHeight * zippedData.length + gapBetweenGroups;
+    let color = d3.scaleOrdinal(d3.schemeCategory10);
+    let chartHeight = barHeight * zippedData.length + gapBetweenGroups;
     
-    var x = d3.scaleLinear()
-        .domain([0, d3.max(zippedData)])
+    let x = d3.scaleLinear()
+        .domain([0, d3.max(zippedData.map(d => d.max))]) // Max value is one of third quantile values
         .range([0, chartWidth]);
     
-    var y = d3.scaleLinear()
+    let y = d3.scaleLinear()
         .range([chartHeight + gapBetweenGroups, 0]);
     
-    var yAxis = d3.axisLeft()
+    let yAxis = d3.axisLeft()
         .scale(y)
         .tickFormat('')
         .tickSize(0);
     
     // Specify the chart area and dimensions
-    var chart = svg
+    let chart = svg
         .attr('width', spaceForLabels + chartWidth + spaceForLegend)
         .attr('height', chartHeight);
     
     console.log('zippedData: ', zippedData);
+
     // Create bars
-    var bar = chart.selectAll('g')
+    let gBar = chart.selectAll('g')
         .data(zippedData)
         .enter().append('g')
         .attr('transform', function(d, i) {
@@ -279,32 +265,43 @@ const Generator = props => {
         });
     
     // Create rectangles of the correct width
-    bar.append('rect')
-        .attr('fill', function(d,i) { return globalScales.groupColorScale(1 - i % data.series.length); })
+    console.log('width? ', x);
+
+    gBar.append('line')
+        .attr('x1', d => x(d.min))
+        .attr('y1', 6)
+        .attr('x2', d => x(d.max))
+        .attr('y2', 6)
+        .style('stroke', 'black');
+
+    gBar.append('rect')
         .attr('class', 'bar')
-        .attr('width', x)
+        .attr('x', d => x(d.firstQuantile))
+        .attr('width', d => x(d.thirdQuantile-d.firstQuantile))
         .attr('height', barHeight - 1)
-        .style('opacity', 0.6);
+        .style('stroke', (d,i) => globalScales.groupColorScale(1 - i % data.series.length))
+        .style('fill', (d,i) => globalScales.groupColorScale(1 - i % data.series.length))
+        .style('stroke-width', 2)
+        // .style('opacity', 0.6);
     
     // Add text label in bar
-    bar.append('text')
-        .attr('class', 'feature_value_label')
-        .attr('x', function(d) { return x(d) + 10; })
-        .attr('y', barHeight / 2)
-        .attr('dy', '.35em')
-        .style('font-size', '0.9rem')
-        .style('fill', 'gray')
-        .text(function(d) { return Math.ceil(d*100)/100; });
+    // gBar.append('text')
+    //     .attr('class', 'feature_value_label')
+    //     .attr('x', d => x(d.thirdQuantile) + 10)
+    //     .attr('y', barHeight / 2)
+    //     .attr('dy', '.35em')
+    //     .style('font-size', '0.9rem')
+    //     .style('fill', 'gray')
+    //     .text(d => Math.ceil(d.mean*100)/100);
     
     // Draw labels
-    bar.append('text')
+    gBar.append('text')
         .attr('class', 'feature_label')
         .attr('x', function(d) { return - 100; })
         .attr('y', groupHeight / 2)
         .attr('dy', '.35em')
         .style('font-size', '1.1rem')
         .text(function(d, i) {
-          console.log('iii: ', i);
           let ttestMarker = '';
           if (ttestResults[Math.floor(i/data.series.length)] < 0.05)
             ttestMarker = '*';
@@ -312,7 +309,8 @@ const Generator = props => {
           if (i % data.series.length === 0)
             return data.labels[Math.floor(i/data.series.length)] + ttestMarker;
           else
-            return ''});
+            return ''
+        });
     
     // chart.append('g')
     //       .attr('class', 'y axis')
@@ -320,18 +318,18 @@ const Generator = props => {
     //       .call(yAxis);
     
     // Draw legend
-    var legendRectSize = 18,
+    let legendRectSize = 18,
         legendSpacing  = 4;
     
-    var legend = chart.selectAll('.legend')
+    let legend = chart.selectAll('.legend')
         .data(data.series)
         .enter()
         .append('g')
         .attr('transform', function (d, i) {
-            var height = legendRectSize + legendSpacing;
-            var offset = -gapBetweenGroups/2;
-            var horz = spaceForLabels + chartWidth + 40 - legendRectSize;
-            var vert = i * height - offset;
+            let height = legendRectSize + legendSpacing;
+            let offset = -gapBetweenGroups/2;
+            let horz = spaceForLabels + chartWidth + 40 - legendRectSize;
+            let vert = i * height - offset;
             return 'translate(' + horz + ',' + vert + ')';
         });
     
@@ -447,7 +445,7 @@ const Generator = props => {
       <Form
         style={{ marginLeft: '60px' }}
         onSubmit={({ value }) => {
-          var tweetsForUpdating = [];
+          let tweetsForUpdating = [];
           if (tweetsInClusterForSeqPlot.length == 0)
             tweetsForUpdating = tweets;
           else
@@ -483,7 +481,6 @@ const Generator = props => {
                 handleStyle={{ backgroundColor: 'mediumaquamarine', border: '2px solid white' }}
                 style={{ width: '90%', margin: '5px 0' }}
                 onChange={(rankingWeight) => { 
-                  console.log('rankingWeight: ', rankingWeight);
                   rankingW = rankingWeight;
                   forceUpdate();
                 }} 

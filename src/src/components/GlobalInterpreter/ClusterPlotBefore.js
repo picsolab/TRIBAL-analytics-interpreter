@@ -37,7 +37,7 @@ function ClusterPlot() {
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
       .on('mouseover', function(d) {
         d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
-        console.log('cluster: ', d);
+
         d3.selectAll('.subgroup_rect_' + d.clusterId)
             .style('stroke-width', 1.5);
       })

@@ -130,7 +130,6 @@ const ScoreView = ({ tweet, features }) => {
 
         tooltip.html(titleHtml + scoreHtml.join(''));
         tooltip.show();
-        console.log(scoreHtml);
       })
       .on('mouseout', (d, i) => {
         tooltip.hide();
@@ -140,7 +139,6 @@ const ScoreView = ({ tweet, features }) => {
     featureRecData
       .attr('width', layout.svg.width / numFeatures - 3)
       .attr('height', (d, i) => {
-        console.log('scoreScale: ', features[i].scoreScale.range(), d, features[i].scoreScale(d))
         return (features[i].type === 'categorical')
           ? 25 - features[i].scoreScale(d) - features[i].scoreScale.bandwidth()
           : 25 - features[i].scoreScale(d)
@@ -208,18 +206,10 @@ const ScoreView = ({ tweet, features }) => {
             selectedFeatureTitle
               .style('fill', 'red')
               .style('font-weight', 600);
-
-            console.log('d.tweet: ', d.tweet);
-            console.log(tweet.tweetIdx)
-            console.log('tweet content: ', d3.select('.doc_' + tweetIdx)
-            .select('.content').html());
             
             const contentArr = content.split(' ');
   
             const impSeq = selectedTweet[d.key + 'Seq'].toLowerCase().replace(/\</g,"&lt;").replace(/\>/g,"&gt;");
-  
-            console.log(content);
-            console.log(impSeq);
   
             //let impSeqArr = impSeq.split(' ');
             let startIdx = content.indexOf(impSeq.toLowerCase()),
@@ -228,7 +218,6 @@ const ScoreView = ({ tweet, features }) => {
             let htmlForImpSeq = '<span style="font-weight: 600; background-color: #ffe000;">' + impSeq + '</span>';
             const updatedSeqArr = [ content.slice(0, startIdx), htmlForImpSeq, content.slice(endIdx+1) ];
             
-            console.log('updated seq: ', updatedSeqArr)
             updatedSeqHtml = updatedSeqArr.join(' ');
           } else {
             selectedFeatureTitle
@@ -268,7 +257,6 @@ const IndexIndicator = props => {
       data-tweet-id={tweet.tweetIdx}
       data-tweet={{ tweet: tweet }}
       onClick={e => {
-        console.log('index-indicator: ', tweet);
         const selectedTweetEl = d3.select(e.target);
         if (selectedTweetEl.classed('tweet_index_indicator_highlighted') == false) {
           highlightSelectedTweet(true);
@@ -290,7 +278,6 @@ const IndexIndicator = props => {
               d3.selectAll('.aux_axis_for_cat_features_' + features[i].key + '_' + tweet[feature.key])
                 .classed('aux_axis_highlighted', isHighlighted);
             }
-            console.log(feature);
             if (i < features.length-1) {
               const currFeatureValue = tweet[features[i].key],
                 nextFeatureValue = tweet[features[i+1].key];
@@ -312,7 +299,6 @@ const IndexIndicator = props => {
           // highilght the subgroup it belongs to
           const clusterIdsForTweets = d3.select('.cluster_plot_title').datum();
           const clusterIdForHighlightedTweet = tweet.clusterId;
-          console.log(clusterIdsForTweets[tweet.tweetIdx]);
           const clusterForHighlightedTweet = d3.select('.cluster_circle_' + clusterIdsForTweets[tweet.tweetIdx])
             .classed('cluster_for_highlighted', isHighlighted);
         }
@@ -330,7 +316,7 @@ const Document = props => {
   const dispatch = useDispatch();
   if (typeof tweet === 'undefined' || Object.keys(tweet).length === 0)
     return <div />;
-  console.log('chekc tweet: ', tweet);
+
   return (
     <DocumentWrapper
       className={'doc_' + tweet.tweetIdx + (isSelected ? ' doc_selected ' : '')}

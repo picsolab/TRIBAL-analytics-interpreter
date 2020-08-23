@@ -182,8 +182,6 @@ const QAView = ({
     } 
   */
 
-  console.log('selectedTweetRules: ', selectedTweetRules);
-  console.log('contrastiveEXs: ', contrastiveEXs);
   const pTypeAnswerForFeatures = Object.keys(contrastiveRules).map((feature, idx) => {
     const subject = contrastiveRules[feature].subject;
     const inequality = contrastiveRules[feature].inequality;
@@ -230,7 +228,6 @@ const QAView = ({
                   const selectedIdForFirstTweet = e.selected[0],
                     tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
-                  console.log('selectedIdForFirstTweet: ', selectedIdForFirstTweet);
                   dispatch({
                     type: 'SELECT_TWEET',
                     payload: tweetForFirstTweet
@@ -323,7 +320,6 @@ const QAView = ({
                     const selectedIdForFirstTweet = e.selected[0],
                       tweetForFirstTweet = tweets.filter(d => selectedIdForFirstTweet === d.tweetIdx)[0];
 
-                    console.log('selectedIdForFirstTweet: ', selectedIdForFirstTweet);
                     dispatch({
                       type: 'SELECT_TWEET',
                       payload: tweetForFirstTweet
@@ -497,9 +493,6 @@ const LocalInterpreter = ({
       </LocalInterpreterWrapper>
     );
   
-  console.log('selected tweet id: ', selectedTweet.tweetIdx, selectedTweet.pred, selectedTweet);
-  console.log('contrastive tweet id: ', contrastiveEXs.pred, contrastiveEXs);
-  console.log('contrastive rules: ', contrastiveRules);
   return (
     <LocalInterpreterWrapper>
       <div>
