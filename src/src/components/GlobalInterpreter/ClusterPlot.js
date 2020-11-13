@@ -55,6 +55,7 @@ function ClusterPlot() {
         .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
         .on('mouseover', function(d) {
           d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
+
         })
         .on('mouseout', function(d) {
           d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());

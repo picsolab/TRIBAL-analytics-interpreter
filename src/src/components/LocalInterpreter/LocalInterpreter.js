@@ -444,16 +444,17 @@ const LocalInterpreter = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // dispatch(
-    //   findContrastiveExamples({
-    //     qType: qType,
-    //     tweets: tweets,
-    //     selectedTweet: selectedTweet,
-    //     secondSelectedTweet: secondSelectedTweet,
-    //     currentModel: currentModel,
-    //     features: features
-    //   })
-    // );
+    const currentModelInfo = 'dt_0';
+    dispatch(
+      findContrastiveExamples({
+        qType: qType,
+        tweets: tweets,
+        selectedTweet: selectedTweet,
+        secondSelectedTweet: secondSelectedTweet,
+        currentModel: currentModelInfo,
+        features: features
+      })
+    );
     
   }, [selectedTweet]);
 

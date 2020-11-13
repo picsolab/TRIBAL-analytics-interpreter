@@ -1,7 +1,10 @@
 import * as d3 from 'd3';
 import _ from 'lodash';
+import d3tooltip from 'd3-tooltip';
 
 import {globalColors, lCom} from '../../GlobalStyles';
+
+const tooltip = d3tooltip(d3);
 
 function ClusterPlot() {
   let dataLoader = [];
@@ -35,16 +38,33 @@ function ClusterPlot() {
       .style('fill', d => groupRatioScale(d.groupRatio.lib))
       .style('fill-opacity', 0.5)
       .style('stroke', d => d3.rgb(groupRatioScale(d.groupRatio.lib)).darker())
-      .on('mouseover', function(d) {
+      .on('mouseover', function(d, i) {
         d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).darker());
 
         d3.selectAll('.subgroup_rect_' + d.clusterId)
+            .style('stroke', 'orange')
             .style('stroke-width', 1.5);
+
+        console.log('cluster-before')
+
+        const clusterHtml =
+          '<div style="font-weight: 600">' +
+          'Cluster Id: ' +
+          (i+1) +
+          '</br>' +
+          '# of tweets: ' +
+          d.numTweets +
+          '</div>';
+
+        tooltip.html(clusterHtml);
+        tooltip.show();
       })
       .on('mouseout', function(d) {
         d3.select(this).style('fill', d3.rgb(d3.select(this).style('fill')).brighter());
         d3.selectAll('.subgroup_rect_' + d.clusterId)
+            .style('stroke', 'black')
             .style('stroke-width', 0.5);
+        tooltip.hide();
       })
       .on('click', updateOnClickCluster);
 

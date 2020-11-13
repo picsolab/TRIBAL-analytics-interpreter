@@ -1,7 +1,10 @@
 import * as d3 from 'd3';
 import _ from 'lodash';
+import d3tooltip from 'd3-tooltip';
 
 import {globalColors, l, ll, lCom} from '../../GlobalStyles';
+
+const tooltip = d3tooltip(d3);
 
 function Axes() {
   var width = 720,
@@ -164,7 +167,31 @@ function Axes() {
               .style('stroke', 'black')
               .style('stroke', 0.25)
               .style('fill', groupRatioScale(cl.groupRatio.lib))
-              .on('mouseover', d => console.log('featureMean and SD: ', cl.clusterId, featureMean, featureSD))
+              .on('mouseover', function(d, i) {
+                d3.select(this)
+                  .style('stroke', 'orange')
+                  .style('stroke-width', 2);
+                  console.log('featureMean and SD: ', cl.clusterId, featureMean, featureSD)
+                  // const subgroupHtml =
+                  //   '<div style="font-weight: 600">' +
+                  //   'Subgroup Id: ' +
+                  //   (i+1) +
+                  //   '</br>' +
+                  //   'Mean: ' +
+                  //   featureMean +
+                  //   'sd: ' +
+                  //   featureSD +
+                  //   '</div>';
+
+                  // tooltip.html(subgroupHtml);
+                  // tooltip.show();
+              })
+              .on('mouseout', function(d) {
+                d3.select(this)
+                  .style('stroke', 'black')
+                  .style('stroke-width', 0.5);
+                // tooltip.hide();
+              })
             
             var triangleSize = 20;
             var verticalTransform = 180 + Math.sqrt(triangleSize);
@@ -320,6 +347,7 @@ function Axes() {
               const pdpvaluesForGroupsPerFeature = pdpValuesObjForGroup.valuesForFeatures.filter(e => e.feature === featureName)[0]
                 .values;
               const groupName = pdpValuesObjForGroup.group.abbr;
+              console.log('pdpvaluesForGroupsPerFeature: ', pdpvaluesForGroupsPerFeature)
 
               // Path
               d3.select('.g_feature_axis_' + feature.key)

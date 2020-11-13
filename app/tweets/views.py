@@ -197,7 +197,6 @@ class LoadWords(APIView):
         df_word_count = pd.concat([ df_word_list, df_word_count_per_group ], axis=1)
 
         df_word_count['word'] = df_word_count['word'].map(lambda x: x.encode('unicode-escape').decode('utf-8'))
-        df_word_count.to_csv('word_count.csv', sep='\t', encoding = 'utf-8', index_label='idx')
         # Filter out words with threshold
         df_filtered_word_count = df_word_count.loc[df_word_count['count_total'] > 10]
         
@@ -263,8 +262,6 @@ class RunDecisionTree(APIView):
         y_pred_for_test = clf.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred_for_test)
         scores = cross_validate(clf, X, y, cv=10)['test_score']
-
-        print('accuracy: ', accuracy)
         save_model(clf, 'dt_all')
 
         return Response({
@@ -324,8 +321,6 @@ class RunDecisionTree(APIView):
 #             }
 #             clusters_per_goal.append(clusters_per_goal)
 
-#         print('clusters_per_goal')
-#         print(clusters_per_goal)
 #         # Save all results for clustering-all
 #         df_clusters = pd.DataFrame({
 #             'clusterId': list(df_tweets_by_cluster.groups),
@@ -474,10 +469,8 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
                 
                 # Do 1 - (probability) if the group is not true class (since probability is possibility of being the group 1 (blue team))
                 if group_idx == 0:
-                    print('pdp_values_for_group_before: ', group_idx, pdp_values_for_group)
                     pdp_values_for_group = [ 1- pdp_value for pdp_value in pdp_values_for_group ]
                 
-                print('pdp_values_for_group: ', group_idx, pdp_values_for_group)
                 pdp_values_json = pd.DataFrame({ 'pdpValue': pdp_values_for_group, 'featureValue': feature_values[0] }).to_dict(orient='records')
                 pdp_values_for_features.append({ 'feature': feature, 'values': pdp_values_json })
 
@@ -516,7 +509,6 @@ class RunClusteringAndPartialDependenceForClusters(APIView):
                     pdp_values_cl_for_group = pdp_values[0]
 
                     if group_idx == 0:
-                        print('pdp_values_for_group_before: ', group_idx, pdp_values_for_group)
                         pdp_values_cl_for_group = [ 1- pdp_value for pdp_value in pdp_values_cl_for_group ]
 
                     pdp_values_cl_json = pd.DataFrame({ 'pdpValue': pdp_values_cl_for_group, 'featureValue': feature_values[0] }).to_dict(orient='records')
@@ -570,14 +562,14 @@ class FindContrastiveExamples(APIView):
         features = ['valence', 'dominance', 'care', 'fairness', 'loyalty', 'authority', 'purity']
         request_json = json.loads(request.body.decode(encoding='UTF-8'))
 
-        # print('request_json in findcontrastiveexamples:', request_json)
         q_type = request_json['qType']
         selected_tweet = request_json['selectedTweet']
         second_selected_tweet = request_json['secondSelectedTweet']
         selected_tweet_idx = selected_tweet['tweetIdx']
 
         tweets = request_json['tweets']
-        model_id = request_json['currentModelInfo']['id']
+        # model_id = request_json['currentModelInfo']['id']
+        model_id = 'dt_0'
 
         mode = 'static'
 
@@ -594,7 +586,6 @@ class FindContrastiveExamples(APIView):
         # Load the model and parse it as decision tree
         tweets = sorted(tweets, key=lambda k: k['tweetIdx'])
         df_tweets = pd.DataFrame(tweets)
-        df_tweets.to_csv('df_tweets_checking.csv')
         
         lb = preprocessing.LabelBinarizer()
         X = df_tweets[features]
@@ -632,7 +623,7 @@ class FindContrastiveExamples(APIView):
         num_cons = []
         num_libs = []
         entry_idx = []
-        print('first leaf: ', leaves_index[0])
+
         for idx, leaf_idx in enumerate(leaves_index):
             num_con, num_lib = values_path[idx][-1][0]
             leaf_class = 1 if (num_con < num_lib) else 0
@@ -663,7 +654,6 @@ class FindContrastiveExamples(APIView):
         if q_type == 'p-mode':
             selected_tweet_idx = selected_tweet['tweetIdx']
             leaf_idx = entry_leaf_idx[selected_tweet_idx]
-            print('selected_tweet: ', selected_tweet)
             #-- Identify the predicted class
             leaf = df_leaves.loc[leaf_idx]
             #-- Find a neighbor leaf that is predicted as the opposite but also the closest to the leaf
@@ -671,25 +661,15 @@ class FindContrastiveExamples(APIView):
             leaf_class = leaf['class']
             entries_w_opp_class = df_leaves.loc[df_leaves['class'].astype('int64') != int(leaf['class'])]
             leaf_idx_diff = abs(entries_w_opp_class['idx'] - int(leaf['idx']))
-            print('leaf_idx_diff: ', leaf_idx_diff)
-            leaf_idx_diff.to_csv('leaf_idx_diff.csv')
             cont_leaf_idx = leaf_idx_diff.idxmin()
             cont_leaf = entries_w_opp_class.loc[cont_leaf_idx]
-            print('leaf: ', leaf['entriesIdx'])
-            # print('leaf: ', leaf)
-            print('cont_leaf: ', cont_leaf['entriesIdx'])
 
             df_tweets_in_selected_leaf = df_tweets.loc[leaf['entriesIdx']]
-            df_tweets_in_selected_leaf.to_csv('df_tweets_in_selected_leaf.csv')
             df_tweets_in_cont_leaf = df_tweets.loc[cont_leaf['entriesIdx']]
-            df_tweets_in_cont_leaf.to_csv('df_tweets_in_cont_leaf.csv')
             df_correct_pred_tweets_in_cont_leaf = df_tweets_in_cont_leaf.loc[ df_tweets_in_cont_leaf['group'].astype('int64') == df_tweets_in_cont_leaf['pred'].astype('int64') ]
-            df_correct_pred_tweets_in_cont_leaf.to_csv('df_correct_pred_tweets_in_cont_leaf.csv')
 
             cont_leaf_rules = cont_leaf['rule']
             selected_leaf_rules = leaf['rule']
-            print('cont_leaf_rules: ', cont_leaf_rules)
-            print('selected_leaf_rules: ', selected_leaf_rules)
 
             #-- Identify rule difference  e.g., "Selected tweet has higher fairness than tweet 176"
             num_rules_cont_leaf = len(cont_leaf_rules)
@@ -750,7 +730,6 @@ class FindContrastiveExamples(APIView):
             # Identify feature-level contrastive example
             cont_examples_list = []
             for cont_feature, cont_rule in cont_rules_dict.items():
-                print('cont_feature_and_rule: ', cont_feature, cont_rule)
                 # Find the examples where rest of features are similar to the selected tweet
                 rest_features = [ feature for feature in features if feature != cont_feature ]
                 df_correct_pred_opp_class_tweets_in_cont_leaf = df_correct_pred_tweets_in_cont_leaf.loc[ 
@@ -766,8 +745,6 @@ class FindContrastiveExamples(APIView):
                 while len(cont_examples_list) == 0: # until we find the counterfactual example in the counterfactual leaf
                     optimal_tweet_idx = np.argmin(dists[nn_idx])
                     optimal_tweet = df_correct_pred_tweets_in_cont_leaf.iloc[optimal_tweet_idx]
-                    print('optimal_tweet_candidate: ', optimal_tweet)
-                    print('selected_tweet: ', selected_tweet)
                     if optimal_tweet['group'] == selected_tweet['group']: # counterfactual should be one that belongs to the opposite group
                         nn_idx += 1
                         break
@@ -776,8 +753,6 @@ class FindContrastiveExamples(APIView):
                         cont_example_dict['contFeature'] = cont_feature
                         cont_example_dict['pdpValue'] = 0
                         cont_examples_list.append(cont_example_dict)
-                        for cont_example in cont_examples_list:
-                            print('cont_example: ', cont_example)
                 
         elif q_type == 'o-mode':
             # detect where the selected tweet belongs (by index and what node the index resides in)
@@ -791,9 +766,6 @@ class FindContrastiveExamples(APIView):
 
             first_leaf_rules = first_leaf['rule'].values[0]
             second_leaf_rules = second_leaf['rule'].values[0]
-
-            print('first_leaf_rules: ', first_leaf_rules)
-            print('second_leaf_rules: , ', second_leaf_rules)
                 
             num_rules_second_leaf = len(first_leaf_rules)
             num_rules_first_leaf = len(second_leaf_rules)
@@ -838,7 +810,6 @@ class FindContrastiveExamples(APIView):
                         break
             
         time_check5 = time.time() - time_check1
-        print('time-check: ', time_check1, time_check2, time_check3, time_check4, time_check5)
         if q_type == 'p-mode':
             return Response({ 'qType': q_type, 'contExamples': cont_examples_list, 'contRules': cont_rules_dict, 'selectedTweetRules': selected_leaf_rules })
         elif q_type == 'o-mode':
@@ -890,9 +861,6 @@ class ExtractSeqs(APIView):
         tweet_ids = request_json['tweetIds']
         weights = request_json['seqWeights']
 
-        print('mode: ', mode, opt)
-        print('lenngth of tweets: ', len(tweet_ids))
-
         if opt == 'static':
             f = open('./app/static/data/imp_seqs.json', "r") 
             imp_seqs = json.loads(f.read())
@@ -901,7 +869,6 @@ class ExtractSeqs(APIView):
             imp_seqs = {}
 
             for feature in feature_list:
-                print('feature: ', feature)
                 imp_seqs[feature] = []
                 test = dl.model_loader(feature, mode, tweet_ids, weights['post'], weights['ranking'], weights['length'], weights['freq'], None)
                 tid_group_post_dict = test.normalize_group_posterior()

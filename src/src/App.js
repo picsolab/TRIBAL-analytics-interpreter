@@ -78,7 +78,7 @@ function App() {
   return (
     <Container className={Container}>
       <Header className={Header} style={{display: 'flex'}}>
-        <Title className=".App-link">TRIBAL&nbsp;
+        <Title className=".App-link">TribalGram&nbsp;
           <span style={{ 
             'font-size': '1.5rem',
             'color': 'white' 

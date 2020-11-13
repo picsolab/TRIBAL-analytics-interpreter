@@ -227,7 +227,7 @@ const tweet = (state = initialState, action) => {
         tweets: _.sortBy(action.payload.tweets, 'tweetIdx'),
         tweetList: _.sortBy(action.payload.tweets, 'tweetIdx'),
         tweetsWithPredFeatures: action.payload.tweetsWithPredFeatures,
-        selectedTweet: action.payload.tweets[0]
+        selectedTweet: action.payload.tweets[1]
       };
     case FETCH_WORDS:
       return {

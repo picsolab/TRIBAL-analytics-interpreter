@@ -363,7 +363,7 @@ const SeqPlotView = ({
           />
         </WordGroupPlot> */}
       </SeqPlotViewWrapper>
-      <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} />
+      {/* <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} /> */}
     </div>
   );
 };

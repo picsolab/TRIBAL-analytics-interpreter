@@ -613,7 +613,7 @@ const SeqPlotView2 = ({
           ref={ref}
         />
       </SeqPlotViewWrapper>
-      <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} />
+      {/* <SeqListForCluster isClusterSelected={isClusterSelected} tweetsInClusterForSeqPlot={tweetsInClusterForSeqPlot} /> */}
       <ReactTooltip />
     </div>
   );

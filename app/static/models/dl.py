@@ -22,24 +22,17 @@ class model_loader():
         elif mode == 'cluster':
             df_filtered_tweets = df_tweets.loc[tweet_ids]
             df_tweets_full_filtered_tweets = df_tweets_full.loc[tweet_ids]
-            df_tweets_full_filtered_tweets.to_csv('./app/static/data/tweets_in_cluster.csv')
             self.data = df_filtered_tweets.to_dict('index')
-            print('group 0: ', df_tweets_full_filtered_tweets.loc[df_tweets_full_filtered_tweets['care']==0].shape)
-            print('group 1: ', df_tweets_full_filtered_tweets.loc[df_tweets_full_filtered_tweets['care']==1].shape)
-            for k in self.data:
-                if 'label_0' in self.data[k].keys():
-                    if math.isnan(self.data[k]['label_0']):
-                        print('dfdf: ', self.data[k])
-                else:
-                    print('ffdd: ', self.data[k])
-            self.data = {k: self.data[k] for k in self.data if not math.isnan(self.data[k]['label_0'])}
-            #self.data =  [ tweet for tweet in self.data.items()
-            print('selected tweets: ', len(self.data))
-        
-        print('extracting sequences...')
-        self._extract_seqs(args)
-        print('calculating sequence importance...')
 
+            # for k in self.data:
+            #     if 'label_0' in self.data[k].keys():
+            #         if math.isnan(self.data[k]['label_0']):
+            #             print('dfdf: ', self.data[k])
+            #     else:
+            #         print('ffdd: ', self.data[k])
+            self.data = {k: self.data[k] for k in self.data if not math.isnan(self.data[k]['label_0'])}
+        
+        self._extract_seqs(args)
         self.post_w = post_w
         self.ranking_w = ranking_w
         self.length_w = length_w
@@ -54,11 +47,6 @@ class model_loader():
 
     def show_important_examples(self, n=5):
         tids = self.get_most_important(n)
-        # for tid in tids:
-        #     print('tid ', tid, self.data[tid]['raw_text'])
-        #     print(' '.join(self.data[tid]['seq']))
-        #     print(f"Label 0: {self.data[tid]['label_0']} \t Prediction 0: {self.data[tid]['pred_0']}")
-        #     print(f"Label 1: {self.data[tid]['label_1']} \t Prediction 1: {self.data[tid]['pred_1']}")
     
     def get_attention(self, tid):
         return self.data[tid]['attention'], self.data[tid]['text']

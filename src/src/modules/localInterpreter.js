@@ -19,7 +19,7 @@ export const findContrastiveExamples = ({
       qType: qType,
       selectedTweet: selectedTweet,
       secondSelectedTweet: secondSelectedTweet,
-      modelId: currentModelInfo.id,
+      modelId: 'dt_0',
       features: features,
       tweets: tweets,
       currentModelInfo: currentModelInfo
@@ -36,14 +36,14 @@ export const findContrastiveExamples = ({
         qType: qType,
         selectedTweet: selectedTweet,
         secondSelectedTweet: secondSelectedTweet,
-        modelId: currentModelInfo.id,
+        modelId: 'dt_0',
         features: features,
         tweets: tweets,
         currentModelInfo: currentModelInfo
       })
     }).then(res => {
       dispatch({ type: 'FIND_CONTRA_EX', payload: res.data });
-      // dispatch({ type: 'IS_CF_LOADING', payload: false });
+      dispatch({ type: 'IS_CF_LOADING', payload: false });
     });
   };
 };

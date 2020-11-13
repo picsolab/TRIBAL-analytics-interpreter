@@ -41,7 +41,7 @@ const GeneratorWrapper = styled(SectionWrapper).attrs({
   className: 'generator_wrapper'
 })`
   grid-area: ge;
-  height: 100%;
+  height: 110%;
   // border-bottom: 1px solid lightgray;
   // background: whitesmoke;
   margin-top: 0;
@@ -203,11 +203,13 @@ const Generator = props => {
         const featureValuePerGroup = tweets
             .filter(d => d.group == group.idx)
             .map(d => d[feature.key]);
-        const sortedValue = _.sortBy(featureValuePerGroup);
+        const sortedValue = _.sortBy(featureValuePerGroup),
+          meanValue = _.mean(featureValuePerGroup);
 
         featureValuesForGroups.push(featureValuePerGroup);
         data.series[idx].values.push({
-          mean: _.mean(featureValuePerGroup),
+          mean: meanValue,
+          std: Math.sqrt(_.sum(_.map(featureValuePerGroup, (i) => Math.pow((i - meanValue), 2))) / featureValuePerGroup.length),
           firstQuantile: d3.quantile(sortedValue, 0.25),
           thirdQuantile: d3.quantile(sortedValue, 0.75),
           max: d3.max(featureValuePerGroup),
@@ -268,21 +270,22 @@ const Generator = props => {
     console.log('width? ', x);
 
     gBar.append('line')
-        .attr('x1', d => x(d.min))
+        .attr('x1', d => x(d.mean-d.std))
         .attr('y1', 6)
-        .attr('x2', d => x(d.max))
+        .attr('x2', d => x(d.mean+d.std))
         .attr('y2', 6)
-        .style('stroke', 'black');
+        .style('stroke', 'black')
+        .style('stroke-width', 2);
 
     gBar.append('rect')
         .attr('class', 'bar')
-        .attr('x', d => x(d.firstQuantile))
-        .attr('width', d => x(d.thirdQuantile-d.firstQuantile))
+        .attr('x', d => 0)
+        .attr('width', d => x(d.mean))
         .attr('height', barHeight - 1)
         .style('stroke', (d,i) => globalScales.groupColorScale(1 - i % data.series.length))
         .style('fill', (d,i) => globalScales.groupColorScale(1 - i % data.series.length))
         .style('stroke-width', 2)
-        // .style('opacity', 0.6);
+        .style('fill-opacity', 0.6);
     
     // Add text label in bar
     // gBar.append('text')
@@ -351,26 +354,34 @@ const Generator = props => {
       <div style={{ backgroundColor: '#beffe7', fontWeight: 600 }}>All</div>
       <div>Emotion</div>
       <div>Moral</div> */}
-      <div>
-          <SubsectionTitle>Groups</SubsectionTitle>
-          <div style={{ display: 'flex' }}>
-            <div style={{ width: '100px' }}>
-              <div style={{ display: 'flex' }}>
-                <GroupDiv style={{ background: 'red' }} />
-                <div>Red</div>
-              </div>
-              <div style={{ display: 'flex' }}>
-                <GroupDiv style={{ background: 'blue' }} />
-                <div>Blue</div>
+      <div style={{ display: 'flex', width: '30%' }}>
+          <div>
+            <SubsectionTitle>Groups</SubsectionTitle>
+            <div style={{ display: 'flex' }}>
+              <div style={{ width: '100px' }}>
+                <div style={{ display: 'flex' }}>
+                  <GroupDiv style={{ background: 'red' }} />
+                  <div>Red</div>
+                </div>
+                <div style={{ display: 'flex' }}>
+                  <GroupDiv style={{ background: 'blue' }} />
+                  <div>Blue</div>
+                </div>  
               </div>
             </div>
+          </div>
+          <div>
+            <SubsectionTitle>
+              <div>Psycholinguistic</div> 
+              <div>Summary Bar chart</div>
+            </SubsectionTitle>
             <svg 
-              width={200} 
-              height={300} 
-              viewBox={'0 0 ' + 200 + ' ' + 300} 
-              preserveAspectRatio='xMinYMin' 
-              ref={ref}
-            />
+                width={200} 
+                height={300} 
+                viewBox={'0 0 ' + 200 + ' ' + 300} 
+                preserveAspectRatio='xMinYMin' 
+                ref={ref}
+              />
           </div>
       </div>
       <Form

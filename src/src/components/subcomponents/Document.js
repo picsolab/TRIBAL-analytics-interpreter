@@ -339,7 +339,7 @@ const Document = props => {
           onClick={e => {
             const classList = e.target.className.split(' ');
             const isSelected =
-              classList.filter(d => d === 'doc_glyph_secon  xd_selected')
+              classList.filter(d => d === 'doc_glyph_second_selected')
                 .length !== 0;
 
             if (isSelected) {
