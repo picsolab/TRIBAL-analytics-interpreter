@@ -10,7 +10,7 @@ The **Analytic Interpreter** for *TRIBAL project* is a visual analytic toolkit f
 - <b>styled-component</b>: The stylesheet grammar for more flexible structure
 - <b>d3.js</b>: Javascript-based visualization library
 
-
+======
 ### Overview
 
 <h1 align="center">
