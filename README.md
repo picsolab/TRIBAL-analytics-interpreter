@@ -1,7 +1,7 @@
 TRIBAL Analytic Interpreter
 ======
 
-The Analytic Interpreter for TRIBAL project is a visual analytic toolkit for the analysis on group biases, that incorporates (a) a suite of visual analytic components to help quantitatively and qualitatively inspect the shared and varied characteristics of groups, and (b) interpretable machine learning algorithms, including multi-task predictive models and contrastive explanatory models, to identify qualitative evidence and rationale for individuals regarded as group members.
+The **Analytic Interpreter** for *TRIBAL project* is a visual analytic toolkit for the analysis on group biases, that incorporates (a) a suite of visual analytic components to help quantitatively and qualitatively inspect the shared and varied characteristics of groups, and (b) interpretable machine learning algorithms, including multi-task predictive models and contrastive explanatory models, to identify qualitative evidence and rationale for individuals regarded as group members.
 
 #### Specification
 
@@ -33,14 +33,14 @@ Our system supports the following specific tasks to achieve
 
 ### System
 The system overview of Analytic Interpreter. The system integrates visualization and analytic pipeline to support the group analysis tasks:
-- (a) Instance Viewer: Supports navigation and retrieval of instances of interest 
-- (b) Scope Controller: Enables data retrieval, selection, and control. The visualization of selected attributes with adjusted scopes are rendered in the main visualization panel
-- (c) Group Trend: Visually captures the major trends of groups across attributes
-- (d) LanguageScope: Provides a visual summary of the language evidence for every sociolinguistic attribute, enabling users to further retrieve qualitative details from the tweet instances. 
+- (a) **Instance Viewer**: Supports navigation and retrieval of instances of interest 
+- (b) **Scope Controller**: Enables data retrieval, selection, and control. The visualization of selected attributes with adjusted scopes are rendered in the main visualization panel
+- (c) **Group Trend**: Visually captures the major trends of groups across attributes
+- (d) **LanguageScope**: Provides a visual summary of the language evidence for every sociolinguistic attribute, enabling users to further retrieve qualitative details from the tweet instances. 
 
 The analytic pipeline includes: 
-- (g) Multi-task prediction models for generating language cues from the tweet dataset to support the visual inspection in LanguageScope
-- (f) Contrastive explanatory models for discovering rationales for explaining the prediction of any instance.
+- (g) **Multi-task prediction models** for generating language cues from the tweet dataset to support the visual inspection in LanguageScope
+- (f) **Contrastive explanatory models** for discovering rationales for explaining the prediction of any instance.
 
 
 ### Reference
